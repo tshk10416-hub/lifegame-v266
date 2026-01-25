@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>収支グラフ - ライフリッジゲーム</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f0f4f8; }
+        .chart-container { max-width: 800px; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; }
+        .back-button { display: block; margin: 20px auto; padding: 10px 20px; font-size: 1em; cursor: pointer; background-color: #a0aec0; color: white; border: none; border-radius: 5px; text-align: center; text-decoration: none; }
+        .back-button:hover { background-color: #718096; }
+        @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+    </style>
+</head>
+<body>
+    <h1><i class="fas fa-chart-line"></i> 収支グラフ</h1>
+    <div class="chart-container">
+        <canvas id="historyChart"></canvas>
+    </div>
+
+    {/* --- ★★★ 修正箇所 ★★★ --- */}
+    <a href="index.html" class="back-button">ゲームに戻る</a>
+    {/* --- ★★★ 修正箇所ここまで ★★★ --- */}
+
+    <script src="graph.js"></script>
+    
+</body>
+</html>

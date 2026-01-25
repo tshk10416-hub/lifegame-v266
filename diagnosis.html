@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ライフリッジ・リアル診断シート</title>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2b6cb0;
+            --accent: #FF7F50;
+            --bg: #f7fafc;
+            --white: #ffffff;
+            --text: #2d3748;
+            --danger: #e53e3e;
+            --success: #48bb78;
+            --input-bg: #ebf8ff; 
+            --input-border: #bee3f8;
+        }
+
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--white);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px dashed var(--primary);
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        /* --- 入力セクション --- */
+        .input-section-wrapper {
+            background: #ebf8ff;
+            border: 2px solid #bee3f8;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .age-input-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .age-input-group input {
+            width: 80px;
+            padding: 8px;
+            font-size: 1.5rem;
+            text-align: center;
+            border: 2px solid #fff;
+            background: white;
+            border-radius: 8px;
+            font-family: inherit;
+            color: #2b6cb0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .calc-info {
+            font-size: 0.9rem;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+
+        .income-container {
+            border-top: 2px dashed #90cdf4;
+            padding-top: 20px;
+            margin-top: 10px;
+        }
+        .income-title {
+            color: #2c5282;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .income-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .income-group {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .income-group label {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .income-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .income-wrapper input {
+            width: 90px;
+            padding: 8px;
+            font-size: 1.3rem;
+            text-align: right;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f7fafc;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .net-income-display {
+            background: #2b6cb0;
+            color: white;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: inline-block;
+            min-width: 250px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .net-label { font-size: 0.9rem; opacity: 0.9; }
+        .net-value { font-size: 2rem; font-weight: 900; color: #fbdb65; line-height: 1.2; }
+        .gross-total { font-size: 0.8rem; margin-top: 5px; opacity: 0.8; }
+
+        /* 現在の貯蓄額入力エリア */
+        .current-asset-input {
+            margin-top: 20px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #48bb78;
+            display: inline-block;
+        }
+        .current-asset-input label {
+            font-weight: bold;
+            color: #2f855a;
+            margin-right: 10px;
+        }
+        .current-asset-input input {
+            width: 100px;
+            padding: 5px;
+            font-size: 1.3rem;
+            text-align: right;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #2f855a;
+        }
+
+        /* 手当ガイダンス */
+        .allowance-guide {
+            margin-top: 15px;
+            background: #fff;
+            border: 1px solid #48bb78;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.85rem;
+            color: #2f855a;
+            text-align: left;
+            display: inline-block;
+            max-width: 90%;
+        }
+        .allowance-guide strong {
+            color: #276749;
+            display: block;
+            margin-bottom: 3px;
+        }
+        .allowance-highlight {
+            background: linear-gradient(transparent 60%, #b2f5ea 60%);
+            font-weight: bold;
+        }
+
+        /* --- 比較テーブル --- */
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate; 
+            border-spacing: 0 8px; 
+            margin-bottom: 30px;
+        }
+
+        .comparison-table th {
+            background: #2d3748;
+            color: white;
+            padding: 15px 10px;
+            font-size: 0.9rem;
+            text-align: center;
+            vertical-align: middle;
+            border-radius: 5px 5px 0 0;
+        }
+        .comparison-table th.game-header { background: var(--accent); }
+        .comparison-table th.real-header { background: var(--primary); }
+
+        .comparison-table tbody tr {
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        .comparison-table td {
+            padding: 15px 10px;
+            vertical-align: middle; 
+            border-bottom: 1px solid #edf2f7;
+        }
+        .comparison-table tbody tr td:first-child { border-radius: 8px 0 0 8px; }
+        .comparison-table tbody tr td:last-child { border-radius: 0 8px 8px 0; }
+
+        .category-cell {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            color: #2d3748;
+        }
+        .category-cell i { 
+            color: var(--primary); 
+            width: 24px; 
+            text-align: center; 
+            font-size: 1.1em;
+        }
+
+        .game-val {
+            font-weight: bold;
+            color: var(--accent);
+            text-align: right;
+            font-size: 1.1rem;
+        }
+
+        /* 入力エリア */
+        .real-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.1rem;
+            border: 2px solid var(--input-border);
+            border-radius: 8px;
+            background: var(--input-bg);
+            text-align: right;
+            color: #2c5282;
+            font-weight: bold;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+        .real-input:focus {
+            outline: none;
+            border-color: #4299e1;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+        }
+
+        .input-group-cell {
+            background: var(--input-bg);
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid var(--input-border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .input-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; 
+            gap: 8px;
+        }
+        
+        .mini-input {
+            width: 70px;
+            padding: 6px;
+            font-size: 1rem;
+            text-align: right;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            background: #fff;
+            font-weight: bold;
+            color: #2c5282;
+        }
+        .mini-input:focus {
+            outline: none;
+            border-color: #4299e1;
+        }
+
+        .unit-label { 
+            font-size: 0.85rem; 
+            color: #4a5568; 
+            font-weight: bold;
+        }
+        .calc-preview {
+            font-size: 0.85rem;
+            color: #2b6cb0;
+            text-align: right;
+            font-weight: bold;
+            padding-top: 5px;
+            border-top: 1px dashed #cbd5e0;
+        }
+
+        .source-text {
+            font-size: 0.75rem;
+            color: #718096;
+            line-height: 1.4;
+        }
+
+        .invest-calc-box {
+            background: #e6fffa; 
+            border-color: #b2f5ea;
+        }
+        #invest-result-display {
+            font-weight: bold;
+            color: #2b6cb0;
+            font-size: 0.9em;
+            line-height: 1.3;
+            text-align: right;
+        }
+
+        .diagnose-btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+            transition: transform 0.2s;
+            margin-bottom: 40px;
+        }
+        .diagnose-btn:active { transform: scale(0.98); }
+
+        #resultArea {
+            display: none;
+            background: #fff;
+            padding: 20px;
+            border-radius: 20px;
+            border: 4px solid var(--primary);
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .result-summary { text-align: center; margin-bottom: 30px; }
+        .total-cost-display {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--danger);
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+        .net-income-projection {
+            text-align: center;
+            background: #fffaf0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #f6e05e;
+            color: #744210;
+        }
+        .advice-box {
+            background: #ebf8ff;
+            border-left: 5px solid var(--primary);
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 1rem;
+        }
+
+        /* 老後シミュレーション用 */
+        .retirement-sim-area {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 3px dashed #cbd5e0;
+        }
+        .sim-header {
+            font-size: 1.3rem;
+            color: #2b6cb0;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .sim-input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .sim-group {
+            background: #f7fafc;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .sim-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: #718096;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .sim-group input {
+            width: 80px;
+            padding: 5px;
+            font-size: 1.2rem;
+            text-align: center;
+            border: 1px solid #cbd5e0;
+            border-radius: 5px;
+            color: #2d3748;
+            font-weight: bold;
+        }
+        .sim-result-box {
+            background: #2d3748;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .sim-result-val {
+            font-size: 2rem;
+            font-weight: 900;
+            margin: 10px 0;
+        }
+        .sim-result-safe { color: #48bb78; }
+        .sim-result-danger { color: #e53e3e; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 600px) {
+            .container { padding: 10px; width: 100%; border-radius: 0; box-shadow: none; }
+            h1 { font-size: 1.5rem; }
+            .comparison-table th, .comparison-table td { padding: 10px 5px; font-size: 0.8rem; }
+            .game-val, .real-input, .mini-input { font-size: 1rem; }
+            .category-cell { font-size: 0.8rem; flex-direction: column; align-items: flex-start; gap: 2px; }
+            .income-inputs { gap: 10px; }
+            .income-group { width: 45%; }
+            .income-wrapper input { width: 100%; font-size: 1.1rem; }
+            .sim-input-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1><i class="fas fa-clipboard-check"></i> ライフリッジ診断シート</h1>
+        <p class="subtitle">ゲームの結果と「あなたの現実」を徹底比較</p>
+    </header>
+
+    <!-- 年齢・収入入力 -->
+    <div class="input-section-wrapper">
+        <div class="age-input-group">
+            <label for="currentAge">現在の年齢</label>
+            <input type="number" id="currentAge" value="30" min="18" max="64" onchange="updateRealDefaults()">
+            <span>歳</span>
+        </div>
+        <div class="calc-info">
+            <i class="fas fa-arrow-right"></i> 
+            65歳までの残り期間：<strong id="remainingYears" style="color:var(--primary);">35</strong> 年間で計算します
+        </div>
+
+        <div class="income-container">
+            <div class="income-title"><i class="fas fa-wallet"></i> 世帯収入の入力 (額面)</div>
+            <div class="income-inputs">
+                <div class="income-group">
+                    <label>あなた (年収)</label>
+                    <div class="income-wrapper">
+                        <input type="number" id="incomeSelf" value="400" step="10" oninput="calculateHouseholdNetIncome()">
+                        <span>万円</span>
+                    </div>
+                </div>
+                <div class="income-group">
+                    <label>パートナー (年収)</label>
+                    <div class="income-wrapper">
+                        <input type="number" id="incomePartner" value="0" step="10" oninput="calculateHouseholdNetIncome()">
+                        <span>万円</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align:center; margin:15px 0;">
+                <div class="current-asset-input">
+                    <label for="currentSavings"><i class="fas fa-piggy-bank"></i> 現在の貯蓄額 (世帯)</label>
+                    <input type="number" id="currentSavings" value="300" step="10" oninput="calculateHouseholdNetIncome()">
+                    <span>万円</span>
+                </div>
+            </div>
+
+            <div class="net-income-display">
+                <div class="net-label">世帯手取り年収 (概算)</div>
+                <div class="net-value">
+                    <span id="displayNetIncome">0</span> <small style="font-size:1rem; color:white;">万円</small>
+                </div>
+                <div class="gross-total">(世帯額面合計: <span id="displayGrossIncome">400</span>万円)</div>
+            </div>
+
+            <!-- ガイダンス (手当) -->
+            <div class="allowance-guide">
+                <strong><i class="fas fa-info-circle"></i> 公的支援も自動計算に含まれます</strong>
+                この診断では、以下の支援金を「収入」として加算して計算します。<br>
+                <ul>
+                    <li><strong>出産育児一時金：</strong> 1人につき50万円</li>
+                    <li><strong>児童手当：</strong> 1・2人目は総額約234万円、<span class="allowance-highlight">3人目以降は月3万円(総額約648万円)</span>で計算</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 比較入力フォーム -->
+    <table class="comparison-table">
+        <thead>
+            <tr>
+                <th style="width: 25%;">項目</th>
+                <th class="game-header" style="width: 20%;">ゲーム実績<br><small>(万円)</small></th>
+                <th class="real-header" style="width: 35%;">あなたの現実<br><small>入力エリア</small></th>
+                <th style="width: 20%;">備考・根拠</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 1. 結婚 -->
+            <tr>
+                <td class="category-cell"><i class="fas fa-ring"></i> 結婚</td>
+                <td class="game-val" id="g-marriage">0</td>
+                <td><input type="number" id="r-marriage" class="real-input" value="350"></td>
+                <td class="source-text">ゼクシィ結婚トレンド調査<br>(挙式・披露宴平均)</td>
+            </tr>
+            <!-- 2. 子供 (教育+育成) -->
+            <tr>
+                <td class="category-cell"><i class="fas fa-user-graduate"></i> 子供 (教育+育成)</td>
+                <td class="game-val" id="g-children">0</td>
+                <td>
+                    <div class="input-group-cell">
+                        <div class="input-row">
+                            <span class="unit-label">1人あたり</span>
+                            <input type="number" id="r-child-unit" class="mini-input" value="1500" oninput="updateChildTotal()">
+                            <span class="unit-label">万円</span>
+                        </div>
+                        <div class="input-row">
+                            <span class="unit-label">人数</span>
+                            <input type="number" id="r-child-count" class="mini-input" value="2" oninput="updateChildTotal()">
+                            <span class="unit-label">人</span>
+                        </div>
+                        <div id="child-total-preview" class="calc-preview">総額: 0万円</div>
+                    </div>
+                </td>
+                <td class="source-text">文科省・内閣府調査より推計<br>(教育費+習い事・通信・小遣い等)<br>※食費等は生活費に含む</td>
+            </tr>
+            <!-- 3. 住宅 -->
+            <tr>
+                <td class="category-cell"><i class="fas fa-home"></i> 住宅</td>
+                <td class="game-val" id="g-house">0</td>
+                <td><input type="number" id="r-house" class="real-input" value="4500"></td>
+                <td class="source-text">フラット35利用者調査<br>(土地付注文住宅全国平均)</td>
+            </tr>
+            
+            <!-- 4. 自動車 (単価 x 回数 + 維持費) -->
+            <tr>
+                <td class="category-cell"><i class="fas fa-car"></i> 自動車</td>
+                <td class="game-val" id="g-car">0</td>
+                <td>
+                    <div class="input-group-cell">
+                        <div class="input-row">
+                            <span class="unit-label">単価</span>
+                            <input type="number" id="r-car-price" class="mini-input" value="300" oninput="updateCarTotal()">
+                            <span class="unit-label">万円</span>
+                        </div>
+                        <div class="input-row">
+                            <span class="unit-label">回数</span>
+                            <input type="number" id="r-car-count" class="mini-input" value="4" oninput="updateCarTotal()">
+                            <span class="unit-label">回</span>
+                        </div>
+                        <div id="car-total-preview" class="calc-preview">総額: 0万円</div>
+                    </div>
+                </td>
+                <td class="source-text">※別途、維持費(年15万)が自動加算されます</td>
+            </tr>
+
+            <!-- 5. 保険 (月額入力) -->
+            <tr>
+                <td class="category-cell"><i class="fas fa-shield-alt"></i> 保険</td>
+                <td class="game-val" id="g-insurance">0</td>
+                <td>
+                    <div class="input-group-cell">
+                        <div class="input-row">
+                            <span class="unit-label">月額</span>
+                            <input type="number" id="r-insurance-monthly" class="mini-input" value="2.5" step="0.5" oninput="updateMonthlyTotal('r-insurance-monthly', 'insurance-total-preview')">
+                            <span class="unit-label">万円</span>
+                        </div>
+                        <div id="insurance-total-preview" class="calc-preview">総額: 0万円</div>
+                    </div>
+                </td>
+                <td class="source-text">生命保険文化センター参照<br>(月額×残り月数)</td>
+            </tr>
+
+            <!-- 6. 生活費 (月額入力) -->
+            <tr>
+                <td class="category-cell"><i class="fas fa-shopping-cart"></i> 生活費</td>
+                <td class="game-val" id="g-living">0</td>
+                <td>
+                    <div class="input-group-cell">
+                        <div class="input-row">
+                            <span class="unit-label">月額</span>
+                            <input type="number" id="r-living-monthly" class="mini-input" value="17" step="1" oninput="updateMonthlyTotal('r-living-monthly', 'living-total-preview')">
+                            <span class="unit-label">万円</span>
+                        </div>
+                        <div id="living-total-preview" class="calc-preview">総額: 0万円</div>
+                    </div>
+                </td>
+                <td class="source-text">食費・水道光熱費・通信・日用品等<br>※住居・車・教育・趣味費を除く純生活費</td>
+            </tr>
+
+            <!-- 7. 投資 (月額積立 + 複利計算) -->
+            <tr>
+                <td class="category-cell"><i class="fas fa-chart-line"></i> 投資 (積立)</td>
+                <td class="game-val" id="g-investment">0</td>
+                <td>
+                    <div class="input-group-cell invest-calc-box">
+                        <div class="input-row">
+                            <span class="unit-label">月額</span>
+                            <input type="number" id="r-invest-monthly" class="mini-input" value="3" step="1" oninput="calculateInvestmentResult()">
+                            <span class="unit-label">万円</span>
+                        </div>
+                        <div class="input-row">
+                            <span class="unit-label">年利</span>
+                            <input type="number" id="r-invest-rate" class="mini-input" value="3.0" step="0.1" oninput="calculateInvestmentResult()">
+                            <span class="unit-label">%</span>
+                        </div>
+                        <div id="invest-result-display" class="calc-preview" data-profit="0" data-principal="0">
+                            <!-- JSで表示 -->
+                        </div>
+                    </div>
+                </td>
+                <td class="source-text">
+                    元本と複利運用益を自動計算
+                </td>
+            </tr>
+
+            <!-- 8. その他 -->
+            <tr>
+                <td class="category-cell"><i class="fas fa-ellipsis-h"></i> その他</td>
+                <td class="game-val" id="g-others">0</td>
+                <td><input type="number" id="r-others" class="real-input" value="2000"></td>
+                <td class="source-text">趣味・旅行・使途不明金<br>(手取りの10%程度)</td>
+            </tr>
+
+            <!-- 9. 退職金 (Income) -->
+            <tr style="background-color: #f0fff4;">
+                <td class="category-cell" style="color:#2f855a;"><i class="fas fa-gift"></i> 退職金 <small>(収入)</small></td>
+                <td class="game-val" id="g-retirement">0</td>
+                <td><input type="number" id="r-retirement" class="real-input" style="color:#2f855a; border-color:#48bb78; background:#fff;" value="1000"></td>
+                <td class="source-text">中小企業平均:約1000万<br>大企業平均:約2000万</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button class="diagnose-btn" onclick="calculateDiagnosis()">
+        <i class="fas fa-calculator"></i> 65歳時点の結果を診断
+    </button>
+
+    <!-- 結果表示エリア -->
+    <div id="resultArea">
+        <h2 style="text-align: center; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 15px;">
+            <i class="fas fa-file-medical-alt"></i> 診断結果 (65歳時点)
+        </h2>
+        
+        <div class="result-summary">
+            <p style="margin-bottom: 5px; color: #666;">あなたが65歳までに必要な資金総額 (支出合計)</p>
+            <div class="total-cost-display" id="totalRealCost">0万円</div>
+            <p style="font-size: 0.9rem; color: #888;">(ゲーム実績: <span id="totalGameCost">0</span>万円)</p>
+        </div>
+
+        <div class="net-income-projection">
+            <i class="fas fa-coins"></i> <strong>生涯収支の予測:</strong><br>
+            現在の世帯手取りペースだと、65歳までに約 <strong id="lifetimeIncome" style="font-size:1.2em;">0</strong> 万円の収入が見込めます。
+            <div id="incomeBalanceCheck" style="margin-top:10px; font-weight:bold; font-size:1.2em;"></div>
+        </div>
+
+        <div style="height: 300px; position: relative;">
+            <canvas id="comparisonChart"></canvas>
+        </div>
+
+        <!-- 老後シミュレーション -->
+        <div class="retirement-sim-area">
+            <div class="sim-header"><i class="fas fa-blind"></i> 老後資金シミュレーション (65歳以降)</div>
+            <div class="sim-input-grid">
+                <div class="sim-group">
+                    <label>想定寿命</label>
+                    <div><input type="number" id="sim-age" value="95" oninput="calculateDiagnosis()"> 歳まで</div>
+                </div>
+                <div class="sim-group">
+                    <label>老後生活費(月額)</label>
+                    <div><input type="number" id="sim-cost" value="36" oninput="calculateDiagnosis()"> 万円</div>
+                    <div style="font-size:0.7em; color:#718096; margin-top:2px;">※生命保険文化センター「ゆとりある老後」平均</div>
+                </div>
+                <div class="sim-group">
+                    <label>年金受取(月額)</label>
+                    <div><input type="number" id="sim-pension" value="22" oninput="calculateDiagnosis()"> 万円</div>
+                    <div style="font-size:0.7em; color:#718096; margin-top:2px;">※夫婦2人分の標準額目安</div>
+                </div>
+            </div>
+            
+            <div class="sim-result-box">
+                <div>あなたの老後資産残高予測</div>
+                <div id="sim-final-asset" class="sim-result-val">0万円</div>
+                <div id="sim-message" style="font-size:0.9em;"></div>
+            </div>
+        </div>
+
+        <!-- アドバイスエリア -->
+        <div class="advice-box" id="finalAdvice"></div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <button onclick="window.close()" class="btn-secondary" style="background:#718096; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">閉じる</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const UNIT_COSTS = {
+        marriage: 350,
+        childPerHead: 1500,
+        childCountDefault: 2,
+        house: 4500,
+        carPurchase: 300,
+        carCountDefault: 4,
+        carMaintYear: 15,
+        insuranceMonthly: 2.5,
+        livingMonthly: 17, 
+        investMonthly: 0,
+        othersFixed: 2000,
+        retirement: 1000,
+        birthAllowance: 50, 
+        childAllowance1st2nd: 234, 
+        childAllowance3rd: 648
+    };
+
+    let gameState = null;
+    let currentHouseholdNet = 0; 
+    let currentIncomeBalanceAt65 = 0; // 65歳時点の資産(収支)を保存
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadGameData();
+        updateRealDefaults(); 
+        calculateHouseholdNetIncome(); 
+    });
+
+    function loadGameData() {
+        try {
+            const savedState = localStorage.getItem('lifeGameGameState');
+            if (savedState) {
+                gameState = JSON.parse(savedState);
+                calculateGameTotals();
+            } else {
+                console.log("No game data found.");
+            }
+        } catch (e) {
+            console.error("Error loading game data", e);
+        }
+    }
+
+    function calculateGameTotals() {
+        if (!gameState || !gameState.balanceHistory) return;
+
+        let summary = {
+            marriage: 0, children: 0, house: 0, car: 0, 
+            insurance: 0, living: 0, investment: 0, others: 0,
+            retirement: 0 
+        };
+
+        gameState.balanceHistory.forEach(h => {
+            const years = h.years || 10;
+            const d = h.details;
+            summary.children += (d.childCost || 0) * years;
+            summary.house += (d.houseCost || 0) * years;
+            summary.car += (d.carCost || 0) * years + (d.carCost_init || 0);
+            summary.insurance += (d.insuranceCost || 0) * years;
+            summary.living += (d.livingCost || 0) * years;
+            summary.investment += (d.tsumitate || 0) + (d.investment_ikkatsu || 0);
+            summary.marriage += (d.marriage || 0);
+            summary.others += (d.life_event || 0) + (d.social_event || 0);
+        });
+
+        if (gameState.retirementBonus) {
+            summary.retirement = gameState.retirementBonus;
+        }
+
+        document.getElementById('g-marriage').innerText = Math.round(summary.marriage).toLocaleString();
+        document.getElementById('g-children').innerText = Math.round(summary.children).toLocaleString();
+        document.getElementById('g-house').innerText = Math.round(summary.house).toLocaleString();
+        document.getElementById('g-car').innerText = Math.round(summary.car).toLocaleString();
+        document.getElementById('g-insurance').innerText = Math.round(summary.insurance).toLocaleString();
+        document.getElementById('g-living').innerText = Math.round(summary.living).toLocaleString();
+        document.getElementById('g-investment').innerText = Math.round(summary.investment).toLocaleString();
+        document.getElementById('g-others').innerText = Math.round(summary.others).toLocaleString();
+        document.getElementById('g-retirement').innerText = Math.round(summary.retirement).toLocaleString();
+
+        let expenseSum = summary.marriage + summary.children + summary.house + summary.car + 
+                         summary.insurance + summary.living + summary.investment + summary.others;
+        
+        document.getElementById('totalGameCost').dataset.val = expenseSum;
+        document.getElementById('totalGameCost').innerText = Math.round(expenseSum).toLocaleString();
+    }
+
+    function calculateNetFromGross(gross) {
+        if (gross <= 0) return 0;
+        let deduction = 0;
+        if (gross <= 162.5) deduction = 55;
+        else if (gross <= 180) deduction = gross * 0.4 - 10;
+        else if (gross <= 360) deduction = gross * 0.3 + 8;
+        else if (gross <= 660) deduction = gross * 0.2 + 44;
+        else if (gross <= 850) deduction = gross * 0.1 + 110;
+        else deduction = 195;
+
+        const socialInsurance = gross * 0.15;
+        const basicDeduction = 48;
+        let taxableIncome = gross - deduction - socialInsurance - basicDeduction;
+        if (taxableIncome < 0) taxableIncome = 0;
+
+        let incomeTax = 0;
+        if (taxableIncome <= 195) incomeTax = taxableIncome * 0.05;
+        else if (taxableIncome <= 330) incomeTax = taxableIncome * 0.10 - 9.75;
+        else if (taxableIncome <= 695) incomeTax = taxableIncome * 0.20 - 42.75;
+        else if (taxableIncome <= 900) incomeTax = taxableIncome * 0.23 - 63.6;
+        else if (taxableIncome <= 1800) incomeTax = taxableIncome * 0.33 - 153.6;
+        else incomeTax = taxableIncome * 0.40 - 279.6;
+
+        const residentTax = (taxableIncome * 0.10) + 0.5;
+        const net = gross - (socialInsurance + incomeTax + residentTax);
+        return Math.max(0, net);
+    }
+
+    function calculateHouseholdNetIncome() {
+        const selfGross = parseFloat(document.getElementById('incomeSelf').value) || 0;
+        const partnerGross = parseFloat(document.getElementById('incomePartner').value) || 0;
+        const selfNet = calculateNetFromGross(selfGross);
+        const partnerNet = calculateNetFromGross(partnerGross);
+        const householdGross = selfGross + partnerGross;
+        currentHouseholdNet = selfNet + partnerNet;
+        document.getElementById('displayGrossIncome').innerText = householdGross.toLocaleString();
+        document.getElementById('displayNetIncome').innerText = Math.round(currentHouseholdNet).toLocaleString();
+    }
+
+    function updateMonthlyTotal(inputId, previewId) {
+        const monthlyVal = parseFloat(document.getElementById(inputId).value) || 0;
+        const remainingYears = parseInt(document.getElementById('remainingYears').innerText) || 0;
+        const total = monthlyVal * 12 * remainingYears;
+        
+        document.getElementById(previewId).innerText = `総額: ${Math.round(total).toLocaleString()}万円`;
+        document.getElementById(previewId).dataset.total = total; 
+    }
+
+    function updateCarTotal() {
+        const price = parseFloat(document.getElementById('r-car-price').value) || 0;
+        const count = parseInt(document.getElementById('r-car-count').value) || 0;
+        const remainingYears = parseInt(document.getElementById('remainingYears').innerText) || 0;
+        // 車の台数を自動調整: 残り年数 / 10年 (10年に1台買い替え想定) で計算し直す
+        // が、ユーザー入力が優先なので、ここではデフォルト値の計算のみを行う
+        // ユーザーが入力した回数を優先
+        const purchaseTotal = price * count;
+        const maintTotal = remainingYears * UNIT_COSTS.carMaintYear;
+        const total = purchaseTotal + maintTotal;
+
+        document.getElementById('car-total-preview').innerText = 
+            `車両(${Math.round(purchaseTotal)}) + 維持(${Math.round(maintTotal)}) = ${Math.round(total).toLocaleString()}万円`;
+        document.getElementById('car-total-preview').dataset.total = total;
+    }
+
+    function updateChildTotal() {
+        const unit = parseFloat(document.getElementById('r-child-unit').value) || 0;
+        const count = parseInt(document.getElementById('r-child-count').value) || 0;
+        const total = unit * count;
+        
+        document.getElementById('child-total-preview').innerText = `総額: ${Math.round(total).toLocaleString()}万円`;
+        document.getElementById('child-total-preview').dataset.total = total;
+    }
+
+    function calculateInvestmentResult() {
+        const monthlyInvest = parseFloat(document.getElementById('r-invest-monthly').value) || 0;
+        const rate = parseFloat(document.getElementById('r-invest-rate').value) || 0;
+        const remainingYears = parseInt(document.getElementById('remainingYears').innerText) || 0;
+        const displayDiv = document.getElementById('invest-result-display');
+
+        if (monthlyInvest <= 0 || remainingYears <= 0) {
+            displayDiv.innerHTML = '元本: 0万 / 運用益: 0万';
+            displayDiv.dataset.profit = 0;
+            displayDiv.dataset.principal = 0;
+            return;
+        }
+
+        const months = remainingYears * 12;
+        const monthlyRate = rate / 100 / 12;
+        const totalPrincipal = monthlyInvest * months; 
+        const principalYen = monthlyInvest * 10000;
+
+        let futureValYen = 0;
+        if (rate <= 0) {
+            futureValYen = totalPrincipal * 10000;
+        } else {
+            futureValYen = principalYen * (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate;
+        }
+
+        const futureValMan = Math.round(futureValYen / 10000);
+        const profit = futureValMan - Math.round(totalPrincipal);
+
+        displayDiv.innerHTML = `元本: ${Math.round(totalPrincipal)}万 / 運用益: <span style="color:#48bb78;">+${profit.toLocaleString()}</span>万`;
+        displayDiv.dataset.profit = profit;
+        displayDiv.dataset.principal = totalPrincipal;
+    }
+
+    function calculateTotalChildBenefits(childCount) {
+        if (childCount <= 0) return 0;
+
+        let totalBenefit = 0;
+        totalBenefit += childCount * UNIT_COSTS.birthAllowance;
+
+        const count1st2nd = Math.min(childCount, 2);
+        totalBenefit += count1st2nd * UNIT_COSTS.childAllowance1st2nd;
+
+        if (childCount >= 3) {
+            const count3rdPlus = childCount - 2;
+            totalBenefit += count3rdPlus * UNIT_COSTS.childAllowance3rd;
+        }
+
+        return Math.round(totalBenefit);
+    }
+
+    function updateRealDefaults() {
+        const age = parseInt(document.getElementById('currentAge').value) || 30;
+        const targetAge = 65;
+        let remainingYears = targetAge - age;
+        if (remainingYears < 0) remainingYears = 0;
+
+        document.getElementById('remainingYears').innerText = remainingYears;
+
+        document.getElementById('r-marriage').value = UNIT_COSTS.marriage;
+        document.getElementById('r-house').value = UNIT_COSTS.house;
+        
+        document.getElementById('r-child-unit').value = UNIT_COSTS.childPerHead;
+        let defaultChildCount = UNIT_COSTS.childCountDefault;
+        if (gameState && typeof gameState.children !== 'undefined') {
+            defaultChildCount = gameState.children;
+        }
+        document.getElementById('r-child-count').value = defaultChildCount;
+        updateChildTotal();
+
+        document.getElementById('r-car-price').value = UNIT_COSTS.carPurchase;
+        
+        // 自動車: 残り年数に合わせて台数を自動計算 (10年に1台)
+        let autoCarCount = Math.ceil(remainingYears / 10);
+        if (autoCarCount < 1) autoCarCount = 1; 
+        document.getElementById('r-car-count').value = autoCarCount;
+        updateCarTotal();
+
+        document.getElementById('r-insurance-monthly').value = UNIT_COSTS.insuranceMonthly;
+        updateMonthlyTotal('r-insurance-monthly', 'insurance-total-preview');
+
+        document.getElementById('r-living-monthly').value = UNIT_COSTS.livingMonthly;
+        updateMonthlyTotal('r-living-monthly', 'living-total-preview');
+
+        document.getElementById('r-invest-monthly').value = UNIT_COSTS.investMonthly;
+        calculateInvestmentResult();
+
+        const adjustedOthers = Math.round(UNIT_COSTS.othersFixed * (remainingYears / 40));
+        document.getElementById('r-others').value = adjustedOthers;
+
+        document.getElementById('r-retirement').value = UNIT_COSTS.retirement;
+    }
+
+    function calculateDiagnosis() {
+        const valMarriage = parseInt(document.getElementById('r-marriage').value) || 0;
+        const valChildrenCost = parseFloat(document.getElementById('child-total-preview').dataset.total) || 0;
+        const valHouse = parseInt(document.getElementById('r-house').value) || 0;
+        const valCar = parseFloat(document.getElementById('car-total-preview').dataset.total) || 0;
+        const valInsurance = parseFloat(document.getElementById('insurance-total-preview').dataset.total) || 0;
+        const valLiving = parseFloat(document.getElementById('living-total-preview').dataset.total) || 0;
+        const valInvestPrincipal = parseFloat(document.getElementById('invest-result-display').dataset.principal) || 0;
+        const valInvestProfit = parseFloat(document.getElementById('invest-result-display').dataset.profit) || 0;
+        const valOthers = parseInt(document.getElementById('r-others').value) || 0;
+        
+        const valRetirement = parseInt(document.getElementById('r-retirement').value) || 0;
+        const currentSavings = parseInt(document.getElementById('currentSavings').value) || 0;
+
+        const childCount = parseInt(document.getElementById('r-child-count').value) || 0;
+        const valChildBenefits = calculateTotalChildBenefits(childCount);
+
+        const totalReal = Math.round(valMarriage + valChildrenCost + valHouse + valCar + valInsurance + valLiving + valInvestPrincipal + valOthers);
+        const totalGame = parseInt(document.getElementById('totalGameCost').dataset.val) || 0;
+        
+        const remainingYears = parseInt(document.getElementById('remainingYears').innerText) || 0;
+        const lifetimeIncome = Math.round(currentHouseholdNet * remainingYears);
+        
+        // 収支バランス計算 (現在の貯蓄を加算)
+        // 65歳時点資産 = (現在貯蓄 + 未来の収入 + 退職金 + 手当) - (生涯支出 + 投資元本) + 運用益
+        const incomeBalance = (currentSavings + lifetimeIncome + valRetirement + valChildBenefits) - totalReal + valInvestProfit;
+        currentIncomeBalanceAt65 = incomeBalance;
+
+        document.getElementById('totalRealCost').innerText = totalReal.toLocaleString() + "万円";
+        document.getElementById('lifetimeIncome').innerText = lifetimeIncome.toLocaleString();
+        
+        const balanceDiv = document.getElementById('incomeBalanceCheck');
+        let balanceHtml = "";
+        
+        if (incomeBalance >= 0) {
+            balanceHtml = `<span style="color:#48bb78;">収支予測(65歳): +${incomeBalance.toLocaleString()}万円 (黒字)</span>`;
+        } else {
+            balanceHtml = `<span style="color:#e53e3e;">収支予測(65歳): ${incomeBalance.toLocaleString()}万円 (赤字)</span>`;
+        }
+        
+        let extraInfo = [];
+        if (currentSavings > 0) extraInfo.push(`現在貯蓄${currentSavings}万`);
+        if (valRetirement > 0) extraInfo.push(`退職金${valRetirement}万`);
+        if (valInvestProfit > 0) extraInfo.push(`運用益${valInvestProfit}万`);
+        
+        if (extraInfo.length > 0) {
+            balanceHtml += `<br><span style="font-size:0.8em; color:#2b6cb0;">(プラス要因: ${extraInfo.join(', ')})</span>`;
+        }
+        balanceDiv.innerHTML = balanceHtml;
+
+        document.getElementById('resultArea').style.display = 'block';
+        document.getElementById('resultArea').scrollIntoView({behavior: 'smooth'});
+
+        // 老後シミュレーション実行
+        const simResult = calculateRetirementSim();
+
+        // アドバイス生成
+        generateAdvice(totalReal, totalGame, incomeBalance, valInvestProfit, simResult);
+        
+        drawChart(totalGame, totalReal, lifetimeIncome, valRetirement, valChildBenefits, valInvestProfit, currentSavings);
+    }
+
+    function calculateRetirementSim() {
+        const lifeAge = parseInt(document.getElementById('sim-age').value) || 95;
+        const monthlyCost = parseFloat(document.getElementById('sim-cost').value) || 36;
+        const monthlyPension = parseFloat(document.getElementById('sim-pension').value) || 22;
+        
+        const years = lifeAge - 65;
+        if (years <= 0) return { finalAsset: currentIncomeBalanceAt65, lifeAge: 65, bankruptAge: 65 };
+
+        const totalOldCost = monthlyCost * 12 * years;
+        const totalOldIncome = monthlyPension * 12 * years;
+        
+        const finalAsset = currentIncomeBalanceAt65 + totalOldIncome - totalOldCost;
+        
+        const resultEl = document.getElementById('sim-final-asset');
+        const msgEl = document.getElementById('sim-message');
+        
+        resultEl.innerText = Math.round(finalAsset).toLocaleString() + "万円";
+        
+        let bankruptAge = lifeAge;
+
+        if (finalAsset >= 0) {
+            resultEl.className = "sim-result-val sim-result-safe";
+            msgEl.innerHTML = `<i class="fas fa-check-circle" style="color:#48bb78;"></i> ${lifeAge}歳まで資産が持ちます！<br>ゆとりある老後が期待できます。`;
+        } else {
+            resultEl.className = "sim-result-val sim-result-danger";
+            const yearlyDeficit = (monthlyCost - monthlyPension) * 12;
+            if (yearlyDeficit > 0) {
+                const lastingYears = currentIncomeBalanceAt65 / yearlyDeficit;
+                bankruptAge = 65 + lastingYears;
+                if (bankruptAge < 65) bankruptAge = 65; 
+                if (bankruptAge > lifeAge) bankruptAge = lifeAge; 
+            } else {
+                bankruptAge = 65; 
+            }
+            
+            msgEl.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#e53e3e;"></i> 資金不足の恐れがあります。<br>今のままだと <strong>約${Math.floor(bankruptAge)}歳</strong> で資金が尽きる計算です。`;
+        }
+
+        return { finalAsset, lifeAge, bankruptAge };
+    }
+
+    function generateAdvice(real, game, incomeBalance, investProfit, simResult) {
+        const div = document.getElementById('finalAdvice');
+        let html = `<h3><i class="fas fa-user-tie"></i> プロの総合診断コメント</h3>`;
+        
+        const { finalAsset, lifeAge, bankruptAge } = simResult;
+
+        if (finalAsset >= 2000) {
+            html += `
+                <div style="background:#f0fff4; border-left:4px solid #48bb78; padding:10px;">
+                    <strong style="font-size:1.2em; color:#2f855a;">【判定: Sランク】 素晴らしい資産設計です！</strong>
+                    <p style="margin:5px 0;">
+                        現役時代の収支バランスが非常に良く、老後も「ゆとりある生活（月36万円想定）」を維持しながら${lifeAge}歳まで十分に資産が持つ見込みです。<br>
+                        余剰資金を使って、趣味や旅行、お孫さんへの援助など、人生を豊かにするプランを積極的に立てましょう。
+                    </p>
+                </div>`;
+        } else if (finalAsset >= 0) {
+            html += `
+                <div style="background:#ebf8ff; border-left:4px solid #2b6cb0; padding:10px;">
+                    <strong style="font-size:1.2em; color:#2c5282;">【判定: Aランク】 概ね順調な計画です。</strong>
+                    <p style="margin:5px 0;">
+                        今の生活水準であれば、平均的な寿命まで資金ショートすることなく暮らせるでしょう。<br>
+                        ただし、介護や家のリフォームなど、予期せぬ大きな出費があるとギリギリになる可能性があります。iDeCoや新NISAを活用し、もうひと回り資産を厚くしておくと盤石です。
+                    </p>
+                </div>`;
+        } else if (bankruptAge >= 85) {
+            html += `
+                <div style="background:#fffaf0; border-left:4px solid #d69e2e; padding:10px;">
+                    <strong style="font-size:1.2em; color:#975a16;">【判定: Bランク】 長生きリスクへの備えが必要です。</strong>
+                    <p style="margin:5px 0;">
+                        ${Math.floor(bankruptAge)}歳頃までは持ちますが、人生100年時代を考えると少し心許ない結果です。<br>
+                        「働く期間を延ばす」「年金の受給開始を遅らせる（繰下げ受給）」といった対策で、資産寿命をあと10年延ばす工夫を検討しましょう。
+                    </p>
+                </div>`;
+        } else {
+            html += `
+                <div style="background:#fff5f5; border-left:4px solid #e53e3e; padding:10px;">
+                    <strong style="font-size:1.2em; color:#c53030;">【判定: Cランク】 早急な見直しを推奨します。</strong>
+                    <p style="margin:5px 0;">
+                        現在の収支バランスのままだと、老後早い段階で資金が底をつくリスクが高いです。<br>
+                        まずは「固定費（通信費・保険・サブスク）」の削減や、住宅予算の見直しを行い、現役時代の貯蓄ペースを上げることが最優先です。プロと一緒に家計の断捨離から始めましょう。
+                    </p>
+                </div>`;
+        }
+
+        html += `<div style="margin-top:15px; font-size:0.9em; color:#555;">
+            <ul>
+                ${investProfit > 300 ? `<li><i class="fas fa-check" style="color:#48bb78;"></i> <strong>投資効果:</strong> 複利運用が効いています。このまま継続することで、インフレリスクにも強い家計になります。</li>` : `<li><i class="fas fa-exclamation-circle" style="color:#d69e2e;"></i> <strong>投資活用:</strong> 資産寿命を延ばすために、少額からでも「積立投資」を検討する価値があります。</li>`}
+                <li><i class="fas fa-child" style="color:#48bb78;"></i> <strong>子育て支援:</strong> 児童手当等の公的支援は約${Math.round(calculateTotalChildBenefits(parseInt(document.getElementById('r-child-count').value)||0)/100)*100}万円相当の収入増効果があります。これを教育費として確実に積み立てることが重要です。</li>
+            </ul>
+        </div>`;
+
+        html += `<div style="text-align:center; margin-top:20px;">
+            <a href="#" style="background:var(--primary); color:white; padding:12px 25px; border-radius:30px; text-decoration:none; font-weight:bold; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+                詳細な解決策をLINEで相談する
+            </a>
+        </div>`;
+
+        div.innerHTML = html;
+    }
+
+    let myChart = null;
+    function drawChart(gameVal, realVal, incomeVal, retirementVal, benefitsVal, profitVal, savingsVal) {
+        const ctx = document.getElementById('comparisonChart').getContext('2d');
+        if (myChart) myChart.destroy();
+
+        const totalIncome = incomeVal + retirementVal + benefitsVal + profitVal + savingsVal;
+
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['ゲーム実績(支出)', '現実の必要資金(支出)', '生涯収入(手当・貯蓄含)'],
+                datasets: [{
+                    label: '金額 (万円)',
+                    data: [gameVal, realVal, totalIncome],
+                    backgroundColor: ['#FF7F50', '#e53e3e', '#48bb78'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: '生涯収支バランス比較' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.parsed.y + '万円';
+                                if (context.dataIndex === 2) {
+                                    let extras = [];
+                                    if (savingsVal > 0) extras.push(`貯蓄${savingsVal}万`);
+                                    if (retirementVal > 0) extras.push(`退職金${retirementVal}万`);
+                                    if (profitVal > 0) extras.push(`運用益${profitVal}万`);
+                                    if (extras.length > 0) label += ` (${extras.join(', ')})`;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,669 @@
+/* style.css - 完全復元版 (v16.0) */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #FFDAB9 0%, #FFE4B5 100%);
+    min-height: 100vh;
+    color: #333;
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 20px auto; 
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: fadeIn 0.5s ease;
+    width: 95%;
+    touch-action: manipulation;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.subtitle {
+    font-size: 1.2em;
+    opacity: 0.9;
+    font-style: italic;
+}
+
+/* --- Modal Styles --- */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: none; 
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+    overflow-y: auto;
+    padding: 40px 0;
+}
+
+.modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+    animation: modalOpen 0.3s ease;
+    margin: auto;
+    text-align: left;
+}
+.camera-modal-content, .card-info-content { 
+    text-align: center; 
+}
+
+@keyframes modalOpen {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* --- Player Section --- */
+.player-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+.player-card { background: #FFFDF8; border-radius: 15px; padding: 20px; border: 2px solid #000; }
+.player-card h2 { margin-bottom: 15px; }
+
+/* --- Game Status (ライフポイント対応) --- */
+.game-status { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+    gap: 15px; 
+    margin-bottom: 30px; 
+}
+.status-card { 
+    background: linear-gradient(135deg, #FFE4B5 0%, #FFDAB9 100%); 
+    color: #333; 
+    padding: 15px; 
+    border-radius: 15px; 
+    text-align: center; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.status-card h3 { margin-bottom: 8px; font-size: 1em; }
+.status-card p { font-size: 1.4em; font-weight: bold; }
+.age-display { font-size: 1.8em !important; }
+
+/* --- QR Section --- */
+.qr-section { background: #FFFDF8; padding: 30px; border-radius: 15px; margin-bottom: 30px; }
+.qr-section h3 { text-align: center; margin-bottom: 20px; }
+.qr-buttons button { width: 100%; padding: 15px; background: white; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; transition: all 0.3s; font-size: 1.1em; font-weight: bold; }
+.qr-buttons button:hover {
+    background: #FF7F50;
+    color: white;
+    border-color: #FF7F50;
+}
+
+/* --- Camera View --- */
+.camera-view { position: relative; width: 100%; max-height: 300px; overflow: hidden; margin-bottom: 20px; border: 3px solid #ddd; border-radius: 10px; background: #000; }
+#cameraVideo { width: 100%; height: auto; display: block; }
+.scan-status { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0, 0, 0, 0.7); color: white; padding: 8px; font-size: 0.9em; }
+
+/* --- Card Header --- */
+.card-header { 
+    background: linear-gradient(135deg, #FFA07A 0%, #FF7F50 100%); 
+    color: #1A202C; 
+    padding: 20px; 
+    border-radius: 15px; 
+    margin-bottom: 20px; 
+}
+.card-header h2 { font-size: 1.5em; margin: 0; }
+.card-header p { margin-top: 5px; font-size: 1em; color: #4A5568; }
+
+.card-effect { border: 2px solid #FFE4B5; padding: 20px; border-radius: 10px; margin-bottom: 25px; background: #FFFDF8; }
+.card-effect p:first-child { font-weight: bold; margin-bottom: 5px; color: #FF7F50; }
+.card-effect p:last-child { font-size: 1.2em; font-weight: bold; }
+.modal-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+/* --- Life Plan Details --- */
+.life-plan-details { background: #FFFDF8; padding: 30px; border-radius: 15px; margin-bottom: 30px; }
+.life-plan-details h3 { text-align: center; margin-bottom: 20px; }
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+.detail-section { background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #FFA07A; }
+.detail-section h4 { color: #FFA07A; margin-bottom: 10px; }
+
+/* --- Event Log --- */
+.event-log { background: #FFFDF8; padding: 20px; border-radius: 15px; margin-bottom: 30px; height: 200px; overflow-y: auto; }
+#event-list p { background: white; padding: 10px; margin-bottom: 8px; border-radius: 8px; animation: slideIn 0.3s ease; }
+@keyframes slideIn { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* --- Control Buttons --- */
+.control-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.btn-primary, .btn-secondary, .btn-success, .btn-danger { padding: 15px; border: none; border-radius: 10px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: all 0.3s; color: white; }
+.btn-primary { background: #A8E063; }
+.btn-secondary { background: #a0aec0; }
+.btn-success { background: #48bb78; }
+.btn-danger { background: #fc8181; }
+.control-buttons button:hover, .modal-buttons button:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+
+/* --- Specific Modals --- */
+.final-result-content {
+    background: white; padding: 40px; border-radius: 20px; max-width: 600px; width: 90%; text-align: center; animation: modalOpen 0.3s ease; margin: auto; 
+}
+.final-result-content h2 { color: #f6ad55; margin-bottom: 30px; }
+
+.modal-content-large, .modal-content-xlarge {
+    background: white; padding: 40px; border-radius: 20px; width: 90%; text-align: left; animation: modalOpen 0.3s ease; margin: auto; 
+}
+.modal-content-large { max-width: 700px; }
+.modal-content-xlarge { max-width: 800px; }
+
+.modal-content-large h2, .modal-content-xlarge h2 { text-align: center; color: #48bb78; margin-bottom: 30px; }
+
+/* --- Title Screen --- */
+.title-screen {
+    background: linear-gradient(to bottom, #c3f0ff 0%, #dffde0 50%, #fff6d5 100%);
+    color: #333; text-align: center; padding: 20px; border-radius: 0; font-family: 'M PLUS Rounded 1c', sans-serif;
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; align-items: center; box-sizing: border-box; overflow-y: auto;
+}
+.title-top-image { order: 1; margin-top: 20px; width: 100%; display: flex; justify-content: center; flex-shrink: 0; }
+.main-illust { max-width: 80%; max-height: 30vh; height: auto; border-radius: 15px; object-fit: contain; }
+.title-center-content { order: 2; width: 100%; max-width: 350px; margin: 10px 0; flex-shrink: 0; }
+.title-icons-bottom { order: 3; width: 100%; max-width: 400px; display: flex; justify-content: center; align-items: flex-end; margin-bottom: 10px; gap: 40px; flex-shrink: 0; }
+.title-screen h1 { font-size: 2.5em; line-height: 1.2; text-shadow: none; color: #1A202C; }
+.title-screen .subtitle { font-size: 1.1em; margin-top: 5px; margin-bottom: 15px; color: #4A5568; }
+.title-screen button { margin-top: 10px; padding: 15px 30px; font-size: 1.2em; width: 100%; }
+.title-screen .start-btn { background: #48BB78; }
+.title-screen .btn-secondary { background: #2D3748; }
+
+/* --- Balance Table --- */
+.balance-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+.balance-table th, .balance-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+.balance-table th { background-color: #f2f2f2; }
+.chart-container-modal { max-width: 700px; margin: 0 auto; height: 350px; position: relative; }
+#finalBalanceChart { max-height: 350px; }
+
+/* --- Retirement Bonus Modal --- */
+.retirement-scan-area { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+.retirement-player-card { background: #FFFDF8; border: 2px solid #FFE4B5; border-radius: 10px; padding: 20px; text-align: center; }
+.retirement-player-card h4 { margin-bottom: 10px; color: #FF7F50; }
+.retirement-player-card p { font-size: 0.9em; color: #666; margin-bottom: 15px; min-height: 2.7em; }
+.retirement-player-card .btn-small { padding: 8px 12px; font-size: 0.9em; width: 100%; }
+.scan-status-text { margin-top: 15px; margin-bottom: 0 !important; font-weight: bold; font-size: 1em !important; min-height: 0 !important; color: #e53e3e; }
+.scan-status-text.scanned { color: #48bb78; }
+#retirement-next-btn:disabled { background: #a0aec0; cursor: not-allowed; opacity: 0.7; }
+.retirement-player-card.no-bonus .btn-primary { display: none; }
+
+/* --- Hall of Fame --- */
+.hof-entry { background: #FFFDF8; border: 1px solid #FFE4B5; border-radius: 10px; margin-bottom: 15px; padding: 20px; display: grid; grid-template-columns: 150px 1fr; gap: 20px; }
+.hof-entry .assets { font-size: 2em; font-weight: bold; color: #FF7F50; text-align: center; border-right: 2px dashed #FFE4B5; padding-right: 20px; display: flex; flex-direction: column; justify-content: center; }
+.hof-entry .assets span { font-size: 0.6em; color: #666; font-weight: normal; }
+.hof-entry .details { font-size: 0.95em; color: #333; }
+.hof-controls { grid-column: 1 / -1; border-top: 1px solid #FFE4B5; margin-top: 15px; padding-top: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.btn-small { padding: 8px 12px; font-size: 0.9em; }
+
+#finalBalanceModal, #finalGraphModal, #lifePlanKarteModal { z-index: 1010; }
+#cameraModal { z-index: 1020; }
+
+/* --- Investment Summary --- */
+.investment-summary-container {
+    background: #FFFDF8;
+    border: 3px solid #FFE4B5;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 10px 0 25px 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+.invest-rate-header {
+    text-align: center;
+    border-bottom: 2px dashed #FF7F50;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+.invest-rate-label { font-size: 1.0em; color: #666; display: block; margin-bottom: 5px; }
+.invest-rate-value { font-size: 3em; font-weight: 900; color: #FF7F50; font-family: 'M PLUS Rounded 1c', sans-serif; text-shadow: 2px 2px 0px rgba(255,228,181,0.5); }
+.invest-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 5px; border-bottom: 1px solid #eee; font-size: 1.1em; }
+.invest-row.total-row { border-bottom: none; margin-top: 10px; padding-top: 15px; background: linear-gradient(to right, rgba(72, 187, 120, 0.1), transparent); border-radius: 8px; padding-left: 10px; padding-right: 10px; }
+.invest-label { color: #555; font-weight: bold; }
+.invest-val { font-weight: bold; font-size: 1.3em; color: #333; }
+.invest-val-gain { font-size: 1.8em; color: #48bb78; }
+.invest-val-loss { font-size: 1.8em; color: #e53e3e; }
+
+/* --- Roulette --- */
+#investmentRateModal .modal-content { background: linear-gradient(135deg, #fff 0%, #fffbf0 100%); border: 4px solid #FFD700; max-width: 450px; }
+#rouletteContainer { width: 280px; height: 280px; margin: 25px auto; background: white; border: 15px solid #FF7F50; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 30px rgba(0,0,0,0.1), 0 10px 30px rgba(255, 127, 80, 0.4); position: relative; overflow: hidden; }
+#rouletteContainer::after { content: ''; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; border: 2px dashed #FFD700; border-radius: 50%; animation: spin 10s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+#rouletteDisplay { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 7em; font-weight: 900; color: #333; text-shadow: 3px 3px 0px rgba(0,0,0,0.1); z-index: 2; width: 100%; text-align: center; line-height: 1; }
+#rouletteButton { font-size: 1.6em; padding: 15px; border-radius: 50px; width: 80%; margin-top: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); transition: transform 0.1s; }
+#rouletteButton:active { transform: scale(0.95); }
+
+/* --- Family Make Styles --- */
+.slider-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0; }
+.selection-card { flex: 0 0 200px; height: 250px; background: white; border: 3px solid #ddd; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.1); position: relative; }
+.selection-card.active { border-color: #FF7F50; transform: scale(1.1); box-shadow: 0 10px 25px rgba(255, 127, 80, 0.3); z-index: 2; }
+.selection-card i { font-size: 4em; color: #FF7F50; margin-bottom: 15px; }
+.selection-card h4 { font-size: 1.1em; margin-bottom: 5px; color: #333; }
+.selection-card p { font-size: 0.9em; color: #666; }
+.slider-btn { background: #fff; border: 2px solid #FF7F50; color: #FF7F50; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2em; display: flex; align-items: center; justify-content: center; transition: all 0.2s; min-width: 44px; min-height: 44px; }
+.slider-btn:hover { background: #FF7F50; color: white; }
+.make-input-group { margin-bottom: 20px; text-align: left; max-width: 300px; margin: 0 auto 20px auto; }
+.make-input-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+.make-input-group input { width: 100%; padding: 10px; border: 2px solid #ccc; border-radius: 8px; font-size: 1em; }
+.child-roulette-display { font-size: 5em; font-weight: bold; color: #48bb78; margin: 20px 0; font-family: 'M PLUS Rounded 1c', sans-serif; }
+.make-controls { margin-top: 30px; padding-bottom: 40px; }
+.job-image { width: 100%; max-width: 180px; height: 150px; object-fit: contain; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
+
+/* --- Balance Detail Card (Smart Accordion) --- */
+#finalBalanceDetailsContainer { padding: 5px; }
+.balance-detail-card { background: #fff; border: 1px solid #FFE4B5; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; }
+.balance-summary { padding: 15px 20px; background: linear-gradient(to right, #FFF8E1, #fff); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+.balance-summary::-webkit-details-marker { display: none; }
+.age-label { font-size: 1.2em; color: #333; display: flex; align-items: center; }
+.age-label::before { content: '\f138'; font-family: 'Font Awesome 6 Free'; font-weight: 900; margin-right: 10px; color: #FF7F50; transition: transform 0.3s; }
+details[open] .age-label::before { transform: rotate(90deg); }
+.diff-label { font-size: 1.3em; font-family: 'Segoe UI', sans-serif; }
+.diff-label.plus { color: #48bb78; }
+.diff-label.minus { color: #e53e3e; }
+.diff-label small { font-size: 0.6em; color: #888; margin-left: 2px; }
+.balance-content { padding: 15px 20px; background: #fff; border-top: 1px solid #eee; }
+.balance-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #f0f0f0; font-size: 1.1em; }
+.balance-row:last-child { border-bottom: none; }
+.main-row { padding: 10px 0; font-weight: bold; }
+.main-row .label { color: #333; font-size: 1.1em; }
+.main-row .value { font-size: 1.2em; }
+.sub-rows { background: #fafafa; border-radius: 8px; padding: 5px 15px; margin-bottom: 10px; }
+.sub-row .label { font-size: 1.0em; color: #666; padding-left: 5px; }
+.sub-row .value { font-size: 1.0em; }
+.val-income { color: #48bb78; }
+.val-expense { color: #e53e3e; }
+.val-sub-expense { color: #d9534f; }
+
+/* --- Life Plan Karte & Simulation Styles --- */
+.karte-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 20px; 
+    margin-bottom: 20px; 
+}
+.karte-section { 
+    background: white; 
+    padding: 20px; 
+    border-radius: 15px; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+    border: 1px solid #f0f0f0; 
+}
+.karte-list { 
+    list-style: none; 
+    padding: 0; 
+}
+.karte-list li { 
+    padding: 12px 0; 
+    border-bottom: 1px dashed #e2e8f0; 
+    font-size: 1.1em; 
+}
+.score-section { 
+    background: #fffff0; 
+    border: 2px solid #fefcbf; 
+}
+.score-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 15px; 
+    font-size: 1.1em; 
+    color: #555; 
+}
+.score-val { 
+    font-size: 1.5em; 
+    font-weight: bold; 
+    color: #2d3748; 
+}
+.total-rank { 
+    background: #ed8936; 
+    color: white; 
+    text-align: center; 
+    padding: 10px; 
+    border-radius: 8px; 
+    font-size: 1.2em; 
+    font-weight: bold; 
+    margin-top: 15px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+}
+/* 解説文ボックスのデザイン */
+.karte-advice-box { 
+    background: #ebf8ff; 
+    border: 2px solid #bee3f8; 
+    border-radius: 10px; 
+    padding: 20px; 
+    margin-top: 20px; 
+}
+.karte-advice-box h4 { 
+    color: #2b6cb0; 
+    margin-bottom: 10px; 
+    font-size: 1.1em; 
+}
+.karte-advice-box p { 
+    line-height: 1.6; 
+    color: #2d3748; 
+    font-size: 0.95em; 
+}
+
+/* =========================================
+   QRスキャン画面用：サブ画面 & ガイダンスパネル
+   (ここだけ新機能用に追加)
+   ========================================= */
+#scanStatsPanel, .guidance-asset-panel-style {
+    background: #333; 
+    color: white; 
+    padding: 10px 15px; 
+    text-align: center;
+    border-top: 3px solid #FFD700; 
+    width: 100%; 
+    box-sizing: border-box;
+    border-radius: 0 0 15px 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* ガイダンス画面内での表示調整 */
+#guidance-asset-panel .guidance-asset-panel-style {
+    border-radius: 10px; /* ガイダンス内では角丸 */
+    border-top: 2px solid #FFD700;
+}
+
+#scanAssetValue, .guidance-asset-value {
+    font-family: 'Black Ops One', 'Courier New', monospace; /* デジタル風 */
+    letter-spacing: 1px;
+}
+
+/* 変動額アニメーション */
+.scan-diff, #guidanceAssetDiff {
+    font-family: 'Black Ops One', sans-serif;
+    transition: opacity 0.3s;
+    opacity: 0;
+}
+.scan-diff.plus { color: #48bb78 !important; }
+.scan-diff.minus { color: #f56565 !important; }
+#guidanceAssetDiff.plus { color: #48bb78 !important; }
+#guidanceAssetDiff.minus { color: #f56565 !important; }
+
+/* 数値がポンと出るアニメーション */
+@keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+/* ==================================================
+   スマホ・タブレット用レスポンシブ設定 (修正版v2)
+   ここより下にコードを書かないでください
+   ================================================== */
+@media (max-width: 768px) {
+    /* 全体の余白をスマホ用に調整 */
+    .container { 
+        margin: 10px auto; 
+        padding: 15px; 
+        width: 98%; 
+    }
+
+    /* 強制的に「1列配置」にする設定 */
+    .karte-grid, 
+    .game-status, 
+    .player-section, 
+    .control-buttons, 
+    .modal-buttons { 
+        grid-template-columns: 1fr !important; 
+        gap: 15px;
+    }
+
+    /* ▼▼▼ 修正箇所：モーダルの枠を内容に合わせて伸ばす設定 ▼▼▼ */
+    .modal-content, 
+    .modal-content-large, 
+    .modal-content-xlarge { 
+        width: 95% !important; 
+        padding: 20px 15px !important; 
+        /* 上下の余白を確保しつつ、高さを制限しない */
+        margin: 30px auto !important; 
+        
+        /* ここが重要：高さ制限(90vh)を解除し、中身に合わせて枠を伸ばす */
+        max-height: none !important; 
+        height: auto !important;
+        overflow-y: visible !important; 
+    }
+
+    /* モーダル自体のスクロールをスムーズに */
+    .modal {
+        padding: 0 !important; /* モーダル親要素のパディングをリセット */
+        align-items: flex-start !important; /* 上寄せにしてスクロールしやすくする */
+    }
+
+    /* 文字サイズの微調整 */
+    h1 { font-size: 1.8em; }
+    .status-card p { font-size: 1.2em; }
+    
+    /* ルーレットを画面に収める */
+    #rouletteContainer { width: 200px; height: 200px; }
+    #rouletteDisplay { font-size: 4em; }
+}
+/* 年代アドバイス画面内の数値比較用スタイル */
+.guidance-diff-container {
+    background: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #e2e8f0;
+}
+.guidance-diff-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    font-size: 1.1em;
+}
+.guidance-diff-row .label {
+    color: #555;
+    font-weight: bold;
+}
+.guidance-diff-row .value {
+    font-weight: bold;
+}
+.guidance-diff-row .value small {
+    font-weight: normal;
+    color: #718096;
+    margin-left: 5px;
+}
+/* --- 年代別プランニング画面の数値比較用スタイル --- */
+.guidance-comparison-box {
+    background-color: #fff;
+    border: 2px solid #FFE4B5; /* 薄いオレンジ枠 */
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 15px;
+}
+
+.comparison-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+.comparison-row:last-child {
+    margin-bottom: 0;
+}
+
+.c-label {
+    color: #555;
+    font-weight: bold;
+}
+
+.c-value {
+    font-weight: bold;
+    color: #2d3748;
+}
+
+.diff-plus {
+    color: #48bb78; /* 緑 */
+    font-size: 0.9em;
+    margin-left: 5px;
+}
+
+.diff-minus {
+    color: #e53e3e; /* 赤 */
+    font-size: 0.9em;
+    margin-left: 5px;
+}
+/* style.css の末尾に追加 */
+
+/* --- ルーレットモーダル (スマホ最適化版) --- */
+.roulette-container {
+    display: flex !important;
+    flex-direction: column !important; /* 縦並びに固定 */
+    align-items: center !important;    /* 中央揃え */
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.95);
+    border: 3px solid #FFD700;
+    padding: 20px 10px !important;     /* スマホ用に余白調整 */
+    width: 90% !important;             /* 画面幅の90% */
+    max-width: 350px !important;       /* PCで大きくなりすぎないように制限 */
+    height: auto !important;           /* 高さは中身に合わせる */
+    overflow: visible !important;
+}
+
+.roulette-wrapper {
+    position: relative;
+    width: 280px;      /* スマホで見やすい固定サイズ */
+    height: 280px;
+    margin: 20px auto; /* 上下の間隔 */
+}
+
+/* ルーレット盤面（動的カラー対応版） */
+.roulette-wheel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 5px solid #fff;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    /* JSで動的に書き換えるため初期値は単色グレー */
+    background: #ccc; 
+    transform: rotate(0deg);
+    transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* 10分割のグリッド線（補助線）を表示する */
+.roulette-wheel::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 50%;
+    background-image: 
+        conic-gradient(
+            transparent 0deg 35deg, rgba(255,255,255,0.5) 35deg 36deg,
+            transparent 36deg 71deg, rgba(255,255,255,0.5) 71deg 72deg,
+            transparent 72deg 107deg, rgba(255,255,255,0.5) 107deg 108deg,
+            transparent 108deg 143deg, rgba(255,255,255,0.5) 143deg 144deg,
+            transparent 144deg 179deg, rgba(255,255,255,0.5) 179deg 180deg,
+            transparent 180deg 215deg, rgba(255,255,255,0.5) 215deg 216deg,
+            transparent 216deg 251deg, rgba(255,255,255,0.5) 251deg 252deg,
+            transparent 252deg 287deg, rgba(255,255,255,0.5) 287deg 288deg,
+            transparent 288deg 323deg, rgba(255,255,255,0.5) 323deg 324deg,
+            transparent 324deg 359deg, rgba(255,255,255,0.5) 359deg 360deg
+        );
+    pointer-events: none;
+}
+
+/* 針 (上部の矢印) */
+.roulette-arrow {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 40px;
+    color: #FFD700;
+    text-shadow: 0 2px 2px rgba(0,0,0,0.3);
+    z-index: 10;
+}
+
+/* 盤面の文字 */
+.w-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    /* ▼▼▼ 修正: marginを使って中心を合わせる (20pxの半分ずらす) ▼▼▼ */
+    margin-top: -10px;
+    margin-left: -10px;
+    
+    width: 20px;
+    height: 20px;
+    
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    white-space: nowrap;
+    text-align: center;
+    line-height: 20px;
+}
+
+/* 文字の配置ロジック:
+  1. rotate(角度): 円の中心で角度を決める
+  2. translate(距離): 中心から外側へ押し出す
+  3. rotate(-角度): 文字の向きを水平に戻す（読みやすくするため）
+  距離は円の半径(140px)の約60%くらい(85px)が丁度いい
+*/
+
+/* 1. 成功 (中心30度) */
+.l-1 { transform: rotate(30deg) translate(0, -90px) rotate(-30deg); }
+/* 2. 失敗 (中心90度) */
+.l-2 { transform: rotate(90deg) translate(0, -90px) rotate(-90deg); }
+/* 3. 失敗 (中心150度) */
+.l-3 { transform: rotate(150deg) translate(0, -90px) rotate(-150deg); }
+/* 4. 成功 (中心210度) */
+.l-4 { transform: rotate(210deg) translate(0, -90px) rotate(-210deg); }
+/* 5. 失敗 (中心270度) */
+.l-5 { transform: rotate(270deg) translate(0, -90px) rotate(-270deg); }
+/* 6. 失敗 (中心330度) */
+.l-6 { transform: rotate(330deg) translate(0, -90px) rotate(-330deg); }
+
+
+/* スタートボタン (スマホ最適化) */
+#startRouletteBtn {
+    display: block;
+    width: 200px;           /* 程よい幅 */
+    margin: 10px auto 0;    /* 中央寄せ */
+    padding: 15px 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    border: none;
+    border-radius: 50px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    cursor: pointer;
+}
+#startRouletteBtn:active { transform: scale(0.95); }
+#startRouletteBtn:disabled { background: #ccc; cursor: not-allowed; }
+
+#rouletteTitle {
+    color: #333;
+    margin-bottom: 5px;
+    font-size: 1.5em;
+    text-align: center;
+}
+#rouletteDescription {
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+    text-align: center;
+}
+#explanationModal {
+    z-index: 2000 !important;
+}

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カード情報 - ライフリッジゲーム</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* card_info.html 専用スタイル */
+        body { background: #FDF8F0; }
+        .card-container {
+            max-width: 700px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #FFA07A 0%, #FF7F50 100%);
+            color: #1A202C; 
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        .card-header h2 {
+            font-size: 2em;
+            margin: 0;
+        }
+        .card-header p {
+            margin-top: 5px;
+            font-size: 1.1em;
+            color: #4A5568;
+        }
+        
+        .card-effect {
+            border: 2px solid #FEEABC;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            background: #FFFBF5;
+        }
+        .card-effect p {
+            font-size: 1.2em;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        /* 解説文エリアのスタイル */
+        .card-explanation-box {
+            background-color: #f0fff4;
+            border: 1px solid #c6f6d5;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 0.95em;
+            line-height: 1.6;
+            color: #2f855a;
+            white-space: pre-wrap; /* 改行をそのまま表示 */
+        }
+
+        .error-message {
+            color: #e53e3e;
+            background: #fff5f5;
+            border: 2px solid #e53e3e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <div id="card-display">
+            </div>
+        <button onclick="window.location.href='index.html';" class="btn-primary" style="margin-top: 20px;">
+            <i class="fas fa-arrow-left"></i> メインアプリに戻る
+        </button>
+    </div>
+
+    <script>
+        // ----------------------------------------------------
+        // 1. カードデータ定義 (解説文反映版)
+        // ----------------------------------------------------
+        const CARD_DATA = {
+            // --- 職業カード (J001 - J010) ---
+            "J001": { 
+                title: "職業: 会社員", type: "job", salary: { 30: 400, 40: 500, 50: 600, 60: 600 }, 
+                explanation: "安定のスタンダード職。給与カーブが30代から60代まで緩やかに上昇していく、最も標準的な職業です。退職金もしっかり出るため、堅実な人生設計が立てやすいのが魅力です。\n　現実の平均年収は約450万〜550万円とされていますが、年齢や業界、企業規模により大きく異なります。(出典：厚生労働省「令和4年 賃金構造基本統計調査」より)" 
+            },
+            "J002": { 
+                title: "職業: 公務員", type: "job", salary: { 30: 500, 40: 600, 50: 700, 60: 700 }, 
+                explanation: "鉄壁の安定感。景気変動イベント（好景気・不景気）の影響を受けにくく、退職金の額も高水準で安定しています。リスクを避けて手堅くクリアしたい場合に最適です。\n　現実の平均年収は約600万〜700万円です。民間企業に準拠して決定されますが、生涯賃金は比較的高く安定しているのが特徴です。(出典：総務省「令和4年 地方公務員給与実態調査」等より推計)" 
+            },
+            "J003": { 
+                title: "職業: 料理人", type: "job", salary: { 30: 250, 40: 300, 50: 400, 60: 400 }, 
+                explanation: "大器晩成型。若い頃の給与は低めですが、ベテラン（50代以降）になると腕一本で高収入を稼げるようになります。「オーバーツーリズム」などのイベントで臨時収入が発生するチャンスがあります。\n　現実の平均年収は約350万〜450万円です。見習い期間は低いですが、料理長やオーナーシェフになると1,000万円を超えるケースもあります。(出典：厚生労働省「令和4年 賃金構造基本統計調査」飲食物調理従事者より)" 
+            },
+            "J004": { 
+                title: "職業: 保育士", type: "job", salary: { 30: 300, 40: 350, 50: 450, 60: 450 }, 
+                explanation: "幸福度の守護者。給与水準は平均的ですが、職業特性として「ライフポイント（幸福度）」が高く設定されています。お金よりも心の豊かさやスコア（LP）を重視するプレイに向いています。\n　現実の平均年収は約380万〜430万円です。処遇改善施策により年々上昇傾向にありますが、責任の重さに対してまだ低いという声もあります。(出典：厚生労働省「令和4年 賃金構造基本統計調査」保育士より)" 
+            },
+            "J005": { 
+                title: "職業: 医師", type: "job", salary: { 30: 1000, 40: 1500, 50: 1700, 60: 1700 }, 
+                explanation: "最強の資金力。全職業中で圧倒的No.1の高収入を誇りますが、激務のためイベントでのストレスを受けやすかったり、教育費が高くなったりするリスクがあります。ハイリスク・ハイリターンな職業です。\n　現実の平均年収は約1,200万〜1,500万円と全職業の中で最高水準ですが、勤務医か開業医か、あるいは診療科によっても幅があります。(出典：厚生労働省「令和4年 賃金構造基本統計調査」医師より)" 
+            },
+            "J006": { 
+                title: "職業: 看護師", type: "job", salary: { 30: 450, 40: 600, 50: 700, 60: 700 }, 
+                explanation: "高水準のバランス型。会社員よりもベース給与が高く、かつ医師ほど極端ではないため、安定して高収入を得られます。「猛暑」などの季節イベントでボーナスが入ることもあり、金銭的に有利です。\n　現実の平均年収は約450万〜500万円です。夜勤手当などが加算されるため、一般的な事務職より給与が高い傾向にあります。(出典：厚生労働省「令和4年 賃金構造基本統計調査」看護師より)" 
+            },
+            "J007": { 
+                title: "職業: 美容師", type: "job", salary: { 30: 350, 40: 400, 50: 450, 60: 450 }, 
+                explanation: "センスと技術の世界。給与は控えめからのスタートですが、ライフポイント（やりがい）が高めです。退職金制度がない場合が多いため、現役時代の資産運用（投資カード）が攻略のカギになります。\n　現実の平均年収は約330万〜400万円です。スタイリストになるまでの下積み期間は低賃金ですが、人気美容師になれば高収入も可能です。(出典：厚生労働省「令和4年 賃金構造基本統計調査」理容・美容師より)" 
+            },
+            "J008": { 
+                title: "職業: フリーター", type: "job", salary: { 30: 200, 40: 200, 50: 200, 60: 200 }, 
+                explanation: "自由への切符。収入は低いですが、特定のイベントで「縛られない生き方」によるメリットを得ることがあります。ただし退職金が出ないため、老後の資金計画は必須です。\n　現実の平均年収は約150万〜250万円です。フルタイムで働いても、時給制のため年収の伸びには限界があることが統計上示されています。(出典：厚生労働省「令和3年 賃金構造基本統計調査」短時間労働者より)" 
+            },
+            "J009": { 
+                title: "職業: パート従業員", type: "job", salary: { 30: 100, 40: 100, 50: 100, 60: 100 }, 
+                explanation: "家計のサポーター。主に「プレイヤー2（配偶者）」が選択することを想定しています。無理のない範囲で働き、世帯収入を堅実に底上げします。\n　現実の平均年収は約100万〜130万円です。いわゆる「年収の壁（103万、130万など）」を意識して調整して働く人が多いため、この金額帯に集中します。(出典：厚生労働省「毎月勤労統計調査」パートタイム労働者より)" 
+            },
+            "J010": { 
+                title: "職業: 専業主婦（主夫）", type: "job", salary: { 30: 0, 40: 0, 50: 0, 60: 0 }, 
+                explanation: "家庭の守護神。収入はゼロですが、高いライフポイント補正を持ちます。パートナーが高収入の場合、非常に安定した幸福な生活を送ることができます。\n　現実の平均年収は0円（賃金なし）ですが、内閣府の試算によると、専業主婦の家事労働の貨幣評価額は約304万円相当とされています。(参考：内閣府「無償労働の貨幣評価」より)" 
+            },
+
+            // --- 結婚カード (M001 - M003) ---
+            "M001": { title: "結婚💍 - 親族のみの挙式", type: "marriage", costsByIncome: { low: 150, mid: 200, high: 300 }, explanation: "親族のみのシンプル挙式。費用は世帯年収によります。" },
+            "M002": { title: "結婚💍 - 標準的な挙式", type: "marriage", costsByIncome: { low: 300, mid: 400, high: 600 }, explanation: "一般的な挙式。費用は世帯年収によります。" },
+            "M003": { title: "結婚💍 - 豪華な挙式", type: "marriage", costsByIncome: { low: 500, mid: 600, high: 800 }, explanation: "豪華な挙式。費用は世帯年収によります。" },
+
+            // --- 子どもカード (C001 - C003) ---
+            "C001": { title: "子供👶 - 1人授かる", type: "children", costsByIncome: { low: 60, mid: 90, high: 150 }, explanation: "1人目の子ども。年間教育費は世帯年収によります。" },
+            "C002": { title: "子供👶 - 2人授かる", type: "children", costsByIncome: { low: 90, mid: 150, high: 250 }, explanation: "2人目の子ども。年間教育費は世帯年収によります。" },
+            "C003": { title: "子供👶 - 3人授かる", type: "children", costsByIncome: { low: 110, mid: 170, high: 290 }, explanation: "3人目の子ども。年間教育費は世帯年収によります。" },
+
+            // --- 住宅カード (H001 - H009) ---
+            "H001": { title: "一戸建て🏡 - お手ごろ", type: "house", costsByIncome: { low: 50, mid: 100, high: 160 }, explanation: "お手ごろ一戸建て。" },
+            "H002": { title: "一戸建て🏡 - 標準",   type: "house", costsByIncome: { low: 65, mid: 130, high: 170 }, explanation: "標準一戸建て。" },
+            "H003": { title: "一戸建て🏡 - 豪華",   type: "house", costsByIncome: { low: 130, mid: 200, high: 270 }, explanation: "豪華一戸建て。" },
+            "H004": { title: "マンション🏢 - お手ごろ", type: "house", costsByIncome: { low: 50, mid: 90, high: 150 }, explanation: "お手ごろマンション。" },
+            "H005": { title: "マンション🏢 - 標準",   type: "house", costsByIncome: { low: 60, mid: 120, high: 160 }, explanation: "標準マンション。" },
+            "H006": { title: "マンション🏢 - 豪華",   type: "house", costsByIncome: { low: 120, mid: 180, high: 250 }, explanation: "豪華マンション。" },
+            "H007": { title: "賃貸🏠 - お手ごろ",   type: "house", costsByIncome: { low: 50, mid: 90, high: 150 }, explanation: "お手ごろ賃貸。" },
+            "H008": { title: "賃貸🏠 - 標準",     type: "house", costsByIncome: { low: 60, mid: 120, high: 160 }, explanation: "標準賃貸。" },
+            "H009": { title: "賃貸🏠 - 豪華",     type: "house", costsByIncome: { low: 120, mid: 180, high: 250 }, explanation: "豪華賃貸。" },
+
+            // --- 自動車カード (A001 - A003) ---
+            "A001": { title: "自動車🚗 - お手ごろクラス", type: "car", costsByIncome: { low: 90, mid: 130, high: 200 }, explanation: "お手ごろ車。年間費用は世帯年収によります。" },
+            "A002": { title: "自動車🚗 - 標準クラス", type: "car", costsByIncome: { low: 280, mid: 350, high: 450 }, explanation: "標準車。年間費用は世帯年収によります。" },
+            "A003": { title: "自動車🚗 - ハイクラス", type: "car", costsByIncome: { low: 580, mid: 680, high: 1080 }, explanation: "ハイクラス車。年間費用は世帯年収によります。" },
+
+            // --- 保険カード (I001 - I003) ---
+            "I001": { title: "生命保険カード", type: "insurance", effect: "年間保険料: 10万円", explanation: "生命保険。万一の備え。" },
+            "I002": { title: "火災保険カード", type: "insurance", effect: "年間保険料: 10万円", explanation: "火災保険。家財保護。" },
+            "I003": { title: "自動車保険カード", type: "insurance", effect: "年間保険料: 6万円", explanation: "自動車保険。事故時安心。" },
+
+            // --- ライフイベントカード (L001 - L016) ---
+            "L001": { title: "子どもの英才教育", type: "life_event_asset_change", effect: "教育資金: 150万円 (一括支出)", explanation: "子どもの可能性を広げる投資。" },
+            "L002": { title: "家族旅行", type: "life_event_asset_change", costsByIncome: { low: 100, mid: 200, high: 300 }, effect: "臨時出費 (年収による)", explanation: "家族の絆を深める旅行。費用は世帯年収によります。" },
+            "L003": { title: "冠婚葬祭", type: "life_event_asset_change", costsByIncome: { low: 20, mid: 50, high: 80 }, effect: "臨時出費 (年収による)", explanation: "冠婚葬祭の出費。人生の節目。支出は世帯年収によります。" },
+            "L004": { title: "交通事故", type: "life_event", effect: "修理・治療費: 200万円 (自動車保険で0円)", explanation: "交通事故。保険でカバー可能。" },
+            "L005": { title: "家族もしくは本人の怪我", type: "life_event", effect: "治療費: 100万円 (生命保険で0円)", explanation: "怪我の治療。保険重要。" },
+            "L006": { title: "病気で入院", type: "life_event", effect: "治療費: 150万円 (生命保険で0円)", explanation: "病気入院。医療費負担軽減。" },
+            "L007": { title: "盗難被害", type: "life_event", effect: "被害額: 100万円 (火災保険で0円)", explanation: "盗難被害。保険で補償。" },
+            "L008": { title: "装飾品の購入", type: "life_event_asset_change", effect: "購入費用: 50万円 (一括支出)", explanation: "装飾品購入。生活の彩り。" },
+            "L009": { title: "自分磨き", type: "life_event_asset_change", costsByIncome: { low: 50, mid: 150, high: 300 }, effect: "臨時出費 (年収による)", explanation: "自分磨き投資。スキルアップ。費用は世帯年収によります。" },
+            "L010": { title: "趣味に夢中", type: "life_event_asset_change", costsByIncome: { low: 100, mid: 150, high: 350 }, effect: "臨時出費 (年収による)", explanation: "趣味の出費。リフレッシュ。費用は世帯年収によります。" },
+            "L011": { title: "子どもの結婚", type: "life_event", effect: "援助資金: 100万円 (一括支出)", explanation: "子どもの結婚援助。" },
+            "L013": { title: "深夜2時の「ポチり」事故", type: "life_event", effect: "散財: 30万円", explanation: "謎の万能感で不要な物を爆買い。届いた時の絶望感と、開封時のワクワク感。" },
+            "L014": { title: "推しの「卒業」発表", type: "life_event_asset_change", costsByIncome: { low: 20, mid: 50, high: 100 }, explanation: "悔いを残さないための全力投資。最後のライブとグッズ購入費は年収に比例します。" },
+            "L015": { title: "飼い猫の動画がバズった", type: "life_event", effect: "臨時収入: 30万円", explanation: "「うちの子が世界一可愛い」という親バカ心で動画を投稿したら、世界中が『Yes』と答えた。承認欲求とお財布が同時に満たされる、最高の瞬間。" },
+            "L016": { title: "サブスクの亡霊", type: "life_event", effect: "固定費削減: 年間-5万円", explanation: "使っていないジムと動画サイトを解約！ 過去の出費は痛いですが、これからの年間支出が5万円安くなります。" },
+
+            // --- ソーシャルイベントカード (S001 - S012) ---
+            "S001": { title: "好景気発生", type: "social_event", effect: "現ターン中、世帯収入の2割収入アップ（一時収入扱い）", explanation: "好景気。現在の世帯手取り年収の20%が、一時収入として入ります。" },
+            "S002": { title: "不景気発生", type: "social_event", effect: "現ターン中、世帯収入の2割収入ダウン（一時支出扱い）", explanation: "不景気。現在の世帯手取り年収の20%が、一時支出として発生します。" },
+            "S003": { title: "インフレ発生", type: "social_event", effect: "一時収入 50万円、一時支出 50万円", explanation: "インフレ。物価と賃金が同時に上昇。一時的に収入が50万円増え、支出も50万円増えます。" },
+            "S004": { title: "新型感染症大流行", type: "social_event", effect: "臨時支出: 50万円 (一括支出)", explanation: "感染症流行。医療出費。" },
+            "S005": { title: "社会保障費増大", type: "social_event", effect: "年間支出が5%増加", explanation: "社会保障費増。負担増加。" },
+            "L012": { title: "子育て世帯特別給付金", type: "social_event", effect: "子どもの人数×10万円を支給", explanation: "子育て支援給付金。" },
+            "S006": { title: "デフレ発生", type: "social_event", effect: "一時収入減 50万円、一時支出減 50万円", explanation: "デフレ。物価と賃金が同時に下落。一時的に収入が50万円減り、支出も50万円減ります。" },
+            "S007": { title: "バラマキ政策のツケ（増税）", type: "social_event", effect: "給付金10万円 / 増税(年収連動)", explanation: "政府が給付金を配布しましたが、その財源確保のため「なんとなく特別税」が新設されました。給付金10万円を受け取りますが、以降「毎年の支出」が増えます（額は年収により変動）。" },
+            "S008": { title: "転売ヤーの暗躍", type: "social_event", costsByIncome: { low: 5, mid: 15, high: 30 }, effect: "条件付き購入", explanation: "「趣味(L010)」「自分磨き(L009)」「装飾品(L008)」のいずれかを持っていると発生。買い占めにより、泣く泣く高値で購入させられます。" },
+            "S009": { title: "記録的猛暑の到来", type: "social_event", effect: "対象職業に臨時収入", explanation: "猛暑により病院と涼しいお店が大繁盛！「医師・看護師・会社員・フリーター」に臨時収入が入ります。" },
+            "S010": { title: "オーバーツーリズムの弊害", type: "social_event", effect: "収入増(過労) or ストレス", explanation: "観光公害により街はパンク状態。「料理人・フリーター・会社員」は収入が増えますが過労でライフポイント減。他職業はストレスでLP減。" },
+            "S011": { title: "レトロブームの到来", type: "social_event", effect: "趣味(L010)の投資額×2倍の収入", explanation: "昔のコレクションが高騰！ 過去に「趣味に夢中(L010)」で支払った金額の倍額が収入として入ります。" },
+            "S012": { title: "ステルス値上げ", type: "social_event", costsByIncome: { low: 4, mid: 15, high: 40 }, explanation: "「お値段そのまま」で中身が減る実質値上げ。同じ生活水準を維持するため、買う回数が増えて支出増に。" },
+
+            // --- 投資カード (T001 - T012) ---
+            "T001": { title: "積立投資カード (月5千円)", type: "investment", effect: "年間積立: 6万円", explanation: "少額積立投資。長期で資産形成。" },
+            "T002": { title: "積立投資カード (月1万円)", type: "investment", effect: "年間積立: 12万円", explanation: "標準積立投資。" },
+            "T003": { title: "積立投資カード (月2万円)", type: "investment", effect: "年間積立: 24万円", explanation: "積極積立投資。" },
+            "T004": { title: "積立投資カード (月3万円)", type: "investment", effect: "年間積立: 36万円", explanation: "中規模積立投資。" },
+            "T005": { title: "積立投資カード (月4万円)", type: "investment", effect: "年間積立: 48万円", explanation: "大規模積立投資。" },
+            "T006": { title: "積立投資カード (月5万円)", type: "investment", effect: "年間積立: 60万円", explanation: "高額積立投資。" },
+            "T007": { title: "一括投資カード (20万円)", type: "investment", effect: "投資金額: 20万円 (一括支出)", explanation: "少額一括投資。" },
+            "T008": { title: "一括投資カード (50万円)", type: "investment", effect: "投資金額: 50万円 (一括支出)", explanation: "標準一括投資。" },
+            "T009": { title: "一括投資カード (70万円)", type: "investment", effect: "投資金額: 70万円 (一括支出)", explanation: "中規模一括投資。" },
+            "T010": { title: "一括投資カード (100万円)", type: "investment", effect: "投資金額: 100万円 (一括支出)", explanation: "大規模一括投資。" },
+            "T011": { title: "一括投資カード (150万円)", type: "investment", effect: "投資金額: 150万円 (一括支出)", explanation: "高額一括投資。" },
+            "T012": { title: "一括投資カード (200万円)", type: "investment", effect: "投資金額: 200万円 (一括支出)", explanation: "最大一括投資。" },
+
+            // --- 退職金データ (R001S - R007H) ---
+            // --- 退職金: 会社員 (J001) ---
+    "R001S": { 
+        title: "退職金: 会社員 (少)", type: "retirement", jobId: "J001", amount: 1100, life_point: 10,
+        explanation: `<h3>中小企業または転職あり</h3>
+<p><strong>【判定：1,100万円】</strong><br>
+中小規模の企業での定年退職、または何度か転職を経験した場合の金額です。</p>
+<p><strong>【現実のデータ】</strong><br>
+東京都の調査によると、中小企業のモデル退職金（大卒・自己都合以外）は<strong>約1,091万円</strong>です。<br>
+大企業との格差は約2倍あり、ピーク時と比較しても約300万円減少しています。老後資金としては心許ないため、再雇用での労働が必須となる水準です。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～東京都産業労働局「中小企業の賃金・退職金事情(令和4年版)」より</p>`
+    },
+    "R001M": { 
+        title: "退職金: 会社員 (普)", type: "retirement", jobId: "J001", amount: 2200, life_point: 15,
+        explanation: `<h3>大企業・標準</h3>
+<p><strong>【判定：2,200万円】</strong><br>
+大企業に新卒から定年まで勤め上げた場合の、最も標準的な金額です。</p>
+<p><strong>【現実のデータ】</strong><br>
+経団連の調査では、大卒標準者の退職金平均は<strong>2,243万円</strong>です。<br>
+「大金だ」と思うかもしれませんが、1997年のピーク時（約2,871万円）と比較すると<strong>約600万円も減少</strong>しています。現役世代の手取りが増えない中、退職金も減り続けているのが日本の現状です。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～日本経済団体連合会「退職金・年金実態調査結果(2021年)」より</p>`
+    },
+    "R001H": { 
+        title: "退職金: 会社員 (多)", type: "retirement", jobId: "J001", amount: 4000, life_point: 20,
+        explanation: `<h3>大企業・役員クラス</h3>
+<p><strong>【判定：4,000万円】</strong><br>
+大企業で部長・役員クラスまで出世し、功労金が加算された成功者コースです。</p>
+<p><strong>【現実のデータ】</strong><br>
+一般的な従業員の退職金に、役員としての慰労金が加算されるケースです。<br>
+ただし、近年は株主への説明責任（ガバナンス）の観点から、役員退職金を廃止する企業も増えています（2007年の約85%から、現在は約60%以下へ減少）。この金額を受け取れるのは、実力と運を兼ね備えた一握りです。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～人事院・民間企業退職給付調査などより推計</p>`
+    },
+
+    // --- 退職金: 公務員 (J002) ---
+    "R002S": { 
+        title: "退職金: 公務員 (少)", type: "retirement", jobId: "J002", amount: 1500, life_point: 10,
+        explanation: `<h3>勤続年数が短い場合など</h3>
+<p><strong>【判定：1,500万円】</strong><br>
+自己都合での早期退職や、中途採用などで勤続年数がフル（35年以上）に満たない場合です。</p>
+<p><strong>【現実のデータ】</strong><br>
+公務員の退職金は「勤続年数」が命です。定年まで勤めれば約2,100万円ですが、例えば勤続25年程度で早期退職すると、支給率は大きく下がります。<br>
+それでも民間の中小企業平均よりは高い水準が保証されています。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～内閣官房「国家公務員退職手当実態調査」より</p>`
+    },
+    "R002M": { 
+        title: "退職金: 公務員 (普)", type: "retirement", jobId: "J002", amount: 2100, life_point: 15,
+        explanation: `<h3>定年退職（標準）</h3>
+<p><strong>【判定：2,100万円】</strong><br>
+新卒から定年まで勤め上げた、公務員の王道パターンです。</p>
+<p><strong>【現実のデータ】</strong><br>
+国家公務員（行政職）の定年退職金平均は<strong>約2,106万円</strong>です。<br>
+かつては3,000万円近くありましたが、「官民格差」を是正するために民間企業（大企業）の水準に合わせて約10年ごとに引き下げ改定が行われています。それでも、倒産リスクがなく確実に貰える点は最強のメリットです。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～内閣官房「退職手当の支給状況(令和4年度)」より</p>`
+    },
+    "R002H": { 
+        title: "退職金: 公務員 (多)", type: "retirement", jobId: "J002", amount: 2500, life_point: 20,
+        explanation: `<h3>事務次官・局長級</h3>
+<p><strong>【判定：2,500万円】</strong><br>
+激務に耐え、本省の局長や事務次官などの指定職まで上り詰めた場合です。</p>
+<p><strong>【現実のデータ】</strong><br>
+指定職（幹部）の平均退職金額は、一般職より高く設定されています。<br>
+ただし、いわゆる「天下り」規制が厳しくなったため、退職後の渡り歩きによる生涯収入は昔ほど青天井ではありません。純粋に現役時代の激務への対価と言えます。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～内閣官房「国家公務員退職手当実態調査」指定職データより</p>`
+    },
+
+    // --- 退職金: 料理人 (J003) ---
+    "R003S": { 
+        title: "退職金: 料理人 (少)", type: "retirement", jobId: "J003", amount: 0, life_point: 5,
+        explanation: `<h3>個人店・小規模店</h3>
+<p><strong>【判定：0万円】</strong><br>
+退職金制度のない個人経営の店舗に勤務していた場合です。</p>
+<p><strong>【現実のデータ】</strong><br>
+飲食業界（特に小規模事業者）では、退職金制度がある企業は<strong>全体の30%以下</strong>とも言われます。<br>
+この職業を選んだ場合、現役時代の給与から自分で「iDeCo」などで積み立てておかないと、老後資金がゼロになるリスクと隣り合わせです。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～厚生労働省「就労条件総合調査」宿泊・飲食サービス業データより</p>`
+    },
+    "R003M": { 
+        title: "退職金: 料理人 (普)", type: "retirement", jobId: "J003", amount: 500, life_point: 10,
+        explanation: `<h3>中堅チェーン・独立資金</h3>
+<p><strong>【判定：500万円】</strong><br>
+中規模の飲食企業に勤務、あるいは独立開業のために貯めた自己資金です。</p>
+<p><strong>【現実のデータ】</strong><br>
+飲食業界の平均退職金は、全産業平均と比べても著しく低く、勤続20年以上でも<strong>300万～500万円程度</strong>に留まることが多いです。<br>
+退職金を「老後資金」ではなく「自分の店を持つための開業資金」として使う人が多いのもこの職業の特徴です。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～中央労働委員会「賃金事情等総合調査」より</p>`
+    },
+    "R003H": { 
+        title: "退職金: 料理人 (多)", type: "retirement", jobId: "J003", amount: 1500, life_point: 15,
+        explanation: `<h3>大手ホテル・総料理長</h3>
+<p><strong>【判定：1,500万円】</strong><br>
+福利厚生が整った大手ホテルや、上場外食企業の幹部料理長として勤め上げた場合です。</p>
+<p><strong>【現実のデータ】</strong><br>
+「料理人」といっても勤務先が大手ホテルチェーンであれば、一般的な会社員と同等の退職金制度が適用されます。<br>
+腕一本でここまで登り詰めるには、技術だけでなくマネジメント能力も必要とされたはずです。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～各種ホテル業界給与データより推計</p>`
+    },
+
+    // --- 退職金: 保育士 (J004) ---
+    "R004S": { 
+        title: "退職金: 保育士 (少)", type: "retirement", jobId: "J004", amount: 300, life_point: 5,
+        explanation: `<h3>私立園（小規模）</h3>
+<p><strong>【判定：300万円】</strong><br>
+小規模な社会福祉法人が運営する園で、退職金共済のみの支給の場合です。</p>
+<p><strong>【現実のデータ】</strong><br>
+私立保育園の場合、園独自の制度はなく、福祉医療機構の「退職手当共済」のみというケースが多々あります。<br>
+この場合、30年勤続しても受取額は<strong>約600万円以下</strong>になることが多く、公立保育士との格差（官民格差）が大きな問題となっています。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～福祉医療機構「退職手当共済事業」給付実績より</p>`
+    },
+    "R004M": { 
+        title: "退職金: 保育士 (普)", type: "retirement", jobId: "J004", amount: 900, life_point: 10,
+        explanation: `<h3>私立園（中堅・制度あり）</h3>
+<p><strong>【判定：900万円】</strong><br>
+退職金制度が整備された私立園で、園長クラスまで勤めた場合です。</p>
+<p><strong>【現実のデータ】</strong><br>
+私立でも、複数の園を運営する大規模法人などでは独自の上乗せ制度がある場合があります。<br>
+それでも全産業平均（約1,100万〜2,200万）と比較すると低い水準にあり、現役時代の「処遇改善手当」をいかに貯蓄に回せたかが重要になります。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～厚生労働省「幼稚園・保育所等の経営実態調査」より</p>`
+    },
+    "R004H": { 
+        title: "退職金: 保育士 (多)", type: "retirement", jobId: "J004", amount: 2100, life_point: 15,
+        explanation: `<h3>公立保育士（公務員）</h3>
+<p><strong>【判定：2,100万円】</strong><br>
+公立保育園に採用され、地方公務員として定年まで勤め上げた場合です。</p>
+<p><strong>【現実のデータ】</strong><br>
+公立保育士は身分が「地方公務員」であるため、退職金も<strong>公務員規定（約2,100万円）</strong>が適用されます。<br>
+同じ仕事内容でも、勤務先が公立か私立かで老後資金に1,000万円以上の差がつくのが、保育業界の隠れた実態です。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～総務省「地方公務員給与実態調査」より</p>`
+    },
+
+    // --- 退職金: 医師 (J005) ---
+    "R005S": { 
+        title: "退職金: 医師 (少)", type: "retirement", jobId: "J005", amount: 500, life_point: 10,
+        explanation: `<h3>開業医の閉院・転院</h3>
+<p><strong>【判定：500万円】</strong><br>
+勤務医として病院を渡り歩いた（勤続年数が分散した）、または開業医が小規模で閉院した場合です。</p>
+<p><strong>【現実のデータ】</strong><br>
+医師は高給ですが、退職金制度は意外と手薄です。<br>
+開業医にはそもそも退職金がなく、「小規模企業共済」などで自ら積み立てる必要があります。また、勤務医も転職が多ければ退職金はほとんど積み上がりません。現役時代の高収入をどれだけ投資に回せたかが勝負です。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～医師のキャリア調査データ等より</p>`
+    },
+    "R005M": { 
+        title: "退職金: 医師 (普)", type: "retirement", jobId: "J005", amount: 1800, life_point: 15,
+        explanation: `<h3>勤務医（部長クラス）</h3>
+<p><strong>【判定：1,800万円】</strong><br>
+民間の中核病院などで、定年まで勤務医として勤め上げた場合です。</p>
+<p><strong>【現実のデータ】</strong><br>
+医療法人の退職金は、一般企業の水準に準じることが多いです。<br>
+平均年収が1,500万円近い医師にとって、退職金2,000万円弱というのは「年収のわずか1.5年分」に過ぎません（会社員は年収の4〜5年分）。医師にとって退職金はメインの資産形成手段ではないのです。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～中央社会保険医療協議会「医療経済実態調査」より</p>`
+    },
+    "R005H": { 
+        title: "退職金: 医師 (多)", type: "retirement", jobId: "J005", amount: 3500, life_point: 20,
+        explanation: `<h3>院長・公立病院幹部</h3>
+<p><strong>【判定：3,500万円】</strong><br>
+大規模病院の院長職、またはクリニックを高値で事業承継（M&A）できた場合です。</p>
+<p><strong>【現実のデータ】</strong><br>
+公立病院の院長クラスであれば、公務員規定＋役職加算で高額になります。<br>
+また、開業医が引退時に「医療法人」を後継者に売却できた場合、その譲渡益が事実上の退職金（ハッピーリタイアメント）となり、数千万円〜億単位になることもあります。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～医療M&A市場データ、公立病院給与規定より</p>`
+    },
+
+    // --- 退職金: 看護師 (J006) ---
+    "R006S": { 
+        title: "退職金: 看護師 (少)", type: "retirement", jobId: "J006", amount: 500, life_point: 10,
+        explanation: `<h3>クリニック・介護施設</h3>
+<p><strong>【判定：500万円】</strong><br>
+小規模な個人クリニックや、訪問看護ステーションなどに勤務した場合です。</p>
+<p><strong>【現実のデータ】</strong><br>
+看護師は流動性が高く（転職が多い）、退職金制度のない小規模事業所も多いため、退職金の平均額は全職種平均よりも低い傾向にあります。<br>
+勤続年数がリセットされやすいため、1,000万円を超える退職金を受け取る看護師は全体の数%と言われています。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～日本看護協会「病院看護実態調査」より</p>`
+    },
+    "R006M": { 
+        title: "退職金: 看護師 (普)", type: "retirement", jobId: "J006", amount: 1200, life_point: 15,
+        explanation: `<h3>私立総合病院（師長）</h3>
+<p><strong>【判定：1,200万円】</strong><br>
+ある程度の規模がある私立病院で、看護師長クラスまで勤め上げた場合です。</p>
+<p><strong>【現実のデータ】</strong><br>
+民間の大規模病院における看護職のモデル退職金は<strong>約1,000万〜1,200万円</strong>です。<br>
+夜勤という身体的負担の大きい業務を何十年も続け、管理職の責任も負った対価としては「決して多くはない」と感じる現場の声も多い金額です。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～医療経済実態調査データより</p>`
+    },
+    "R006H": { 
+        title: "退職金: 看護師 (多)", type: "retirement", jobId: "J006", amount: 2100, life_point: 20,
+        explanation: `<h3>公立・国立病院</h3>
+<p><strong>【判定：2,100万円】</strong><br>
+国立病院機構や県立病院などに勤務し、公務員（準公務員）扱いとなった場合です。</p>
+<p><strong>【現実のデータ】</strong><br>
+ここでも「公務員規定」の強さが発揮されます。<br>
+国公立の病院であれば、看護師も公務員給与表に基づいて退職金が計算されるため、民間病院と比べて圧倒的に有利になります。安定を求めるなら国公立一択と言われる所以です。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～人事院・公務員給与規定より</p>`
+    },
+
+    // --- 退職金: 美容師 (J007) ---
+    "R007S": { 
+        title: "退職金: 美容師 (少)", type: "retirement", jobId: "J007", amount: 0, life_point: 5,
+        explanation: `<h3>業界標準</h3>
+<p><strong>【判定：0万円】</strong><br>
+美容業界では「退職金制度なし」が一般的です。</p>
+<p><strong>【現実のデータ】</strong><br>
+美容室の9割は個人経営などの小規模事業者であり、退職金制度があるサロンは極めて稀です。<br>
+この職業を選んだ場合、国民年金だけでは老後生活が破綻するため、若いうちから「iDeCo」や「国民年金基金」への加入が必須と言われる、自助努力の業界です。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～厚生労働省「生活衛生関係営業経営実態調査」より</p>`
+    },
+    "R007M": { 
+        title: "退職金: 美容師 (普)", type: "retirement", jobId: "J007", amount: 200, life_point: 10,
+        explanation: `<h3>中堅サロン（寸志）</h3>
+<p><strong>【判定：200万円】</strong><br>
+法人化している中堅サロンで、長年貢献したことへの「功労金」的な意味合いです。</p>
+<p><strong>【現実のデータ】</strong><br>
+退職金制度があるサロンでも、その額は数十万〜200万円程度に留まるケースが多いです。<br>
+美容師は「ハサミ一本で稼ぐ個人事業主」に近い性質があるため、会社に守ってもらうというより、自分の腕と指名客という資産を作ることが最大の退職金代わりとなります。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～理美容業界年鑑データ等より</p>`
+    },
+    "R007H": { 
+        title: "退職金: 美容師 (多)", type: "retirement", jobId: "J007", amount: 500, life_point: 15,
+        explanation: `<h3>大手チェーン幹部</h3>
+<p><strong>【判定：500万円】</strong><br>
+全国展開する大手サロンチェーンの幹部や教育担当としてキャリアを終えた場合です。</p>
+<p><strong>【現実のデータ】</strong><br>
+上場しているような大手美容企業であれば、企業年金や退職金制度が整備されつつあります。<br>
+それでも他業界と比較すると少なめですが、業界内では非常に恵まれた「勝ち組」の待遇と言えます。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～各社有価証券報告書より推計</p>`
+    },
+            
+            "RT_S": { title: "退職金カード (少)", type: "retirement_trigger", level: "S", explanation: "「少ない」退職金を受け取ります。金額は職業によります。" },
+            "RT_M": { title: "退職金カード (普)", type: "retirement_trigger", level: "M", explanation: "「普通」の退職金を受け取ります。金額は職業によります。" },
+            "RT_H": { title: "退職金カード (多)", type: "retirement_trigger", level: "H", explanation: "「多い」退職金を受け取ります。金額は職業によります。" }
+        };
+
+        // ----------------------------------------------------
+        // 2. ページロード時の処理
+        // ----------------------------------------------------
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            let cardId = params.get('card_id');
+            const fromApp = params.get('from_app');
+            const display = document.getElementById('card-display');
+            
+            let isLoadedFromApp = (fromApp === 'true');
+            let storedCardId = localStorage.getItem('last_scanned_card_id');
+
+            if (isLoadedFromApp) {
+                if (cardId) {
+                    localStorage.setItem('last_scanned_card_id', cardId);
+                    window.location.replace('card_info.html?card_id=' + cardId);
+                    return;
+                }
+            }
+
+            if (!cardId) {
+                if (storedCardId) {
+                    cardId = storedCardId;
+                    window.history.replaceState({}, document.title, "card_info.html?card_id=" + cardId);
+                } else {
+                    display.innerHTML = `
+                        <div class="error-message">
+                            <h3>❌ エラー：メインのゲームアプリに接続できませんでした。</h3>
+                            <p>このページを直接開いた可能性があります。必ずメインアプリの「カードスキャン」ボタンを押して、QRコードを読み込んでください。</p>
+                        </div>
+                    `;
+                    return;
+                }
+            }
+            
+            localStorage.setItem('last_scanned_card_id', cardId);
+
+            if (!CARD_DATA[cardId]) {
+                display.innerHTML = `
+                    <div class="error-message">
+                        <h3>❌ エラー：カードIDが無効です。</h3>
+                        <p>ID: ${cardId} は存在しません。</p>
+                    </div>
+                `;
+                localStorage.removeItem('last_scanned_card_id');
+                return;
+            }
+
+            let householdGrossIncome = 0;
+            let gameState = null;
+            try {
+                const savedState = localStorage.getItem('lifeGameGameState'); 
+                if (savedState) {
+                    gameState = JSON.parse(savedState);
+                    householdGrossIncome = (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
+                }
+            } catch (e) {
+                console.error("Failed to load gameState from localStorage:", e);
+            }
+
+            const card = CARD_DATA[cardId];
+            
+            let effectText = '';
+            let effectTitle = '効果:'; 
+            let displayTitle = card.title;
+            let displayEffect = '';
+
+            let explanationHtml = card.explanation ? card.explanation.replace(/\n/g, '<br>') : '解説なし';
+
+            if (card.type === 'job' && card.salary) {
+                effectText = `30代: ${card.salary[30]}万円 | 40代: ${card.salary[40]}万円 | 50代: ${card.salary[50]}万円 | 60代: ${card.salary[60]}万円`;
+            }
+           else if (card.type === "retirement_trigger") {
+                let targetPlayer = null;
+                let targetPlayerName = "対象プレイヤー";
+
+                if (gameState) {
+                    const applyGuidance = gameState.guidanceContextForApply || gameState.currentGuidance;
+                    if (applyGuidance === 'retirement_p1') {
+                        targetPlayer = gameState.players.player1;
+                        targetPlayerName = targetPlayer.name;
+                    } else if (applyGuidance === 'retirement_p2') {
+                        targetPlayer = gameState.players.player2;
+                        targetPlayerName = targetPlayer.name;
+                    }
+                }
+                
+                effectTitle = `効果 (${targetPlayerName}さん):`;
+
+                if (targetPlayer) {
+                    const playerJobId = targetPlayer.jobId;
+                    if (playerJobId === 'J008' || playerJobId === 'J009' || !playerJobId || playerJobId === 'J010') {
+                        displayTitle = card.title;
+                        displayEffect = `【${targetPlayerName}】(${CARD_DATA[playerJobId]?.title || '職業なし'}) は退職金の対象外です。`;
+                        // 対象外の場合の解説文
+                        explanationHtml = "退職金制度のない職業、または対象外の雇用形態です。iDeCoや積立投資など、現役時代の自助努力が老後資金の鍵となります。";
+                    } else {
+                        const level = card.level;
+                        const targetCardId = 'R' + playerJobId.substring(1) + level;
+                        
+                        if (CARD_DATA[targetCardId]) {
+                            const actualCardData = CARD_DATA[targetCardId];
+                            const amount = actualCardData.amount;
+                            displayTitle = `【${targetPlayerName}】${actualCardData.title}`;
+                            displayEffect = `退職金: ${amount}万円`;
+                            
+                            // ★ここを追加：解説文も詳細データのものに差し替える
+                            if (actualCardData.explanation) {
+                                explanationHtml = actualCardData.explanation.replace(/\n/g, '<br>');
+                            }
+                        } else {
+                            displayEffect = "エラー: 該当する退職金データが見つかりません。";
+                        }
+                    }
+                } else {
+                    displayTitle = card.title;
+                    displayEffect = "メインアプリでプレイヤーを選択してからスキャンしてください。";
+                }
+                effectText = displayEffect;
+            }
+            else if (card.costsByIncome) {
+                effectTitle = '効果 (現在の世帯年収に基づく費用):'; 
+                
+                let currentCost = 0;
+                let incomeLevelText = '';
+                let unit = '';
+
+                if (card.type === 'house' || card.type === 'children' || card.type === 'car') {
+                    unit = '万円/年';
+                } else {
+                    unit = '万円 (一括支出)';
+                }
+
+                if (householdGrossIncome < 600) {
+                    currentCost = card.costsByIncome.low;
+                    incomeLevelText = `(世帯年収 ～599万円)`;
+                } else if (householdGrossIncome < 1000) {
+                    currentCost = card.costsByIncome.mid;
+                    incomeLevelText = `(世帯年収 600～999万円)`;
+                } else {
+                    currentCost = card.costsByIncome.high;
+                    incomeLevelText = `(世帯年収 1000万円～)`;
+                }
+                
+                effectText = `${currentCost}${unit} <span style="font-size: 0.8em; color: #666; line-height: 1.5; display: block; margin-top: 5px;">${incomeLevelText}</span>`;
+            }
+            else {
+                effectText = card.effect || '効果なし';
+            }
+            
+            display.innerHTML = `
+                <div class="card-header">
+                    <h2>${displayTitle}</h2>
+                    <p>ID: ${cardId}</p>
+                </div>
+                
+                <div class="card-explanation-box">
+                    <strong>【解説】</strong><br>
+                    ${explanationHtml}
+                </div>
+
+                <div class="card-effect">
+                    <p>${effectTitle}</p>
+                    <p>${effectText}</p>
+                </div>
+                <p>このカードを**適用**するには、メインアプリに戻って「適用」ボタンを押してください。</p>
+            `;
+        });
+    </script>
+</body>
+</html>

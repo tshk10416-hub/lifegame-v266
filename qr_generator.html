@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ライフリッジゲーム - QRコード生成</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; color: #333; margin: 0; padding: 40px; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 20px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+        h1 { color: #f5576c; text-align: center; margin-bottom: 20px; }
+        p.info { text-align: center; color: #666; margin-bottom: 30px; font-size: 1.1em; }
+        .qr-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 30px; 
+        }
+        .qr-section h2 { 
+            grid-column: 1 / -1; 
+            margin-top: 40px; 
+            margin-bottom: 20px; 
+            padding-bottom: 10px; 
+            border-bottom: 2px solid #eee; 
+            color: #4a5568; 
+            font-size: 1.5em;
+        }
+        .qr-item { 
+            background: #fff; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 15px; 
+            padding: 25px; 
+            text-align: center; 
+            transition: transform 0.2s, box-shadow 0.2s; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .qr-item:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
+            border-color: #cbd5e0;
+        }
+        .qr-item h3 { 
+            margin: 0 0 10px 0; 
+            font-size: 1.1em; 
+            color: #2d3748; 
+            height: 2.4em; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .qr-item p { 
+            margin: 0 0 15px 0; 
+            color: #718096; 
+            font-size: 0.9em; 
+            font-family: monospace; 
+            background: #edf2f7; 
+            padding: 2px 8px; 
+            border-radius: 4px; 
+        }
+        .qr-code-div { 
+            padding: 10px; 
+            background: white; 
+            border-radius: 5px; 
+        }
+        @media print {
+            .qr-item { break-inside: avoid; border: 1px solid #ccc; box-shadow: none; }
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; padding: 0; }
+            h1, p.info { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ライフリッジゲーム QRコード一覧</h1>
+        <p class="info">このページを印刷するか、スマホで直接読み取ってカードを使用してください。</p>
+        <div id="qr-container" class="qr-grid"></div>
+    </div>
+
+    <script>
+        // ベースURL
+        const baseUrl = "card_info.html?from_app=true&card_id=";
+
+        // カードデータ定義 (全カード網羅)
+        const CARD_DATA = {
+            // --- 職業カード ---
+            "J001": { title: "職業: 会社員", type: "job" },
+            "J002": { title: "職業: 公務員", type: "job" },
+            "J003": { title: "職業: 料理人", type: "job" },
+            "J004": { title: "職業: 保育士", type: "job" },
+            "J005": { title: "職業: 医師", type: "job" },
+            "J006": { title: "職業: 看護師", type: "job" },
+            "J007": { title: "職業: 美容師", type: "job" },
+            "J008": { title: "職業: フリーター", type: "job" },
+            "J009": { title: "職業: パート従業員", type: "job" },
+            "J010": { title: "職業: 専業主婦（主夫）", type: "job" },
+
+            // --- 結婚カード ---
+            "M001": { title: "結婚💍 - 親族のみの挙式", type: "marriage" },
+            "M002": { title: "結婚💍 - 標準的な挙式", type: "marriage" },
+            "M003": { title: "結婚💍 - 豪華な挙式", type: "marriage" },
+
+            // --- 子どもカード ---
+            "C001": { title: "子供👶 - 1人授かる", type: "children" },
+            "C002": { title: "子供👶 - 2人授かる", type: "children" },
+            "C003": { title: "子供👶 - 3人授かる", type: "children" },
+
+            // --- 住宅カード ---
+            "H001": { title: "一戸建て🏡 - お手ごろ", type: "house" },
+            "H002": { title: "一戸建て🏡 - 標準", type: "house" },
+            "H003": { title: "一戸建て🏡 - 豪華", type: "house" },
+            "H004": { title: "マンション🏢 - お手ごろ", type: "house" },
+            "H005": { title: "マンション🏢 - 標準", type: "house" },
+            "H006": { title: "マンション🏢 - 豪華", type: "house" },
+            "H007": { title: "賃貸🏠 - お手ごろ", type: "house" },
+            "H008": { title: "賃貸🏠 - 標準", type: "house" },
+            "H009": { title: "賃貸🏠 - 豪華", type: "house" },
+
+            // --- 自動車カード ---
+            "A001": { title: "自動車🚗 - お手ごろクラス", type: "car" },
+            "A002": { title: "自動車🚗 - 標準クラス", type: "car" },
+            "A003": { title: "自動車🚗 - ハイクラス", type: "car" },
+
+            // --- 保険カード ---
+            "I001": { title: "生命保険カード", type: "insurance" },
+            "I002": { title: "火災保険カード", type: "insurance" },
+            "I003": { title: "自動車保険カード", type: "insurance" },
+
+            // --- ライフイベントカード ---
+            "L001": { title: "子どもの英才教育", type: "life_event" },
+            "L002": { title: "家族旅行", type: "life_event" },
+            "L003": { title: "冠婚葬祭", type: "life_event" },
+            "L004": { title: "交通事故", type: "life_event" },
+            "L005": { title: "家族もしくは本人の怪我", type: "life_event" },
+            "L006": { title: "病気で入院", type: "life_event" },
+            "L007": { title: "盗難被害", type: "life_event" },
+            "L008": { title: "装飾品の購入", type: "life_event" },
+            "L009": { title: "自分磨き", type: "life_event" },
+            "L010": { title: "趣味に夢中", type: "life_event" },
+            "L011": { title: "子どもの結婚", type: "life_event" },
+            "L013": { title: "深夜2時の「ポチり」事故", type: "life_event" },
+            "L014": { title: "推しの「卒業」発表", type: "life_event" },
+            "L015": { title: "飼い猫の動画がバズった", type: "life_event" },
+            "L016": { title: "サブスクの亡霊", type: "life_event" },
+
+            // --- ソーシャルイベントカード (S001 - S012) ---
+            "S001": { title: "好景気発生", type: "social_event" },
+            "S002": { title: "不景気発生", type: "social_event" },
+            "S003": { title: "インフレ発生", type: "social_event" },
+            "S004": { title: "新型感染症大流行", type: "social_event" },
+            "S005": { title: "社会保障費増大", type: "social_event" },
+            "L012": { title: "子育て世帯特別給付金", type: "social_event" },
+            "S006": { title: "デフレ発生", type: "social_event" },
+            "S007": { title: "バラマキ政策のツケ（増税）", type: "social_event" },
+            "S008": { title: "転売ヤーの暗躍", type: "social_event" },
+            "S009": { title: "記録的猛暑の到来", type: "social_event" },
+            "S010": { title: "オーバーツーリズムの弊害", type: "social_event" },
+            "S011": { title: "レトロブームの到来", type: "social_event" },
+            "S012": { title: "ステルス値上げ", type: "social_event" },
+
+            // --- 投資カード ---
+            "T001": { title: "積立投資カード (月5千円)", type: "investment" },
+            "T002": { title: "積立投資カード (月1万円)", type: "investment" },
+            "T003": { title: "積立投資カード (月2万円)", type: "investment" },
+            "T004": { title: "積立投資カード (月3万円)", type: "investment" },
+            "T005": { title: "積立投資カード (月4万円)", type: "investment" },
+            "T006": { title: "積立投資カード (月5万円)", type: "investment" },
+            "T007": { title: "一括投資カード (20万円)", type: "investment" },
+            "T008": { title: "一括投資カード (50万円)", type: "investment" },
+            "T009": { title: "一括投資カード (70万円)", type: "investment" },
+            "T010": { title: "一括投資カード (100万円)", type: "investment" },
+            "T011": { title: "一括投資カード (150万円)", type: "investment" },
+            "T012": { title: "一括投資カード (200万円)", type: "investment" },
+
+            // --- 退職金 ---
+            "R001S": { title: "退職金: 会社員 (少)", type: "retirement" },
+            "R001M": { title: "退職金: 会社員 (普)", type: "retirement" },
+            "R001H": { title: "退職金: 会社員 (多)", type: "retirement" },
+            "R002S": { title: "退職金: 公務員 (少)", type: "retirement" },
+            "R002M": { title: "退職金: 公務員 (普)", type: "retirement" },
+            "R002H": { title: "退職金: 公務員 (多)", type: "retirement" },
+            "R003S": { title: "退職金: 料理人 (少)", type: "retirement" },
+            "R003M": { title: "退職金: 料理人 (普)", type: "retirement" },
+            "R003H": { title: "退職金: 料理人 (多)", type: "retirement" },
+            "R004S": { title: "退職金: 保育士 (少)", type: "retirement" },
+            "R004M": { title: "退職金: 保育士 (普)", type: "retirement" },
+            "R004H": { title: "退職金: 保育士 (多)", type: "retirement" },
+            "R005S": { title: "退職金: 医師 (少)", type: "retirement" },
+            "R005M": { title: "退職金: 医師 (普)", type: "retirement" },
+            "R005H": { title: "退職金: 医師 (多)", type: "retirement" },
+            "R006S": { title: "退職金: 看護師 (少)", type: "retirement" },
+            "R006M": { title: "退職金: 看護師 (普)", type: "retirement" },
+            "R006H": { title: "退職金: 看護師 (多)", type: "retirement" },
+            "R007S": { title: "退職金: 美容師 (少)", type: "retirement" },
+            "R007M": { title: "退職金: 美容師 (普)", type: "retirement" },
+            "R007H": { title: "退職金: 美容師 (多)", type: "retirement" },
+
+            "RT_S": { title: "退職金カード (少)", type: "retirement_trigger" },
+            "RT_M": { title: "退職金カード (普)", type: "retirement_trigger" },
+            "RT_H": { title: "退職金カード (多)", type: "retirement_trigger" }
+        };
+
+        function generateQRCodes() {
+            const container = document.getElementById('qr-container');
+            const types = {
+                'job': '職業カード',
+                'marriage': '結婚カード',
+                'children': '子どもカード',
+                'house': '住宅カード',
+                'car': '自動車カード',
+                'insurance': '保険カード',
+                'life_event': 'ライフイベントカード',
+                'social_event': 'ソーシャルイベントカード',
+                'investment': '投資カード',
+                'retirement': '退職金データ(裏)',
+                'retirement_trigger': '退職金カード(表)'
+            };
+
+            let currentType = null;
+            let currentGrid = null;
+
+            Object.keys(CARD_DATA).forEach(cardId => {
+                const card = CARD_DATA[cardId];
+                
+                // セクションの切り替わり判定
+                if (card.type !== currentType) {
+                    currentType = card.type;
+                    
+                    const sectionDiv = document.createElement('div');
+                    sectionDiv.className = 'qr-section';
+                    sectionDiv.style.gridColumn = '1 / -1';
+                    sectionDiv.style.display = 'contents';
+
+                    const titleH2 = document.createElement('h2');
+                    titleH2.textContent = types[currentType] || 'その他';
+                    
+                    container.appendChild(titleH2);
+                }
+
+                const qrUrl = baseUrl + cardId;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'qr-item';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.textContent = card.title;
+
+                const idp = document.createElement('p');
+                idp.textContent = `ID: ${cardId}`;
+
+                const qrDiv = document.createElement('div');
+                qrDiv.className = 'qr-code-div';
+                qrDiv.id = `qrcode-${cardId}`;
+
+                itemDiv.appendChild(titleH3);
+                itemDiv.appendChild(idp);
+                itemDiv.appendChild(qrDiv);
+                container.appendChild(itemDiv);
+
+                new QRCode(document.getElementById(`qrcode-${cardId}`), {
+                    text: qrUrl,
+                    width: 200,
+                    height: 200,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', generateQRCodes);
+    </script>
+</body>
+</html>

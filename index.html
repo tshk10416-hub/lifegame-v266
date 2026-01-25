@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <title>ライフリッジゲーム ~Life & Marriage~</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+    <div id="titleScreen" class="title-screen">
+        <div class="title-top-image">
+            <img src="family_illust.png" alt="家族のイラスト" class="main-illust" 
+                 onerror="this.onerror=null; this.src='https://placehold.co/300x250/FFE4B5/FF7F50?text=Life+Game';">
+        </div>
+
+        <div class="title-center-content">
+            <h1>ライフリッジ<br>ゲーム</h1>
+            <p class="subtitle">～Life & Marriage～ </p>
+            
+            <div style="margin: 20px 0;">
+                <input type="text" id="roomIdInput" placeholder="ルームID (例: 1234)" 
+                       style="padding: 10px; font-size: 1.2em; width: 200px; text-align: center; border-radius: 5px; border: 1px solid #ccc;">
+                <p style="font-size:0.8em; color:#666; margin-top:5px;">※同じIDの人とイベントを共有します</p>
+            </div>
+            <button onclick="startFamilyMake()" class="start-btn">スタート</button>
+            <button onclick="showHallOfFame()" class="start-btn btn-secondary" style="margin-top: 10px;">セーブデータ</button>
+        </div>
+
+        <div class="title-icons-bottom">
+            <div class="icon-left">
+                <img src="asset_icon.png" alt="資産" style="max-width: 100px; height: auto;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                <i class="fas fa-coins" style="font-size: 3em; color: #FF7F50; display: none;"></i>
+            </div>
+            <div class="icon-right">
+                <img src="balance_icon.png" alt="バランス" style="max-width: 100px; height: auto;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                <i class="fas fa-heart" style="font-size: 3em; color: #FF7F50; display: none;"></i>
+            </div>
+        </div>
+    </div>
+
+    <div id="familyMakeScreen" class="container" style="display: none; text-align: center;">
+        <h2 id="makeStepTitle" style="color: #FF7F50; margin-bottom: 20px;">ファミリーメイク</h2>
+        <p id="makeStepDesc" style="margin-bottom: 30px; color: #666;">あなたの理想の家族を作りましょう</p>
+        <div id="makeContentArea"></div>
+        <div class="make-controls">
+            <button id="makeNextBtn" class="btn-primary" onclick="nextMakeStep()">次へ <i class="fas fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <div id="mainGameContainer" class="container" style="display: none;">
+        <div class="player-section">
+            <div class="player-card" id="player1">
+                <h2><i class="fas fa-user"></i> <span class="player-name">プレイヤー1</span></h2>
+                <div class="player-info">
+                    <p>職業: <span id="p1-job">-</span></p>
+                    <p>手取り年収: <span id="p1-income">0</span>万円</p>
+                </div>
+            </div>
+            <div class="player-card" id="player2">
+                <h2><i class="fas fa-user"></i> <span class="player-name">プレイヤー2</span></h2>
+                <div class="player-info">
+                    <p>職業: <span id="p2-job">-</span></p>
+                    <p>手取り年収: <span id="p2-income">0</span>万円</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-status">
+            <div class="status-card">
+                <h3><i class="fas fa-calendar-alt"></i> 現在の年代</h3>
+                <p class="age-display" id="current-age">30代</p>
+            </div>
+            <div class="status-card">
+                <h3><i class="fas fa-yen-sign"></i> 世帯手取り年収</h3>
+                <p><span id="household-income">0</span>万円</p>
+            </div>
+            <div class="status-card">
+                <h3><i class="fas fa-piggy-bank"></i> 総資産</h3>
+                <p><span id="total-assets">0</span>万円</p>
+            </div>
+            <div class="status-card" style="background: linear-gradient(135deg, #FFF5F5 0%, #FED7D7 100%);">
+                <h3 style="color:#E53E3E;"><i class="fas fa-heart"></i> ライフポイント</h3>
+                <p style="color:#E53E3E;"><span id="current-happiness">0</span> pt</p>
+            </div>
+            <div class="status-card">
+                <h3><i class="fas fa-wallet"></i> 年間支出</h3>
+                <p><span id="annual-expense">0</span>万円</p>
+            </div>
+        </div>
+
+        <div class="qr-section">
+            <h3><i class="fas fa-qrcode"></i> アクション</h3>
+            <div class="qr-buttons">
+                 <button onclick="openMainScanButton()" class="btn-primary" style="width: 100%; color: #333;">
+                    <i class="fas fa-qrcode"></i> カードを読み取る
+                 </button>
+            </div>
+        </div>
+
+        <div class="life-plan-details">
+            <h3>📊 ライフプラン詳細</h3>
+            <div class="detail-grid">
+                <div class="detail-section">
+                    <h4><i class="fas fa-heart"></i> 結婚</h4>
+                    <p>タイプ: <span id="marriage-type">-</span></p>
+                    <p>費用: <span id="marriage-cost">0</span>万円</p>
+                </div>
+                <div class="detail-section">
+                    <h4><i class="fas fa-child"></i> 子ども</h4>
+                    <p>人数: <span id="children-count">0</span>人</p>
+                    <p>年間費用: <span id="children-cost">0</span>万円</p>
+                </div>
+                <div class="detail-section">
+                    <h4><i class="fas fa-home"></i> 住宅</h4>
+                    <p>タイプ: <span id="house-type">-</span></p>
+                    <p>年間費用: <span id="house-cost">0</span>万円</p>
+                </div>
+                <div class="detail-section">
+                    <h4><i class="fas fa-car-side"></i> 自動車</h4>
+                    <p>タイプ: <span id="car-type">-</span></p>
+                    <p>台数: <span id="car-count">0</span>台</p>
+                    <p>年間費用: <span id="car-cost">0</span>万円</p>
+                </div>
+                <div class="detail-section">
+                    <h4><i class="fas fa-shield-alt"></i> 保険</h4>
+                    <p>生命: <span id="life-insurance">未加入</span></p>
+                    <p>火災: <span id="fire-insurance">未加入</span></p>
+                    <p>自動車: <span id="auto-insurance">未加入</span></p>
+                    <p>年額: <span id="insurance-cost">0</span>万円</p>
+                </div>
+                <div class="detail-section">
+                    <h4><i class="fas fa-shopping-cart"></i> 生活費</h4>
+                    <p>年間: <span id="living-cost">0</span>万円</p>
+                </div>
+                <div class="detail-section">
+                    <h4><i class="fas fa-chart-line"></i> 投資</h4>
+                    <p>積立(年): <span id="tsumitate-amount">0</span>万円</p>
+                    <p>一括: <span id="ikkatsu-amount">0</span>万円</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="event-log">
+            <h3>📝 イベントログ</h3>
+            <div id="event-list"></div>
+        </div>
+
+        <div class="control-buttons" style="grid-template-columns: 1fr;">
+            <button onclick="nextTurn()" class="btn-primary">
+                <i class="fas fa-arrow-right"></i> 次のターンへ
+            </button>
+            <button onclick="showBalance()" class="btn-secondary">
+                <i class="fas fa-table"></i> 収支詳細を見る
+            </button>
+            <button onclick="showHistoryGraph()" class="btn-secondary">
+                <i class="fas fa-chart-line"></i> 収支グラフを見る
+            </button>
+            <button onclick="resetGame()" class="btn-danger">
+                <i class="fas fa-redo"></i> ゲームリセット
+            </button>
+        </div>
+    </div>
+
+    <div id="guidanceModal" class="modal">
+        <div class="modal-content" style="text-align:center;">
+            <h2 id="guidance-title"></h2>
+            
+            <div id="guidance-asset-panel-container" style="margin: 15px 0;"></div>
+
+            <p id="guidance-text" style="margin-bottom:25px;"></p>
+            
+            <div style="margin-bottom: 25px;">
+                <button id="guidance-ok-button" class="btn-primary" style="padding: 20px 40px; font-size: 1.3em; border-radius: 50px; background-color: #3498db; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                    <i class="fas fa-camera" style="margin-right: 10px;"></i> スキャン画面へ
+                </button>
+            </div>
+
+            <div style="display: flex; justify-content: flex-start; margin-bottom: 20px;">
+                <button id="guidance-done-button" class="btn-success" style="display:none; padding: 10px 20px;">
+                    完了して次へ <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end;">
+                <button id="guidance-back-button" onclick="goBackGuidance()" class="btn-secondary" style="display:none; padding: 10px 20px;">
+                    <i class="fas fa-undo"></i> 前に戻る
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cameraModal" class="modal">
+        <div class="modal-content camera-modal-content">
+            <h2>🃏 カードをスキャン</h2>
+            <div class="camera-view">
+                <video id="cameraVideo" playsinline autoplay muted></video>
+                <canvas id="cameraCanvas" style="display: none;"></canvas>
+                <p id="scanStatus" class="scan-status">起動中...</p>
+            </div>
+            
+            <div id="scanStatsPanel"></div>
+
+            <div style="display:flex; justify-content:center; gap:15px; margin-top:15px;">
+                <button onclick="closeCameraAndReturn()" class="btn-secondary" style="width: auto; padding: 10px 20px;">
+                    <i class="fas fa-undo"></i> 戻る
+                </button>
+                <button onclick="stopScan()" class="btn-danger" style="width: auto; padding: 10px 20px;">
+                    <i class="fas fa-times"></i> 中止
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cardInfoModal" class="modal">
+        <div class="modal-content card-info-content">
+            <div id="card-info-header" class="card-header">
+                <h2 id="card-info-title"></h2>
+                <p id="card-info-id"></p>
+            </div>
+            <div class="card-effect"><p>効果:</p><p id="card-info-effect"></p></div>
+            <div class="modal-buttons">
+                 <button id="applyCardEffectButton" onclick="applyCardEffect()" class="btn-success"><i class="fas fa-check"></i> 適用</button>
+                 <button onclick="showExplanation()" class="btn-secondary"><i class="fas fa-info-circle"></i> 解説</button>
+                 <button onclick="closeCardInfoModal()" class="btn-secondary"><i class="fas fa-times"></i> キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="netIncomeModal" class="modal"><div class="modal-content card-info-content"><h2 id="net-income-player-name" style="color:#48bb78;"></h2><div class="card-effect" style="border-color:#A8E063;"><p>額面年収:</p><p id="net-income-gross" style="font-size:1.2em;color:#555;"></p></div><div class="card-effect" style="border-color:#48bb78;"><p>手取り年収 (目安):</p><p id="net-income-net" style="font-size:1.5em;color:#48bb78;"></p></div><div class="modal-buttons" style="grid-template-columns:1fr 1fr;"><button onclick="showDeductionDetailsModal()" class="btn-secondary"><i class="fas fa-info-circle"></i> 控除内訳</button><button onclick="closeNetIncomeModal()" class="btn-success"><i class="fas fa-check"></i> OK</button></div></div></div>
+    <div id="deductionDetailsModal" class="modal"><div class="modal-content"><h2>控除内訳 (概算)</h2><table class="balance-table"><thead><tr><th>項目</th><th>年間控除額</th></tr></thead><tbody><tr><td>健康保険料</td><td id="deduction-health">0万円</td></tr><tr><td>厚生年金</td><td id="deduction-pension">0万円</td></tr><tr><td>雇用保険</td><td id="deduction-employment">0万円</td></tr><tr><td>所得税</td><td id="deduction-income-tax">0万円</td></tr><tr><td>住民税</td><td id="deduction-resident-tax">0万円</td></tr></tbody><tfoot><tr style="font-weight: bold;"><td>合計</td><td id="deduction-total">0万円</td></tr></tfoot></table><button onclick="closeDeductionDetailsModal()" class="btn-primary" style="margin-top:20px;">閉じる</button></div></div>
+    <div id="explanationModal" class="modal"><div class="modal-content"><h2>カード解説</h2><div id="card-explanation" style="text-align: left; line-height: 1.6;"></div><button onclick="closeExplanationModal()" class="btn-primary" style="margin-top:20px;">閉じる</button></div></div>
+        </div>
+
+   <div id="rouletteModal" class="modal">
+        <div class="modal-content roulette-container">
+            <h2 id="rouletteTitle">運命のルーレット</h2>
+            <p id="rouletteDescription">クリックしてスタート (成功確率 1/3)</p>
+            
+            <div class="roulette-wrapper">
+                <div class="roulette-arrow">▼</div>
+                <div id="rouletteWheel" class="roulette-wheel">
+                </div>
+            </div>
+            
+            <button id="startRouletteBtn">START</button>
+        </div>
+    </div>
+    <div id="jobSelectionModal" class="modal">
+        <div class="modal-content" style="text-align:center;">
+            <h2 style="color:#2b6cb0; margin-bottom:10px;">新しい職業を選択</h2>
+            <p style="font-size:0.9em; color:#666; margin-bottom:20px;">
+                心機一転！新しいキャリアを始めます。<br>
+                <strong style="color:#e53e3e;">※30代の給与水準から再スタートします。</strong>
+            </p>
+            
+            <div id="jobSelectContainer"></div>
+            
+            <button id="confirmJobChangeBtn" class="btn-primary" style="margin-top:20px; width:100%;">
+                <i class="fas fa-check"></i> この職業に決定
+            </button>
+        </div>
+    </div>
+            
+    <script src="card_info.js"></script>
+    <div id="turnStartModal" class="modal"><div class="modal-content" style="text-align:center;"><h2 id="turn-start-title" style="color:#FF7F50;font-size:2em;margin-bottom:20px;"></h2><p id="turn-start-text" style="margin-bottom:30px;font-size:1.2em;"></p><button id="turn-start-button" onclick="proceedToTurnActions()" class="btn-success" style="width:100%;"><i class="fas fa-play"></i> 開始</button></div></div>
+    <div id="ageGuidanceModal" class="modal">
+        <div class="modal-content">
+            <h2 id="age-guidance-title" style="color:#2b6cb0; text-align:center; margin-bottom:15px;">年代アドバイス</h2>
+            
+            <div id="age-guidance-text" class="karte-advice-box" style="text-align:left;"></div>
+            
+            <div style="text-align:center; margin-top:20px;">
+                <button class="btn-primary" onclick="closeAgeGuidanceModal()">確認</button>
+            </div>
+        </div>
+    </div>
+    <div id="balanceModal" class="modal"><div class="modal-content"><h2 id="balance-modal-title">収支詳細</h2><table class="balance-table"><thead><tr><th>項目</th><th>金額 (万円)</th></tr></thead><tbody id="turnBreakdownTbody"></tbody></table><button onclick="closeBalanceModal()" class="btn-primary" style="margin-top:20px;">閉じる</button></div></div>
+    <div id="careerChallengeModal" class="modal"><div class="modal-content"><h2><i class="fas fa-briefcase"></i> キャリアチャレンジ</h2><p style="margin-bottom:20px;font-weight:bold;"><span id="career-challenge-player-name"></span> さんの番です</p><div class="modal-buttons" style="grid-template-columns:1fr;margin-top:20px;"><button onclick="handleCareerChoice('jobChange')" class="btn-primary">転職 (1, 6で成功)</button><button onclick="handleCareerChoice('promotion')" class="btn-success">昇格 (3, 5で成功)</button><button onclick="handleCareerChoice('skip')" class="btn-secondary">現状維持</button></div></div></div>
+    <div id="retirementBonusModal" class="modal"><div class="modal-content" style="text-align:center;"><h2 style="color:#FF7F50;font-size:1.8em;margin-bottom:20px;">退職金カードのスキャン</h2><div class="retirement-scan-area"><div class="retirement-player-card" id="retirement-p1-card"><h4><span id="retirement-p1-name">P1</span></h4><button id="retirement-p1-scan-btn" onclick="openRetirementBonusScan('player1')" class="btn-primary btn-small">スキャン</button><p class="scan-status-text" id="retirement-p1-status">未スキャン</p></div><div class="retirement-player-card" id="retirement-p2-card"><h4><span id="retirement-p2-name">P2</span></h4><button id="retirement-p2-scan-btn" onclick="openRetirementBonusScan('player2')" class="btn-primary btn-small">スキャン</button><p class="scan-status-text" id="retirement-p2-status">未スキャン</p></div></div><button onclick="showInvestmentRateModal()" class="btn-success" id="retirement-next-btn" style="width:100%;margin-top:20px;" disabled>適用して次へ</button></div></div>
+    <div id="finalResultModal" class="modal"><div class="final-result-content"><h2>60代 終了！</h2><div id="lifeplanSummary"><p>お疲れ様でした！</p></div><button onclick="showInvestmentRateModal()" class="btn-primary" style="margin-top:20px;">投資結果計算へ</button></div></div>
+    <div id="investmentRateModal" class="modal"><div class="modal-content" style="text-align:center;"><h2>投資利率の決定</h2><p>ルーレットで運用年利を決定します。</p><div id="rouletteContainer"><div id="rouletteDisplay">0%</div></div><button id="rouletteButton" class="btn-primary" onclick="toggleRoulette()" style="width:100%; margin-top:20px;"><i class="fas fa-play"></i> スタート</button></div></div>
+    <div id="investmentResultModal" class="modal"><div class="modal-content-large"><h2 style="color:#2d3748; text-align:center; margin-bottom:10px;"><i class="fas fa-chart-line"></i> 資産運用の結果発表</h2><div id="investmentResultSummary"></div><div style="text-align:center; margin-top:20px;"><button onclick="showFinalAssets()" class="btn-success" style="width:100%;">最終結果を見る</button></div></div></div>
+    <div id="lifePlanKarteModal" class="modal">
+        <div class="modal-content-xlarge" style="background: linear-gradient(to bottom right, #ffffff, #fffaf0);">
+            <h2 style="color:#d69e2e; text-align:center; margin-bottom:20px;">
+                <i class="fas fa-crown"></i> ライフプラン・カルテ
+            </h2>
+
+            <div class="karte-grid">
+                <div class="karte-section">
+                    <h3><i class="fas fa-history"></i> あなたの人生の選択</h3>
+                    <ul class="karte-list">
+                        <li><span style="color:#666;">結婚式</span> <span id="karte-marriage" style="float:right; font-weight:bold;">-</span></li>
+                        <li><span style="color:#666;">マイホーム</span> <span id="karte-house" style="float:right; font-weight:bold;">-</span></li>
+                        <li><span style="color:#666;">お子様</span> <span id="karte-children" style="float:right; font-weight:bold;">-</span></li>
+                        <li><span style="color:#666;">車</span> <span id="karte-car" style="float:right; font-weight:bold;">-</span></li>
+                    </ul>
+                </div>
+
+                <div class="karte-section score-section">
+                    <h3><i class="fas fa-star"></i> 総合評価</h3>
+                    <div class="score-row">
+                        <span>💰 最終資産</span>
+                        <span class="score-val" id="karte-assets">0万円</span>
+                    </div>
+                    <div class="score-row">
+                        <span>❤️ ライフポイント</span>
+                        <span class="score-val" id="karte-happiness" style="color:#e53e3e;">0 pt</span>
+                    </div>
+                    
+                    <div class="score-row" style="border-top: 2px dashed #cbd5e0; margin-top: 15px; padding-top: 15px;">
+                        <span style="font-size:1.2em; font-weight:bold; color:#2b6cb0;">🏆 総合スコア</span>
+                        <span class="score-val" id="karte-score" style="font-size:1.8em; color:#2b6cb0;">0</span>
+                    </div>
+
+                    <div class="total-rank" id="karte-rank-title">
+                        診断中...
+                    </div>
+                </div>
+            </div>
+
+            <div class="karte-advice-box">
+                <h4><i class="fas fa-comment-dollar"></i> 今回のプランニングへのアドバイス</h4>
+                <p id="karte-advice-text">ここにアドバイスが入ります。</p>
+            </div>
+            <div style="text-align:center; margin: 25px 0; padding: 15px; background: #f0fff4; border: 2px dashed #48bb78; border-radius: 10px;">
+                <p style="font-weight:bold; color:#2f855a; margin-bottom:10px;">
+                    ＼ ゲームの結果を現実に活かそう！ ／
+                </p>
+                <a id="line-connect-btn" href="#" target="_blank" class="btn-success" style="display:inline-block; text-decoration:none; padding:15px 30px; font-size:1.1em; border-radius:50px; box-shadow: 0 4px 10px rgba(72, 187, 120, 0.4);">
+                    <i class="fab fa-line" style="font-size:1.3em; margin-right:5px;"></i> 結果をLINEに送って診断
+                </a>
+                <p style="font-size:0.8em; color:#666; margin-top:5px;">※自動で集計データが入力されます</p>
+            </div>
+            
+            <div class="modal-buttons" style="margin-top:20px; margin-bottom:15px;">
+                <button onclick="showFinalBalanceDetails(null)" class="btn-secondary"><i class="fas fa-list"></i> 収支詳細</button>
+                <button onclick="showHistoryGraph()" class="btn-secondary"><i class="fas fa-chart-area"></i> 推移グラフ</button>
+            </div>
+
+            <div style="margin-top:20px; text-align:center;">
+                <button onclick="saveAndExitGame()" class="btn-primary" style="padding:15px 30px;">
+                    タイトルに戻る
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="finalBalanceModal" class="modal"><div class="modal-content-xlarge"><h2>年代別 収支詳細</h2><div id="finalBalanceDetailsContainer" style="max-height:400px;overflow-y:auto;padding:5px;"></div><button onclick="closeFinalBalanceModal()" class="btn-primary" style="margin-top:20px;">閉じる</button></div></div>
+    <div id="finalGraphModal" class="modal"><div class="modal-content-xlarge"><h2>資産推移グラフ</h2><div class="chart-container-modal"><canvas id="finalBalanceChart"></canvas></div><button onclick="closeFinalGraphModal()" class="btn-primary" style="margin-top:20px;">閉じる</button></div></div>
+   <div id="localExplanationModal" class="modal">
+        <div class="modal-content">
+            <h2 id="localExplTitle" style="color:#2b6cb0; margin-bottom:20px;"></h2>
+            <div id="localExplBody" style="text-align:left; line-height:1.6; margin-bottom:25px;"></div>
+            <div style="text-align:center;">
+                <button id="localExplCloseBtn" class="btn-primary">閉じる</button>
+            </div>
+        </div>
+    </div>
+    <div id="hallOfFameModal" class="modal"><div class="modal-content-xlarge"><h2>セーブデータ</h2><div id="hallOfFameContainer" style="max-height:450px;overflow-y:auto;padding:5px;"></div><button onclick="closeHallOfFameModal()" class="btn-primary" style="margin-top:20px;">閉じる</button></div></div>
+
+    <script src="game.js"></script>
+</body>
+</html>
