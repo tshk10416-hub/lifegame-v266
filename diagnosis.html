@@ -473,16 +473,6 @@
             line-height: 1.4;
         }
         .line-btn:active { transform: translateY(2px); }
-        .privacy-note {
-            font-size: 0.75rem; 
-            color: #666; 
-            margin-top: 15px; 
-            background: #f0f0f0; 
-            padding: 10px; 
-            border-radius: 8px;
-            line-height: 1.5;
-            text-align: left;
-        }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -868,15 +858,18 @@
             </p>
             <!-- 汎用的な予約ボタンに変更（データ送信なし） -->
             <a id="lineConsultBtn" href="#" class="line-btn">
-                <i class="fab fa-line"></i> LINEに戻って個別相談を予約する
+                <i class="fab fa-line"></i> LINEで個別相談を予約する
             </a>
-            <!-- プライバシー保護の注釈 -->
-            <p class="privacy-note">
-                <i class="fas fa-lock" style="color:#2b6cb0;"></i> <strong>安心のセキュリティ</strong><br>
-                この画面に入力した年収や貯蓄額などのデータは、<strong>あなたのスマートフォンの中にだけ保存され、外部に送信されることは一切ありません。</strong><br>
-                <br>
-                ※相談時にこの結果を使用したい場合は、<strong>画面のスクリーンショット</strong>を撮って、相談当日に担当者にお見せください。
-            </p>
+        </div>
+        
+        <!-- LINEに戻るボタン等 -->
+        <div class="line-btn-container" style="margin-top: 10px; border-top: none;">
+             <a href="https://line.me/" class="line-btn" style="background-color: #555; font-size: 0.9rem; width: auto; display: inline-block; padding: 10px 20px;">
+                <i class="fas fa-undo"></i> LINEに戻る
+            </a>
+            <button onclick="window.close();" style="display:block; width:100%; margin-top:10px; background:none; border:none; color:#777; text-decoration:underline;">
+                閉じる
+            </button>
         </div>
     </div>
 </div>
@@ -1149,7 +1142,6 @@
         const remainingYears = parseInt(document.getElementById('remainingYears').innerText) || 0;
         const lifetimeIncome = Math.round(currentHouseholdNet * remainingYears);
         
-        // 65歳時点の収支バランス (資産) = (現在貯蓄 + 生涯収入 + 退職金 + 手当) - (支出 + 投資元本) + 運用益
         const incomeBalance = (currentSavings + lifetimeIncome + valRetirement + valChildBenefits) - totalReal + valInvestProfit;
         currentIncomeBalanceAt65 = incomeBalance;
 
