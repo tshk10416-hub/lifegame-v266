@@ -25,7 +25,7 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 20px;
+            padding: 15px; /* スマホ向けに余白調整 */
             line-height: 1.6;
         }
 
@@ -33,27 +33,29 @@
             max-width: 800px;
             margin: 0 auto;
             background: var(--white);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            padding: 20px 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
 
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             border-bottom: 3px dashed var(--primary);
-            padding-bottom: 20px;
+            padding-bottom: 15px;
         }
 
         h1 {
             color: var(--primary);
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             margin: 0;
+            line-height: 1.3;
         }
 
         .subtitle {
             color: #718096;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            margin-top: 5px;
         }
 
         /* --- 入力セクション --- */
@@ -61,9 +63,9 @@
             background: #ebf8ff;
             border: 2px solid #bee3f8;
             border-radius: 15px;
-            padding: 20px;
+            padding: 15px;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .age-input-group {
@@ -71,14 +73,14 @@
             justify-content: center;
             align-items: center;
             gap: 10px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
             margin-bottom: 10px;
         }
         .age-input-group input {
-            width: 80px;
+            width: 70px;
             padding: 8px;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             text-align: center;
             border: 2px solid #fff;
             background: white;
@@ -89,44 +91,46 @@
         }
 
         .calc-info {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #4a5568;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.6);
+            padding: 5px;
+            border-radius: 5px;
         }
 
         .income-container {
             border-top: 2px dashed #90cdf4;
-            padding-top: 20px;
+            padding-top: 15px;
             margin-top: 10px;
         }
         .income-title {
             color: #2c5282;
             font-weight: bold;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
         }
         
         .income-inputs {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
         .income-group {
             background: white;
-            padding: 10px 20px;
+            padding: 10px;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: 45%; /* スマホで2列並び */
+            min-width: 140px;
         }
         .income-group label {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             color: #718096;
             margin-bottom: 5px;
             font-weight: bold;
@@ -134,58 +138,36 @@
         .income-wrapper {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 3px;
+            width: 100%;
+            justify-content: center;
         }
         .income-wrapper input {
-            width: 90px;
-            padding: 8px;
-            font-size: 1.3rem;
+            width: 100%;
+            padding: 6px;
+            font-size: 1.1rem;
             text-align: right;
             border: 2px solid #e2e8f0;
-            border-radius: 8px;
+            border-radius: 6px;
             background: #f7fafc;
             font-weight: bold;
             color: #2d3748;
         }
+        .income-wrapper span { font-size: 0.8rem; }
 
         .net-income-display {
             background: #2b6cb0;
             color: white;
-            margin-top: 20px;
+            margin-top: 15px;
             padding: 15px;
             border-radius: 10px;
-            display: inline-block;
-            min-width: 250px;
+            width: 100%;
+            box-sizing: border-box;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .net-label { font-size: 0.9rem; opacity: 0.9; }
-        .net-value { font-size: 2rem; font-weight: 900; color: #fbdb65; line-height: 1.2; }
-        .gross-total { font-size: 0.8rem; margin-top: 5px; opacity: 0.8; }
-
-        /* 現在の貯蓄額入力エリア */
-        .current-asset-input {
-            margin-top: 20px;
-            background: #fff;
-            padding: 10px;
-            border-radius: 10px;
-            border: 2px solid #48bb78;
-            display: inline-block;
-        }
-        .current-asset-input label {
-            font-weight: bold;
-            color: #2f855a;
-            margin-right: 10px;
-        }
-        .current-asset-input input {
-            width: 100px;
-            padding: 5px;
-            font-size: 1.3rem;
-            text-align: right;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-weight: bold;
-            color: #2f855a;
-        }
+        .net-label { font-size: 0.85rem; opacity: 0.9; }
+        .net-value { font-size: 1.8rem; font-weight: 900; color: #fbdb65; line-height: 1.2; }
+        .gross-total { font-size: 0.75rem; margin-top: 5px; opacity: 0.8; }
 
         /* 手当ガイダンス */
         .allowance-guide {
@@ -194,34 +176,39 @@
             border: 1px solid #48bb78;
             border-radius: 8px;
             padding: 10px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #2f855a;
             text-align: left;
-            display: inline-block;
-            max-width: 90%;
+            width: 100%;
+            box-sizing: border-box;
         }
         .allowance-guide strong {
             color: #276749;
             display: block;
-            margin-bottom: 3px;
+            margin-bottom: 5px;
+            border-bottom: 1px dashed #48bb78;
+            padding-bottom: 3px;
+        }
+        .allowance-guide ul {
+            padding-left: 20px;
+            margin: 5px 0 0 0;
         }
         .allowance-highlight {
             background: linear-gradient(transparent 60%, #b2f5ea 60%);
             font-weight: bold;
         }
 
-        /* --- 比較テーブル --- */
+        /* --- 比較テーブル（PC用・基本） --- */
         .comparison-table {
             width: 100%;
             border-collapse: separate; 
             border-spacing: 0 8px; 
             margin-bottom: 30px;
         }
-
         .comparison-table th {
             background: #2d3748;
             color: white;
-            padding: 15px 10px;
+            padding: 12px 8px;
             font-size: 0.9rem;
             text-align: center;
             vertical-align: middle;
@@ -229,16 +216,15 @@
         }
         .comparison-table th.game-header { background: var(--accent); }
         .comparison-table th.real-header { background: var(--primary); }
-
-        .comparison-table tbody tr {
-            background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        }
-
+        
         .comparison-table td {
             padding: 15px 10px;
             vertical-align: middle; 
+            background: white;
             border-bottom: 1px solid #edf2f7;
+        }
+        .comparison-table tbody tr {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
         .comparison-table tbody tr td:first-child { border-radius: 8px 0 0 8px; }
         .comparison-table tbody tr td:last-child { border-radius: 0 8px 8px 0; }
@@ -247,50 +233,36 @@
             font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             font-size: 0.95rem;
             color: #2d3748;
         }
-        .category-cell i { 
-            color: var(--primary); 
-            width: 24px; 
-            text-align: center; 
-            font-size: 1.1em;
+        .category-cell i { color: var(--primary); width: 24px; text-align: center; font-size: 1.1em; flex-shrink: 0; }
+        .game-val { font-weight: bold; color: var(--accent); text-align: right; font-size: 1.1rem; }
+        .source-text { font-size: 0.75rem; color: #718096; line-height: 1.4; }
+
+        /* --- フォーム部品 --- */
+        /* 青色セルボックススタイル */
+        .real-input, .input-group-cell {
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 8px;
+            box-sizing: border-box;
         }
 
-        .game-val {
-            font-weight: bold;
-            color: var(--accent);
-            text-align: right;
-            font-size: 1.1rem;
-        }
-
-        /* 入力エリア */
         .real-input {
             width: 100%;
             padding: 10px;
             font-size: 1.1rem;
-            border: 2px solid var(--input-border);
-            border-radius: 8px;
-            background: var(--input-bg);
             text-align: right;
             color: #2c5282;
             font-weight: bold;
-            box-sizing: border-box;
             transition: all 0.2s;
         }
-        .real-input:focus {
-            outline: none;
-            border-color: #4299e1;
-            background: #fff;
-            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
-        }
+        .real-input:focus { outline: none; border-color: #4299e1; background: #fff; }
 
         .input-group-cell {
-            background: var(--input-bg);
             padding: 10px;
-            border-radius: 8px;
-            border: 2px solid var(--input-border);
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -299,7 +271,7 @@
             display: flex;
             align-items: center;
             justify-content: flex-end; 
-            gap: 8px;
+            gap: 5px;
         }
         
         .mini-input {
@@ -313,16 +285,7 @@
             font-weight: bold;
             color: #2c5282;
         }
-        .mini-input:focus {
-            outline: none;
-            border-color: #4299e1;
-        }
-
-        .unit-label { 
-            font-size: 0.85rem; 
-            color: #4a5568; 
-            font-weight: bold;
-        }
+        .unit-label { font-size: 0.8rem; color: #4a5568; font-weight: bold; white-space: nowrap; }
         .calc-preview {
             font-size: 0.85rem;
             color: #2b6cb0;
@@ -332,16 +295,8 @@
             border-top: 1px dashed #cbd5e0;
         }
 
-        .source-text {
-            font-size: 0.75rem;
-            color: #718096;
-            line-height: 1.4;
-        }
-
-        .invest-calc-box {
-            background: #e6fffa; 
-            border-color: #b2f5ea;
-        }
+        /* 投資シミュレーション用 */
+        .invest-calc-box { background: #e6fffa; border-color: #b2f5ea; }
         #invest-result-display {
             font-weight: bold;
             color: #2b6cb0;
@@ -350,13 +305,14 @@
             text-align: right;
         }
 
+        /* 診断ボタン */
         .diagnose-btn {
             display: block;
             width: 100%;
-            padding: 20px;
+            padding: 18px;
             background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
             color: white;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: bold;
             border: none;
             border-radius: 50px;
@@ -364,24 +320,28 @@
             box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
             transition: transform 0.2s;
             margin-bottom: 40px;
+            white-space: normal; /* テキストの折り返しを許可 */
+            line-height: 1.4;
         }
         .diagnose-btn:active { transform: scale(0.98); }
 
+        /* 結果エリア */
         #resultArea {
             display: none;
             background: #fff;
-            padding: 20px;
+            padding: 20px 15px;
             border-radius: 20px;
-            border: 4px solid var(--primary);
+            border: 3px solid var(--primary);
             animation: fadeIn 0.5s ease;
         }
         
         .result-summary { text-align: center; margin-bottom: 30px; }
         .total-cost-display {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             font-weight: 900;
             color: var(--danger);
             text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+            line-height: 1.2;
         }
         .net-income-projection {
             text-align: center;
@@ -391,13 +351,15 @@
             margin-bottom: 20px;
             border: 1px solid #f6e05e;
             color: #744210;
+            font-size: 0.9rem;
         }
         .advice-box {
             background: #ebf8ff;
             border-left: 5px solid var(--primary);
             padding: 15px;
             margin-top: 20px;
-            font-size: 1rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
         }
 
         /* 老後シミュレーション用 */
@@ -407,7 +369,7 @@
             border-top: 3px dashed #cbd5e0;
         }
         .sim-header {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             color: #2b6cb0;
             margin-bottom: 15px;
             text-align: center;
@@ -415,7 +377,7 @@
         }
         .sim-input-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: 1fr; /* スマホは1列 */
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -425,18 +387,16 @@
             border-radius: 8px;
             border: 1px solid #e2e8f0;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        .sim-group label {
-            display: block;
-            font-size: 0.85rem;
-            color: #718096;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
+        .sim-group label { margin: 0; text-align: left; }
+        .sim-group > div { text-align: right; }
         .sim-group input {
-            width: 80px;
+            width: 60px;
             padding: 5px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             text-align: center;
             border: 1px solid #cbd5e0;
             border-radius: 5px;
@@ -446,29 +406,132 @@
         .sim-result-box {
             background: #2d3748;
             color: white;
-            padding: 20px;
+            padding: 15px;
             border-radius: 10px;
             text-align: center;
         }
         .sim-result-val {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 900;
             margin: 10px 0;
         }
         .sim-result-safe { color: #48bb78; }
         .sim-result-danger { color: #e53e3e; }
 
+        /* LINEボタン修正 */
+        .line-btn-container {
+            text-align: center; 
+            margin-top: 30px; 
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .line-btn {
+            display: block; /* ブロック要素にして幅を広げる */
+            width: 100%;
+            background: #06C755; /* LINE Green */
+            color: white; 
+            padding: 15px 10px; 
+            border-radius: 30px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            box-shadow: 0 4px 10px rgba(6, 199, 85, 0.3);
+            font-size: 1rem;
+            box-sizing: border-box; /* パディングを含める */
+            line-height: 1.4;
+        }
+        .line-btn:active { transform: translateY(2px); }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* =========================================
+           ★スマホ特化のレスポンシブデザイン (カード化)
+           ========================================= */
         @media (max-width: 600px) {
-            .container { padding: 10px; width: 100%; border-radius: 0; box-shadow: none; }
-            h1 { font-size: 1.5rem; }
-            .comparison-table th, .comparison-table td { padding: 10px 5px; font-size: 0.8rem; }
-            .game-val, .real-input, .mini-input { font-size: 1rem; }
-            .category-cell { font-size: 0.8rem; flex-direction: column; align-items: flex-start; gap: 2px; }
-            .income-inputs { gap: 10px; }
-            .income-group { width: 45%; }
-            .income-wrapper input { width: 100%; font-size: 1.1rem; }
+            /* テーブル構造を解除してカード型にする */
+            .comparison-table, .comparison-table tbody, .comparison-table tr, .comparison-table td {
+                display: block;
+                width: 100%;
+            }
+            
+            /* ヘッダーは非表示 */
+            .comparison-table thead { display: none; }
+
+            /* 行（カード）のデザイン */
+            .comparison-table tbody tr {
+                margin-bottom: 20px;
+                border: 2px solid #e2e8f0;
+                border-radius: 15px;
+                overflow: hidden;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            }
+
+            /* 各セル */
+            .comparison-table td {
+                padding: 12px 15px;
+                text-align: left;
+                border-bottom: 1px solid #f0f0f0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            /* 1. 項目名（ヘッダー風に） */
+            .comparison-table td:nth-child(1) {
+                background: #f7fafc;
+                border-bottom: 2px solid #edf2f7;
+                font-size: 1rem;
+                padding: 10px 15px;
+            }
+
+            /* 2. ゲーム実績 */
+            .comparison-table td:nth-child(2) {
+                background: #fff;
+                justify-content: flex-end; /* 右寄せ */
+            }
+            .comparison-table td:nth-child(2)::before {
+                content: "🎮 ゲーム実績:";
+                font-size: 0.8rem;
+                color: #718096;
+                margin-right: auto; /* 左側にラベル配置 */
+            }
+
+            /* 3. あなたの現実（入力欄） */
+            .comparison-table td:nth-child(3) {
+                background: #fff;
+                display: block; /* 入力欄はブロックで大きく */
+                padding: 15px;
+            }
+            .comparison-table td:nth-child(3)::before {
+                content: "🌏 あなたの現実:";
+                display: block;
+                font-size: 0.8rem;
+                color: #2b6cb0;
+                font-weight: bold;
+                margin-bottom: 8px;
+            }
+
+            /* 4. 備考・根拠 (見やすく最下部に配置) */
+            .comparison-table td:nth-child(4) {
+                background: #fffff0; /* 薄い黄色で見やすく */
+                color: #555;
+                font-size: 0.8rem;
+                display: block;
+                border-top: 1px dashed #cbd5e0;
+                padding: 10px 15px;
+            }
+            .comparison-table td:nth-child(4)::before {
+                content: "💡 根拠・平均データ:";
+                font-weight: bold;
+                color: #d69e2e;
+                display: block;
+                margin-bottom: 3px;
+            }
+
+            /* 入力欄の微調整 */
+            .input-group-cell { width: 100%; box-sizing: border-box; }
+            .mini-input { width: 80px; font-size: 1.1rem; }
+            
+            /* シミュレーション部分 */
             .sim-input-grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -512,11 +575,13 @@
                 </div>
             </div>
             
-            <div style="text-align:center; margin:15px 0;">
-                <div class="current-asset-input">
-                    <label for="currentSavings"><i class="fas fa-piggy-bank"></i> 現在の貯蓄額 (世帯)</label>
-                    <input type="number" id="currentSavings" value="300" step="10" oninput="calculateHouseholdNetIncome()">
-                    <span>万円</span>
+            <div style="margin-top:15px; padding:10px; background:#fff; border-radius:8px; border:2px solid #48bb78;">
+                <div style="font-size:0.85rem; color:#2f855a; font-weight:bold; margin-bottom:5px;">
+                    <i class="fas fa-piggy-bank"></i> 現在の世帯貯蓄額
+                </div>
+                <div style="display:flex; justify-content:center; align-items:center; gap:5px;">
+                    <input type="number" id="currentSavings" value="300" step="50" style="width:100px; padding:5px; font-size:1.2rem; text-align:right; border:1px solid #ccc; border-radius:5px; color:#2f855a; font-weight:bold;">
+                    <span style="font-weight:bold; color:#2f855a;">万円</span>
                 </div>
             </div>
 
@@ -531,10 +596,9 @@
             <!-- ガイダンス (手当) -->
             <div class="allowance-guide">
                 <strong><i class="fas fa-info-circle"></i> 公的支援も自動計算に含まれます</strong>
-                この診断では、以下の支援金を「収入」として加算して計算します。<br>
                 <ul>
-                    <li><strong>出産育児一時金：</strong> 1人につき50万円</li>
-                    <li><strong>児童手当：</strong> 1・2人目は総額約234万円、<span class="allowance-highlight">3人目以降は月3万円(総額約648万円)</span>で計算</li>
+                    <li>出産育児一時金：1人50万円</li>
+                    <li>児童手当：<span class="allowance-highlight">3人目以降は月3万円(総額約648万円)</span>で計算</li>
                 </ul>
             </div>
         </div>
@@ -724,12 +788,12 @@
                 <div class="sim-group">
                     <label>老後生活費(月額)</label>
                     <div><input type="number" id="sim-cost" value="36" oninput="calculateDiagnosis()"> 万円</div>
-                    <div style="font-size:0.7em; color:#718096; margin-top:2px;">※生命保険文化センター「ゆとりある老後」平均</div>
+                    <div style="font-size:0.7em; color:#718096; margin-top:2px;">※ゆとりある老後平均</div>
                 </div>
                 <div class="sim-group">
                     <label>年金受取(月額)</label>
                     <div><input type="number" id="sim-pension" value="22" oninput="calculateDiagnosis()"> 万円</div>
-                    <div style="font-size:0.7em; color:#718096; margin-top:2px;">※夫婦2人分の標準額目安</div>
+                    <div style="font-size:0.7em; color:#718096; margin-top:2px;">※夫婦2人分目安</div>
                 </div>
             </div>
             
@@ -743,8 +807,14 @@
         <!-- アドバイスエリア -->
         <div class="advice-box" id="finalAdvice"></div>
 
-        <div style="text-align: center; margin-top: 30px;">
-            <button onclick="window.close()" class="btn-secondary" style="background:#718096; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">閉じる</button>
+        <div class="line-btn-container">
+            <p style="font-size:0.9rem; margin-bottom:10px; color:#555;">
+                詳しい対策をご希望ですか？<br>
+                プロが個別にシミュレーションします。
+            </p>
+            <a href="https://line.me/R/oaMessage/@YOUR_ID/?予約希望" class="line-btn">
+                <i class="fab fa-line"></i> 詳細な解決策をLINEで相談する
+            </a>
         </div>
     </div>
 </div>
@@ -887,9 +957,6 @@
         const price = parseFloat(document.getElementById('r-car-price').value) || 0;
         const count = parseInt(document.getElementById('r-car-count').value) || 0;
         const remainingYears = parseInt(document.getElementById('remainingYears').innerText) || 0;
-        // 車の台数を自動調整: 残り年数 / 10年 (10年に1台買い替え想定) で計算し直す
-        // が、ユーザー入力が優先なので、ここではデフォルト値の計算のみを行う
-        // ユーザーが入力した回数を優先
         const purchaseTotal = price * count;
         const maintTotal = remainingYears * UNIT_COSTS.carMaintYear;
         const total = purchaseTotal + maintTotal;
@@ -978,11 +1045,7 @@
         updateChildTotal();
 
         document.getElementById('r-car-price').value = UNIT_COSTS.carPurchase;
-        
-        // 自動車: 残り年数に合わせて台数を自動計算 (10年に1台)
-        let autoCarCount = Math.ceil(remainingYears / 10);
-        if (autoCarCount < 1) autoCarCount = 1; 
-        document.getElementById('r-car-count').value = autoCarCount;
+        document.getElementById('r-car-count').value = UNIT_COSTS.carCountDefault;
         updateCarTotal();
 
         document.getElementById('r-insurance-monthly').value = UNIT_COSTS.insuranceMonthly;
@@ -1012,6 +1075,7 @@
         const valOthers = parseInt(document.getElementById('r-others').value) || 0;
         
         const valRetirement = parseInt(document.getElementById('r-retirement').value) || 0;
+        // 追加: 現在の貯蓄額
         const currentSavings = parseInt(document.getElementById('currentSavings').value) || 0;
 
         const childCount = parseInt(document.getElementById('r-child-count').value) || 0;
@@ -1023,8 +1087,7 @@
         const remainingYears = parseInt(document.getElementById('remainingYears').innerText) || 0;
         const lifetimeIncome = Math.round(currentHouseholdNet * remainingYears);
         
-        // 収支バランス計算 (現在の貯蓄を加算)
-        // 65歳時点資産 = (現在貯蓄 + 未来の収入 + 退職金 + 手当) - (生涯支出 + 投資元本) + 運用益
+        // 65歳時点の収支バランス (資産) = (現在貯蓄 + 生涯収入 + 退職金 + 手当) - (支出 + 投資元本) + 運用益
         const incomeBalance = (currentSavings + lifetimeIncome + valRetirement + valChildBenefits) - totalReal + valInvestProfit;
         currentIncomeBalanceAt65 = incomeBalance;
 
@@ -1041,9 +1104,10 @@
         }
         
         let extraInfo = [];
-        if (currentSavings > 0) extraInfo.push(`現在貯蓄${currentSavings}万`);
-        if (valRetirement > 0) extraInfo.push(`退職金${valRetirement}万`);
-        if (valInvestProfit > 0) extraInfo.push(`運用益${valInvestProfit}万`);
+        if (currentSavings > 0) extraInfo.push(`現在貯蓄+${currentSavings}万`);
+        if (valRetirement > 0) extraInfo.push(`退職金+${valRetirement}万`);
+        if (valChildBenefits > 0) extraInfo.push(`子育て支援+${valChildBenefits}万`);
+        if (valInvestProfit > 0) extraInfo.push(`運用益+${valInvestProfit}万`);
         
         if (extraInfo.length > 0) {
             balanceHtml += `<br><span style="font-size:0.8em; color:#2b6cb0;">(プラス要因: ${extraInfo.join(', ')})</span>`;
@@ -1056,9 +1120,10 @@
         // 老後シミュレーション実行
         const simResult = calculateRetirementSim();
 
-        // アドバイス生成
+        // アドバイス生成 (老後シミュレーション結果を渡す)
         generateAdvice(totalReal, totalGame, incomeBalance, valInvestProfit, simResult);
         
+        // グラフは「現在の貯蓄」も収入バーに含める
         drawChart(totalGame, totalReal, lifetimeIncome, valRetirement, valChildBenefits, valInvestProfit, currentSavings);
     }
 
@@ -1070,9 +1135,12 @@
         const years = lifeAge - 65;
         if (years <= 0) return { finalAsset: currentIncomeBalanceAt65, lifeAge: 65, bankruptAge: 65 };
 
+        // 老後総支出
         const totalOldCost = monthlyCost * 12 * years;
+        // 老後総収入
         const totalOldIncome = monthlyPension * 12 * years;
         
+        // 最終残高
         const finalAsset = currentIncomeBalanceAt65 + totalOldIncome - totalOldCost;
         
         const resultEl = document.getElementById('sim-final-asset');
@@ -1080,6 +1148,7 @@
         
         resultEl.innerText = Math.round(finalAsset).toLocaleString() + "万円";
         
+        // 枯渇年齢計算用
         let bankruptAge = lifeAge;
 
         if (finalAsset >= 0) {
@@ -1089,11 +1158,13 @@
             resultEl.className = "sim-result-val sim-result-danger";
             const yearlyDeficit = (monthlyCost - monthlyPension) * 12;
             if (yearlyDeficit > 0) {
+                // 資産が尽きる年数 = 65歳時点資産 / 年間赤字額
                 const lastingYears = currentIncomeBalanceAt65 / yearlyDeficit;
                 bankruptAge = 65 + lastingYears;
-                if (bankruptAge < 65) bankruptAge = 65; 
-                if (bankruptAge > lifeAge) bankruptAge = lifeAge; 
+                if (bankruptAge < 65) bankruptAge = 65; // 既に赤字なら65歳
+                if (bankruptAge > lifeAge) bankruptAge = lifeAge; // 想定寿命より後ならOK扱いだが計算上はここには来ないはず
             } else {
+                // 年金だけで生活できる場合(黒字)は資産は減らないはずだが、65歳時点で赤字スタートの場合
                 bankruptAge = 65; 
             }
             
@@ -1109,7 +1180,9 @@
         
         const { finalAsset, lifeAge, bankruptAge } = simResult;
 
+        // 判定ロジック
         if (finalAsset >= 2000) {
+            // パターンS: 老後資産2000万以上 (盤石)
             html += `
                 <div style="background:#f0fff4; border-left:4px solid #48bb78; padding:10px;">
                     <strong style="font-size:1.2em; color:#2f855a;">【判定: Sランク】 素晴らしい資産設計です！</strong>
@@ -1119,6 +1192,7 @@
                     </p>
                 </div>`;
         } else if (finalAsset >= 0) {
+            // パターンA: 老後資産プラス (安全圏)
             html += `
                 <div style="background:#ebf8ff; border-left:4px solid #2b6cb0; padding:10px;">
                     <strong style="font-size:1.2em; color:#2c5282;">【判定: Aランク】 概ね順調な計画です。</strong>
@@ -1128,6 +1202,7 @@
                     </p>
                 </div>`;
         } else if (bankruptAge >= 85) {
+            // パターンB: 85歳以上までは持つ (長生きリスクあり)
             html += `
                 <div style="background:#fffaf0; border-left:4px solid #d69e2e; padding:10px;">
                     <strong style="font-size:1.2em; color:#975a16;">【判定: Bランク】 長生きリスクへの備えが必要です。</strong>
@@ -1137,6 +1212,7 @@
                     </p>
                 </div>`;
         } else {
+            // パターンC: 早期に枯渇 (危険)
             html += `
                 <div style="background:#fff5f5; border-left:4px solid #e53e3e; padding:10px;">
                     <strong style="font-size:1.2em; color:#c53030;">【判定: Cランク】 早急な見直しを推奨します。</strong>
@@ -1147,19 +1223,14 @@
                 </div>`;
         }
 
+        // 追加アドバイス (投資・手当)
         html += `<div style="margin-top:15px; font-size:0.9em; color:#555;">
             <ul>
                 ${investProfit > 300 ? `<li><i class="fas fa-check" style="color:#48bb78;"></i> <strong>投資効果:</strong> 複利運用が効いています。このまま継続することで、インフレリスクにも強い家計になります。</li>` : `<li><i class="fas fa-exclamation-circle" style="color:#d69e2e;"></i> <strong>投資活用:</strong> 資産寿命を延ばすために、少額からでも「積立投資」を検討する価値があります。</li>`}
                 <li><i class="fas fa-child" style="color:#48bb78;"></i> <strong>子育て支援:</strong> 児童手当等の公的支援は約${Math.round(calculateTotalChildBenefits(parseInt(document.getElementById('r-child-count').value)||0)/100)*100}万円相当の収入増効果があります。これを教育費として確実に積み立てることが重要です。</li>
             </ul>
         </div>`;
-
-        html += `<div style="text-align:center; margin-top:20px;">
-            <a href="#" style="background:var(--primary); color:white; padding:12px 25px; border-radius:30px; text-decoration:none; font-weight:bold; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-                詳細な解決策をLINEで相談する
-            </a>
-        </div>`;
-
+        
         div.innerHTML = html;
     }
 
@@ -1168,12 +1239,13 @@
         const ctx = document.getElementById('comparisonChart').getContext('2d');
         if (myChart) myChart.destroy();
 
-        const totalIncome = incomeVal + retirementVal + benefitsVal + profitVal + savingsVal;
+        // 収入の積み上げ合計 (現在の貯蓄を追加)
+        const totalIncome = savingsVal + incomeVal + retirementVal + benefitsVal + profitVal;
 
         myChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['ゲーム実績(支出)', '現実の必要資金(支出)', '生涯収入(手当・貯蓄含)'],
+                labels: ['ゲーム実績(支出)', '現実の必要資金(支出)', '生涯収入(貯蓄含)'],
                 datasets: [{
                     label: '金額 (万円)',
                     data: [gameVal, realVal, totalIncome],
@@ -1195,6 +1267,7 @@
                                     let extras = [];
                                     if (savingsVal > 0) extras.push(`貯蓄${savingsVal}万`);
                                     if (retirementVal > 0) extras.push(`退職金${retirementVal}万`);
+                                    if (benefitsVal > 0) extras.push(`支援金${benefitsVal}万`);
                                     if (profitVal > 0) extras.push(`運用益${profitVal}万`);
                                     if (extras.length > 0) label += ` (${extras.join(', ')})`;
                                 }
