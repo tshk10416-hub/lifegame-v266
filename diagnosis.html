@@ -473,6 +473,16 @@
             line-height: 1.4;
         }
         .line-btn:active { transform: translateY(2px); }
+        .privacy-note {
+            font-size: 0.75rem; 
+            color: #666; 
+            margin-top: 15px; 
+            background: #f0f0f0; 
+            padding: 10px; 
+            border-radius: 8px;
+            line-height: 1.5;
+            text-align: left;
+        }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -856,9 +866,27 @@
                 詳しい対策をご希望ですか？<br>
                 プロが個別にシミュレーションします。
             </p>
-            <a href="https://line.me/R/oaMessage/@YOUR_ID/?予約希望" class="line-btn">
-                <i class="fab fa-line"></i> 詳細な解決策をLINEで相談する
+            <!-- 汎用的な予約ボタンに変更（データ送信なし） -->
+            <a id="lineConsultBtn" href="#" class="line-btn">
+                <i class="fab fa-line"></i> LINEに戻って個別相談を予約する
             </a>
+            <!-- プライバシー保護の注釈 -->
+            <p class="privacy-note">
+                <i class="fas fa-lock" style="color:#2b6cb0;"></i> <strong>安心のセキュリティ</strong><br>
+                この画面に入力した年収や貯蓄額などのデータは、<strong>あなたのスマートフォンの中にだけ保存され、外部に送信されることは一切ありません。</strong><br>
+                <br>
+                ※相談時にこの結果を使用したい場合は、<strong>画面のスクリーンショット</strong>を撮って、相談当日に担当者にお見せください。
+            </p>
+        </div>
+        
+        <!-- LINEに戻るボタン等 -->
+        <div class="line-btn-container" style="margin-top: 10px; border-top: none;">
+             <a href="https://line.me/" class="line-btn" style="background-color: #555; font-size: 0.9rem; width: auto; display: inline-block; padding: 10px 20px;">
+                <i class="fas fa-undo"></i> LINEに戻る
+            </a>
+            <button onclick="window.close();" style="display:block; width:100%; margin-top:10px; background:none; border:none; color:#777; text-decoration:underline;">
+                閉じる
+            </button>
         </div>
     </div>
 </div>
@@ -1041,6 +1069,7 @@
         if (rate <= 0) {
             futureValYen = totalPrincipal * 10000;
         } else {
+            // 積立複利: P * ((1+r)^n - 1) / r * (1+r) ※期首払いか期末払いかで微差あり。ここでは簡易式
             futureValYen = principalYen * (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate;
         }
 
@@ -1119,7 +1148,6 @@
         const valOthers = parseInt(document.getElementById('r-others').value) || 0;
         
         const valRetirement = parseInt(document.getElementById('r-retirement').value) || 0;
-        // 追加: 現在の貯蓄額
         const currentSavings = parseInt(document.getElementById('currentSavings').value) || 0;
 
         const childCount = parseInt(document.getElementById('r-child-count').value) || 0;
@@ -1165,9 +1193,11 @@
         const simResult = calculateRetirementSim();
 
         // アドバイス生成 (老後シミュレーション結果を渡す)
-        generateAdvice(totalReal, totalGame, incomeBalance, valInvestProfit, simResult);
+        const adviceMessage = generateAdvice(totalReal, totalGame, incomeBalance, valInvestProfit, simResult);
         
-        // グラフは「現在の貯蓄」も収入バーに含める
+        // LINEボタンの更新 (自動送信データを削除し、汎用的なリンクにする)
+        updateLineButton(incomeBalance, simResult, adviceMessage);
+
         drawChart(totalGame, totalReal, lifetimeIncome, valRetirement, valChildBenefits, valInvestProfit, currentSavings);
     }
 
@@ -1221,12 +1251,13 @@
     function generateAdvice(real, game, incomeBalance, investProfit, simResult) {
         const div = document.getElementById('finalAdvice');
         let html = `<h3><i class="fas fa-user-tie"></i> プロの総合診断コメント</h3>`;
+        let rank = "";
         
         const { finalAsset, lifeAge, bankruptAge } = simResult;
 
         // 判定ロジック
         if (finalAsset >= 2000) {
-            // パターンS: 老後資産2000万以上 (盤石)
+            rank = "S";
             html += `
                 <div style="background:#f0fff4; border-left:4px solid #48bb78; padding:10px;">
                     <strong style="font-size:1.2em; color:#2f855a;">【判定: Sランク】 素晴らしい資産設計です！</strong>
@@ -1236,7 +1267,7 @@
                     </p>
                 </div>`;
         } else if (finalAsset >= 0) {
-            // パターンA: 老後資産プラス (安全圏)
+            rank = "A";
             html += `
                 <div style="background:#ebf8ff; border-left:4px solid #2b6cb0; padding:10px;">
                     <strong style="font-size:1.2em; color:#2c5282;">【判定: Aランク】 概ね順調な計画です。</strong>
@@ -1246,7 +1277,7 @@
                     </p>
                 </div>`;
         } else if (bankruptAge >= 85) {
-            // パターンB: 85歳以上までは持つ (長生きリスクあり)
+            rank = "B";
             html += `
                 <div style="background:#fffaf0; border-left:4px solid #d69e2e; padding:10px;">
                     <strong style="font-size:1.2em; color:#975a16;">【判定: Bランク】 長生きリスクへの備えが必要です。</strong>
@@ -1256,7 +1287,7 @@
                     </p>
                 </div>`;
         } else {
-            // パターンC: 早期に枯渇 (危険)
+            rank = "C";
             html += `
                 <div style="background:#fff5f5; border-left:4px solid #e53e3e; padding:10px;">
                     <strong style="font-size:1.2em; color:#c53030;">【判定: Cランク】 早急な見直しを推奨します。</strong>
@@ -1276,6 +1307,22 @@
         </div>`;
         
         div.innerHTML = html;
+        return { rank, finalAsset, bankruptAge };
+    }
+
+    // LINEボタンの更新 (直リンク設定)
+    function updateLineButton(incomeBalance, simResult, adviceData) {
+        const btn = document.getElementById('lineConsultBtn');
+        const { rank, finalAsset, bankruptAge } = adviceData;
+        
+        // 実際のLINE ID (@YOUR_ID) はサーバー公開時に書き換えてください
+        const lineId = "@YOUR_LINE_ID"; 
+        
+        // メッセージ本文：「予約希望」という言葉を自動セットする
+        const message = `予約希望`;
+        
+        // URLスキーム: https://line.me/R/oaMessage/{LINE_ID}/?{message}
+        btn.href = `https://line.me/R/oaMessage/${lineId}/?${encodeURIComponent(message)}`;
     }
 
     let myChart = null;
