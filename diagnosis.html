@@ -878,16 +878,6 @@
                 ※相談時にこの結果を使用したい場合は、<strong>画面のスクリーンショット</strong>を撮って、相談当日に担当者にお見せください。
             </p>
         </div>
-        
-        <!-- LINEに戻るボタン等 -->
-        <div class="line-btn-container" style="margin-top: 10px; border-top: none;">
-             <a href="https://line.me/" class="line-btn" style="background-color: #555; font-size: 0.9rem; width: auto; display: inline-block; padding: 10px 20px;">
-                <i class="fas fa-undo"></i> LINEに戻る
-            </a>
-            <button onclick="window.close();" style="display:block; width:100%; margin-top:10px; background:none; border:none; color:#777; text-decoration:underline;">
-                閉じる
-            </button>
-        </div>
     </div>
 </div>
 
@@ -1316,7 +1306,8 @@
         const { rank, finalAsset, bankruptAge } = adviceData;
         
         // 実際のLINE ID (@YOUR_ID) はサーバー公開時に書き換えてください
-        const lineId = "@YOUR_LINE_ID"; 
+        // ★★★ここをあなたのLINE公式アカウントID (@xxxxx) に書き換えてください！★★★
+        const lineId = "@480gjare"; 
         
         // メッセージ本文：「予約希望」という言葉を自動セットする
         const message = `予約希望`;
