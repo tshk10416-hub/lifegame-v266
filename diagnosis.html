@@ -8,6 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* ★重要: 全要素のサイズ計算を「枠線・余白込み」に統一し、はみ出しを防ぐ */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         :root {
             --primary: #2b6cb0;
             --accent: #FF7F50;
@@ -25,7 +30,7 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 15px; /* スマホ向けに余白調整 */
+            padding: 15px;
             line-height: 1.6;
         }
 
@@ -36,6 +41,7 @@
             border-radius: 15px;
             padding: 20px 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            width: 100%; /* 幅を確実に収める */
         }
 
         header {
@@ -90,6 +96,38 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
+        /* 現在の貯蓄額入力エリア */
+        .current-asset-input {
+            margin-top: 15px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #48bb78;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 6px rgba(72, 187, 120, 0.1);
+            width: 100%; /* 幅いっぱい使う */
+            max-width: 300px; /* PCなどでの広がりすぎ防止 */
+        }
+        .current-asset-input label {
+            font-weight: bold;
+            color: #2f855a;
+            font-size: 1rem;
+            white-space: nowrap; /* ラベルの折り返し防止 */
+        }
+        .current-asset-input input {
+            width: 100px;
+            padding: 8px;
+            font-size: 1.3rem;
+            text-align: right;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #2f855a;
+        }
+
         .calc-info {
             font-size: 0.85rem;
             color: #4a5568;
@@ -126,7 +164,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 45%; /* スマホで2列並び */
+            width: 45%; 
             min-width: 140px;
         }
         .income-group label {
@@ -162,7 +200,6 @@
             padding: 15px;
             border-radius: 10px;
             width: 100%;
-            box-sizing: border-box;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .net-label { font-size: 0.85rem; opacity: 0.9; }
@@ -180,7 +217,6 @@
             color: #2f855a;
             text-align: left;
             width: 100%;
-            box-sizing: border-box;
         }
         .allowance-guide strong {
             color: #276749;
@@ -242,12 +278,10 @@
         .source-text { font-size: 0.75rem; color: #718096; line-height: 1.4; }
 
         /* --- フォーム部品 --- */
-        /* 青色セルボックススタイル */
         .real-input, .input-group-cell {
             background: var(--input-bg);
             border: 2px solid var(--input-border);
             border-radius: 8px;
-            box-sizing: border-box;
         }
 
         .real-input {
@@ -320,7 +354,7 @@
             box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
             transition: transform 0.2s;
             margin-bottom: 40px;
-            white-space: normal; /* テキストの折り返しを許可 */
+            white-space: normal;
             line-height: 1.4;
         }
         .diagnose-btn:active { transform: scale(0.98); }
@@ -377,7 +411,7 @@
         }
         .sim-input-grid {
             display: grid;
-            grid-template-columns: 1fr; /* スマホは1列 */
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -418,7 +452,7 @@
         .sim-result-safe { color: #48bb78; }
         .sim-result-danger { color: #e53e3e; }
 
-        /* LINEボタン修正 */
+        /* LINEボタン */
         .line-btn-container {
             text-align: center; 
             margin-top: 30px; 
@@ -426,9 +460,9 @@
             border-top: 1px solid #eee;
         }
         .line-btn {
-            display: block; /* ブロック要素にして幅を広げる */
+            display: block; 
             width: 100%;
-            background: #06C755; /* LINE Green */
+            background: #06C755; 
             color: white; 
             padding: 15px 10px; 
             border-radius: 30px; 
@@ -436,7 +470,6 @@
             font-weight: bold; 
             box-shadow: 0 4px 10px rgba(6, 199, 85, 0.3);
             font-size: 1rem;
-            box-sizing: border-box; /* パディングを含める */
             line-height: 1.4;
         }
         .line-btn:active { transform: translateY(2px); }
@@ -447,6 +480,14 @@
            ★スマホ特化のレスポンシブデザイン (カード化)
            ========================================= */
         @media (max-width: 600px) {
+            .container { 
+                padding: 10px; 
+                width: 100%; 
+                border-radius: 0; 
+                box-shadow: none; 
+                margin: 0;
+            }
+
             /* テーブル構造を解除してカード型にする */
             .comparison-table, .comparison-table tbody, .comparison-table tr, .comparison-table td {
                 display: block;
@@ -461,7 +502,7 @@
                 margin-bottom: 20px;
                 border: 2px solid #e2e8f0;
                 border-radius: 15px;
-                overflow: hidden;
+                overflow: hidden; /* はみ出し防止 */
                 box-shadow: 0 4px 6px rgba(0,0,0,0.03);
             }
 
@@ -473,9 +514,10 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                flex-wrap: wrap; /* コンテンツ折り返し */
             }
 
-            /* 1. 項目名（ヘッダー風に） */
+            /* 1. 項目名 */
             .comparison-table td:nth-child(1) {
                 background: #f7fafc;
                 border-bottom: 2px solid #edf2f7;
@@ -486,19 +528,19 @@
             /* 2. ゲーム実績 */
             .comparison-table td:nth-child(2) {
                 background: #fff;
-                justify-content: flex-end; /* 右寄せ */
+                justify-content: flex-end; 
             }
             .comparison-table td:nth-child(2)::before {
                 content: "🎮 ゲーム実績:";
                 font-size: 0.8rem;
                 color: #718096;
-                margin-right: auto; /* 左側にラベル配置 */
+                margin-right: auto;
             }
 
             /* 3. あなたの現実（入力欄） */
             .comparison-table td:nth-child(3) {
                 background: #fff;
-                display: block; /* 入力欄はブロックで大きく */
+                display: block; 
                 padding: 15px;
             }
             .comparison-table td:nth-child(3)::before {
@@ -510,9 +552,9 @@
                 margin-bottom: 8px;
             }
 
-            /* 4. 備考・根拠 (見やすく最下部に配置) */
+            /* 4. 備考・根拠 */
             .comparison-table td:nth-child(4) {
-                background: #fffff0; /* 薄い黄色で見やすく */
+                background: #fffff0; 
                 color: #555;
                 font-size: 0.8rem;
                 display: block;
@@ -528,11 +570,13 @@
             }
 
             /* 入力欄の微調整 */
-            .input-group-cell { width: 100%; box-sizing: border-box; }
-            .mini-input { width: 80px; font-size: 1.1rem; }
-            
-            /* シミュレーション部分 */
+            .game-val, .real-input, .mini-input { font-size: 1rem; }
+            .category-cell { font-size: 0.9rem; gap: 5px; }
+            .income-inputs { gap: 10px; }
+            .income-group { width: 45%; }
+            .income-wrapper input { width: 100%; font-size: 1.1rem; }
             .sim-input-grid { grid-template-columns: 1fr; }
+            .current-asset-input { display: flex; flex-direction: column; width: 80%; margin: 10px auto; }
         }
     </style>
 </head>
@@ -575,13 +619,13 @@
                 </div>
             </div>
             
-            <div style="margin-top:15px; padding:10px; background:#fff; border-radius:8px; border:2px solid #48bb78;">
-                <div style="font-size:0.85rem; color:#2f855a; font-weight:bold; margin-bottom:5px;">
-                    <i class="fas fa-piggy-bank"></i> 現在の世帯貯蓄額
-                </div>
-                <div style="display:flex; justify-content:center; align-items:center; gap:5px;">
-                    <input type="number" id="currentSavings" value="300" step="50" style="width:100px; padding:5px; font-size:1.2rem; text-align:right; border:1px solid #ccc; border-radius:5px; color:#2f855a; font-weight:bold;">
-                    <span style="font-weight:bold; color:#2f855a;">万円</span>
+            <div style="text-align:center;">
+                <div class="current-asset-input">
+                    <label for="currentSavings"><i class="fas fa-piggy-bank"></i> 現在の世帯貯蓄額</label>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <input type="number" id="currentSavings" value="300" step="50" oninput="calculateHouseholdNetIncome()">
+                        <span>万円</span>
+                    </div>
                 </div>
             </div>
 
