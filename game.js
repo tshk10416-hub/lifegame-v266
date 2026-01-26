@@ -3177,9 +3177,10 @@ function prepareLineDiagnosisData() {
 
     // 3. LINE URLスキームの生成
     // ★重要: ここをご自身の公式LINEのID（@...）に変更してください
-    const lineId = "@YOUR_LINE_ID"; 
+    const lineId = "@480gjare"; 
     
     const lineUrl = `https://line.me/R/oaMessage/${lineId}/?${encodeURIComponent(messageText)}`;
     
     return lineUrl;
+
 }
