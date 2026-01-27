@@ -1,3 +1,4 @@
+
 // game.js - 修正版 v13.0 (Part 1/2)
 // ・ガイダンス画面での資産変動確認フローの実装
 // ・子どもルーレット修正
@@ -2469,43 +2470,43 @@ function showLifePlanKarte() {
     document.getElementById('karte-rank-title').textContent = rankTitle;
     document.getElementById('karte-advice-text').innerHTML = advice;
    
-   // ▼▼▼ 修正：URLパラメータによる完全自動連携 ▼▼▼
+   // ▼▼▼ 修正：正しい変数名への変更と、表示処理の復活 ▼▼▼
 
-    // 1. ユニークな診断コード生成
+    // 1. ユニークな診断コード(6桁)を生成
     const diagnosisId = Math.floor(100000 + Math.random() * 900000);
 
     // 2. データ保存
-    const finalDiagnosisData = {
-        age: currentAge,
-        p1Income: players.player1.income,
-        p2Income: players.player2.income,
-        householdIncome: Math.floor(players.player1.income + players.player2.income),
-        savings: totalAssets,
-        monthlyLiving: Math.floor(currentLivingCost / 12),
-        monthlyHousing: Math.floor(housingCost / 12),
-        monthlyEducation: Math.floor(educationCost / 12),
-        monthlyCar: Math.floor(carCost / 12),
-        monthlyInsurance: Math.floor(insuranceCost / 12),
-        isMarried: isMarried,
-        childrenCount: childrenCount,
-        roomId: roomIdInput ? roomIdInput.value : "unknown",
-        diagnosisId: diagnosisId,
-        savedAt: firebase.database.ServerValue.TIMESTAMP
+    // game.js のグローバル変数を正しく参照するように修正しました
+    const exportData = {
+        players: players,           // 修正: gameState.players -> players
+        balanceHistory: balanceHistory, // 修正: gameState... -> balanceHistory
+        marriage: marriage,
+        children: children,
+        house: house,
+        car: car,
+        insurance: insurance,
+        totalAssets: totalAssets,
+        currentAge: currentAge,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
     };
 
     if(database) {
-        database.ref('diagnosis/' + diagnosisId).set(finalDiagnosisData);
+        // 'diagnosis/コード' という場所にデータを保存
+        database.ref('diagnosis/' + diagnosisId).set(exportData);
     }
-    
-    // 3. ボタンのリンク先を「ID付きの診断シート」に変更
+
+    // 3. ボタンのリンク先を「ID付き診断シート」に変更
     const lineBtn = document.getElementById('line-connect-btn');
-    
-    if(lineBtn) {
-        // ★ここがポイント：URLの後ろに ?uid=数字 をつける
-        const directLink = `diagnosis.html?uid=${diagnosisId}`;
+    if (lineBtn) {
+        // URLパラメータ(?uid=...)を付与
+        lineBtn.href = `diagnosis.html?uid=${diagnosisId}`;
+        lineBtn.target = "_blank"; // 別タブで開く
         
-        lineBtn.href = directLink;
-        lineBtn.target = "_blank";
+        // ユーザーへの案内表示
+        // lineBtn.innerHTML = '<i class="fas fa-file-medical-alt"></i> 診断結果シートを作成する';
+        // 元の「結果をLINEに登録して...」という文言を残す場合は上記行をコメントアウトのままでOKです
+        
+        // 元のクリックイベント（アラート等）があれば削除
         lineBtn.onclick = null; 
         
         // 念のためコード表示エリアも作成（保険）
@@ -2522,7 +2523,16 @@ function showLifePlanKarte() {
                 (ボタンを押せば自動で連携されます)
             </p>
         `;
+        // ボタンの直前にコードを表示
         btnContainer.insertBefore(codeDiv, lineBtn);
+    }
+
+    // 4. 【重要】モーダルを表示する処理（これが消えていました）
+    const modal = document.getElementById('lifePlanKarteModal');
+    if(modal) {
+        modal.style.display = 'block';
+        // スマホなどでスクロールできるようトップにリセット
+        modal.scrollTop = 0;
     }
     document.getElementById('lifePlanKarteModal').style.display = 'flex';
 }
