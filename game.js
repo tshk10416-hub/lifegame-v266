@@ -1,4 +1,3 @@
-
 // game.js - 修正版 v13.0 (Part 1/2)
 // ・ガイダンス画面での資産変動確認フローの実装
 // ・子どもルーレット修正
@@ -3109,78 +3108,13 @@ function showChildSupportDetail() {
     modal.style.display = 'flex';
 }
 // ==========================================================
-// ▼▼▼ 追加機能: LINE診断用データ生成 & リンク作成 ▼▼▼
+// ▼▼▼ 修正版: 公式LINE登録リンク生成 (データ送信なし) ▼▼▼
 // ==========================================================
 function prepareLineDiagnosisData() {
-    // 1. 履歴から8項目の生涯コストを積み上げ計算
-    let summary = {
-        house: 0, children: 0, car: 0, insurance: 0, 
-        living: 0, investment: 0, marriage: 0, 
-        life_events: 0, social_events: 0
-    };
-
-    // 履歴データがない場合は計算しない
-    if (!gameState.balanceHistory) return "#";
-
-    gameState.balanceHistory.forEach(h => {
-        const years = h.years || 10;
-        const d = h.details;
-        
-        // 固定費 (年額 × 年数)
-        summary.children += (d.childCost || 0) * years;
-        summary.house += (d.houseCost || 0) * years;
-        summary.car += (d.carCost || 0) * years; // 維持費
-        summary.insurance += (d.insuranceCost || 0) * years;
-        summary.living += (d.livingCost || 0) * years;
-        
-        // 積立投資
-        summary.investment += (d.tsumitate || 0); 
-
-        // 一時支出 (発生額そのまま)
-        summary.marriage += (d.marriage || 0);
-        summary.investment += (d.investment_ikkatsu || 0);
-        
-        // 車の購入費 (一時支出)
-        summary.car += (d.carCost_init || 0); 
-
-        // イベント系を分離して集計
-        summary.life_events += (d.life_event || 0);
-        summary.social_events += (d.social_event || 0);
-    });
-
-    // 2. LINEメッセージの作成
-    const p1Name = gameState.players.player1.name || "プレイヤー1";
-    const p2Name = gameState.players.player2.name || "プレイヤー2";
-    const totalAssets = Math.round(gameState.totalAssets).toLocaleString();
-
-    const messageText = 
-`【ライフリッジゲーム結果報告】
-診断をお願いします！
-
-📛プレイヤー: ${p1Name} & ${p2Name}
-💰最終資産: ${totalAssets}万円
-❤️幸福度: ${gameState.happiness}pt
-
-📊【生涯支出の内訳】
-🏠住居費: ${Math.round(summary.house)}万円
-👶教育費: ${Math.round(summary.children)}万円
-🚗自動車: ${Math.round(summary.car)}万円
-🛡️保険費: ${Math.round(summary.insurance)}万円
-🍚生活費: ${Math.round(summary.living)}万円
-💍結婚式: ${Math.round(summary.marriage)}万円
-📈投資額: ${Math.round(summary.investment)}万円
-
-🃏ライフイベント: ${Math.round(summary.life_events)}万円
-🌏社会イベント他: ${Math.round(summary.social_events)}万円
-
-この結果をもとに、現実のライフプラン診断を希望します。`;
-
-    // 3. LINE URLスキームの生成
     // ★重要: ここをご自身の公式LINEのID（@...）に変更してください
     const lineId = "@480gjare"; 
-    
-    const lineUrl = `https://line.me/R/oaMessage/${lineId}/?${encodeURIComponent(messageText)}`;
-    
-    return lineUrl;
 
+    // 友だち追加画面を開くURL (https://line.me/R/ti/p/{LINE_ID})
+    // ※ID検索用URLスキームを使用
+    return `https://line.me/R/ti/p/${lineId}`;
 }
