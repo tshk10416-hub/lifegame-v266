@@ -2469,10 +2469,60 @@ function showLifePlanKarte() {
     document.getElementById('karte-rank-title').textContent = rankTitle;
     document.getElementById('karte-advice-text').innerHTML = advice;
    
-   // ★★★ 追加：LINEボタンに診断データをセットする ★★★
+   // ▼▼▼ 修正：URLパラメータによる完全自動連携 ▼▼▼
+
+    // 1. ユニークな診断コード生成
+    const diagnosisId = Math.floor(100000 + Math.random() * 900000);
+
+    // 2. データ保存
+    const finalDiagnosisData = {
+        age: currentAge,
+        p1Income: players.player1.income,
+        p2Income: players.player2.income,
+        householdIncome: Math.floor(players.player1.income + players.player2.income),
+        savings: totalAssets,
+        monthlyLiving: Math.floor(currentLivingCost / 12),
+        monthlyHousing: Math.floor(housingCost / 12),
+        monthlyEducation: Math.floor(educationCost / 12),
+        monthlyCar: Math.floor(carCost / 12),
+        monthlyInsurance: Math.floor(insuranceCost / 12),
+        isMarried: isMarried,
+        childrenCount: childrenCount,
+        roomId: roomIdInput ? roomIdInput.value : "unknown",
+        diagnosisId: diagnosisId,
+        savedAt: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    if(database) {
+        database.ref('diagnosis/' + diagnosisId).set(finalDiagnosisData);
+    }
+    
+    // 3. ボタンのリンク先を「ID付きの診断シート」に変更
     const lineBtn = document.getElementById('line-connect-btn');
-    if (lineBtn && typeof prepareLineDiagnosisData === 'function') {
-        lineBtn.href = prepareLineDiagnosisData();
+    
+    if(lineBtn) {
+        // ★ここがポイント：URLの後ろに ?uid=数字 をつける
+        const directLink = `diagnosis.html?uid=${diagnosisId}`;
+        
+        lineBtn.href = directLink;
+        lineBtn.target = "_blank";
+        lineBtn.onclick = null; 
+        
+        // 念のためコード表示エリアも作成（保険）
+        const btnContainer = lineBtn.parentNode;
+        const existingCode = document.getElementById('diagnosis-code-display');
+        if(existingCode) existingCode.remove();
+
+        const codeDiv = document.createElement('div');
+        codeDiv.id = 'diagnosis-code-display';
+        codeDiv.style.marginBottom = '10px';
+        codeDiv.innerHTML = `
+            <p style="font-size:0.8em; color:#666;">
+                診断コード: <strong>${diagnosisId}</strong><br>
+                (ボタンを押せば自動で連携されます)
+            </p>
+        `;
+        btnContainer.insertBefore(codeDiv, lineBtn);
     }
     document.getElementById('lifePlanKarteModal').style.display = 'flex';
 }
