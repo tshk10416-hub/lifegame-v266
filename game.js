@@ -2480,11 +2480,7 @@ function showLifePlanKarte() {
         adviceEl.innerHTML = advice; // 元のロジックで生成されたadvice変数をそのまま使います
     }
 
-    // ---------------------------------------------------
-    // ▼ データ保存と画面表示の安全処理 (ここだけ追加修正)
-    // ---------------------------------------------------
-
-    // 1. ユニークな診断コード生成
+    // 1. ユニークな診断コード(6桁)を生成
     const diagnosisId = Math.floor(100000 + Math.random() * 900000);
 
     // 2. データ保存 (エラー対策付き)
@@ -2494,7 +2490,7 @@ function showLifePlanKarte() {
             ts = firebase.database.ServerValue.TIMESTAMP;
         }
 
-       // ▼▼▼ 修正箇所：退職金データを追加 ▼▼▼
+        // ゲーム変数を保存
         const exportData = {
             players: players,
             balanceHistory: balanceHistory,
@@ -2505,10 +2501,7 @@ function showLifePlanKarte() {
             insurance: insurance,
             totalAssets: totalAssets,
             currentAge: currentAge,
-            
-            // ★これを追加！ (退職金の内訳データを保存)
-            retirementBonus: gameState.retirementBonus,
-            
+            retirementBonus: gameState.retirementBonus, // 退職金も保存
             roomId: (typeof roomIdInput !== 'undefined' && roomIdInput) ? roomIdInput.value : "unknown",
             timestamp: ts
         };
@@ -2520,13 +2513,25 @@ function showLifePlanKarte() {
         console.error("Data Save Error (Ignored):", e);
     }
 
-    // 3. ボタンのリンク先設定
+    // 3. LINEボタン設定（自動コピー機能付き）
     try {
         const lineBtn = document.getElementById('line-connect-btn');
         if (lineBtn) {
-            lineBtn.href = `diagnosis.html?uid=${diagnosisId}`;
+            // ★公式LINEのURL（）
+            // 例: "https://line.me/R/ti/p/@あなたのID"
+            const lineUrl = "https://line.me/R/ti/p/@480gjare"; 
+
+            lineBtn.href = lineUrl;
             lineBtn.target = "_blank";
-            lineBtn.onclick = null; 
+            
+            // ★クリック時にIDをクリップボードにコピーする
+            lineBtn.onclick = function(e) {
+                navigator.clipboard.writeText(diagnosisId).then(() => {
+                    alert("【診断コード: " + diagnosisId + "】\n\nIDをコピーしました！\nLINE登録後の診断シートで「貼り付け」てください。");
+                }).catch(err => {
+                    alert("診断コードは「" + diagnosisId + "」です。\nメモしてLINEへお進みください。");
+                });
+            };
             
             // コード表示エリアの更新
             const btnContainer = lineBtn.parentNode;
@@ -2538,8 +2543,8 @@ function showLifePlanKarte() {
             codeDiv.style.marginBottom = '10px';
             codeDiv.innerHTML = `
                 <p style="font-size:0.8em; color:#666;">
-                    診断コード: <strong>${diagnosisId}</strong><br>
-                    (ボタンを押せば自動で連携されます)
+                    診断コード: <strong style="font-size:1.2em; color:#e53e3e;">${diagnosisId}</strong><br>
+                    (ボタンを押すと自動でコピーされます)
                 </p>
             `;
             btnContainer.insertBefore(codeDiv, lineBtn);
@@ -2548,7 +2553,7 @@ function showLifePlanKarte() {
         console.error("Button Setup Error:", e);
     }
 
-    // 4. 【最重要】カルテ画面を確実に表示する
+    // 4. カルテ画面を確実に表示する
     const modal = document.getElementById('lifePlanKarteModal');
     if(modal) {
         modal.style.display = 'block';
