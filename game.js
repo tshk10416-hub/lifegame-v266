@@ -2470,19 +2470,31 @@ function showLifePlanKarte() {
     document.getElementById('karte-rank-title').textContent = rankTitle;
     document.getElementById('karte-advice-text').innerHTML = advice;
    
-   // ▼▼▼ 修正：安全対策版（エラーでも画面が開くように変更） ▼▼▼
+  // （...前略... 上のアドバイス生成ロジックは触らずそのまま残します）
 
-    // 1. ユニークな診断コード(6桁)を生成
+    // ▼▼▼ ここから下を修正・置き換え ▼▼▼
+
+    // アドバイスを表示
+    const adviceEl = document.getElementById('karte-advice-text');
+    if(adviceEl) {
+        adviceEl.innerHTML = advice; // 元のロジックで生成されたadvice変数をそのまま使います
+    }
+
+    // ---------------------------------------------------
+    // ▼ データ保存と画面表示の安全処理 (ここだけ追加修正)
+    // ---------------------------------------------------
+
+    // 1. ユニークな診断コード生成
     const diagnosisId = Math.floor(100000 + Math.random() * 900000);
 
-    // 2. データ保存（try-catchで囲み、保存エラーでも画面表示を止めない）
+    // 2. データ保存 (エラー対策付き)
     try {
-        // タイムスタンプの安全な取得（Firebaseがない場合は現在時刻を使う）
         let ts = Date.now();
         if(typeof firebase !== 'undefined' && firebase.database && firebase.database.ServerValue) {
             ts = firebase.database.ServerValue.TIMESTAMP;
         }
 
+        // お客様のゲーム変数をそのまま保存
         const exportData = {
             players: players,
             balanceHistory: balanceHistory,
@@ -2493,16 +2505,15 @@ function showLifePlanKarte() {
             insurance: insurance,
             totalAssets: totalAssets,
             currentAge: currentAge,
+            roomId: (typeof roomIdInput !== 'undefined' && roomIdInput) ? roomIdInput.value : "unknown",
             timestamp: ts
         };
 
-        // データベースが存在する場合のみ保存
         if(typeof database !== 'undefined' && database) {
             database.ref('diagnosis/' + diagnosisId).set(exportData);
         }
     } catch(e) {
-        console.error("Data save error:", e);
-        // 保存に失敗しても、処理を止めずに次に進む
+        console.error("Data Save Error (Ignored):", e);
     }
 
     // 3. ボタンのリンク先設定
@@ -2530,21 +2541,25 @@ function showLifePlanKarte() {
             btnContainer.insertBefore(codeDiv, lineBtn);
         }
     } catch(e) {
-        console.error("Button setup error:", e);
+        console.error("Button Setup Error:", e);
     }
 
-    // 4. 【重要】モーダルを表示する処理
-    // ここが確実に実行されるようにしました
+    // 4. 【最重要】カルテ画面を確実に表示する
     const modal = document.getElementById('lifePlanKarteModal');
     if(modal) {
         modal.style.display = 'block';
         modal.scrollTop = 0;
-    } else {
-        console.error("Modal not found: lifePlanKarteModal");
     }
+}
 
-    // ▲▲▲ 修正ここまで ▲▲▲
-    document.getElementById('lifePlanKarteModal').style.display = 'flex';
+// ==========================================
+// 最終資産表示 & カルテへのつなぎ
+// ==========================================
+function showFinalAssets() {
+    const invModal = document.getElementById('investmentResultModal');
+    if(invModal) invModal.style.display = 'none';
+
+    showLifePlanKarte();
 }
 
 function showExplanation() { 
