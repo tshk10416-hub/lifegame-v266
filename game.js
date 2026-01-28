@@ -2470,70 +2470,80 @@ function showLifePlanKarte() {
     document.getElementById('karte-rank-title').textContent = rankTitle;
     document.getElementById('karte-advice-text').innerHTML = advice;
    
-   // ▼▼▼ 修正：正しい変数名への変更と、表示処理の復活 ▼▼▼
+   // ▼▼▼ 修正：安全対策版（エラーでも画面が開くように変更） ▼▼▼
 
     // 1. ユニークな診断コード(6桁)を生成
     const diagnosisId = Math.floor(100000 + Math.random() * 900000);
 
-    // 2. データ保存
-    // game.js のグローバル変数を正しく参照するように修正しました
-    const exportData = {
-        players: players,           // 修正: gameState.players -> players
-        balanceHistory: balanceHistory, // 修正: gameState... -> balanceHistory
-        marriage: marriage,
-        children: children,
-        house: house,
-        car: car,
-        insurance: insurance,
-        totalAssets: totalAssets,
-        currentAge: currentAge,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-    };
+    // 2. データ保存（try-catchで囲み、保存エラーでも画面表示を止めない）
+    try {
+        // タイムスタンプの安全な取得（Firebaseがない場合は現在時刻を使う）
+        let ts = Date.now();
+        if(typeof firebase !== 'undefined' && firebase.database && firebase.database.ServerValue) {
+            ts = firebase.database.ServerValue.TIMESTAMP;
+        }
 
-    if(database) {
-        // 'diagnosis/コード' という場所にデータを保存
-        database.ref('diagnosis/' + diagnosisId).set(exportData);
+        const exportData = {
+            players: players,
+            balanceHistory: balanceHistory,
+            marriage: marriage,
+            children: children,
+            house: house,
+            car: car,
+            insurance: insurance,
+            totalAssets: totalAssets,
+            currentAge: currentAge,
+            timestamp: ts
+        };
+
+        // データベースが存在する場合のみ保存
+        if(typeof database !== 'undefined' && database) {
+            database.ref('diagnosis/' + diagnosisId).set(exportData);
+        }
+    } catch(e) {
+        console.error("Data save error:", e);
+        // 保存に失敗しても、処理を止めずに次に進む
     }
 
-    // 3. ボタンのリンク先を「ID付き診断シート」に変更
-    const lineBtn = document.getElementById('line-connect-btn');
-    if (lineBtn) {
-        // URLパラメータ(?uid=...)を付与
-        lineBtn.href = `diagnosis.html?uid=${diagnosisId}`;
-        lineBtn.target = "_blank"; // 別タブで開く
-        
-        // ユーザーへの案内表示
-        // lineBtn.innerHTML = '<i class="fas fa-file-medical-alt"></i> 診断結果シートを作成する';
-        // 元の「結果をLINEに登録して...」という文言を残す場合は上記行をコメントアウトのままでOKです
-        
-        // 元のクリックイベント（アラート等）があれば削除
-        lineBtn.onclick = null; 
-        
-        // 念のためコード表示エリアも作成（保険）
-        const btnContainer = lineBtn.parentNode;
-        const existingCode = document.getElementById('diagnosis-code-display');
-        if(existingCode) existingCode.remove();
+    // 3. ボタンのリンク先設定
+    try {
+        const lineBtn = document.getElementById('line-connect-btn');
+        if (lineBtn) {
+            lineBtn.href = `diagnosis.html?uid=${diagnosisId}`;
+            lineBtn.target = "_blank";
+            lineBtn.onclick = null; 
+            
+            // コード表示エリアの更新
+            const btnContainer = lineBtn.parentNode;
+            const existingCode = document.getElementById('diagnosis-code-display');
+            if(existingCode) existingCode.remove();
 
-        const codeDiv = document.createElement('div');
-        codeDiv.id = 'diagnosis-code-display';
-        codeDiv.style.marginBottom = '10px';
-        codeDiv.innerHTML = `
-            <p style="font-size:0.8em; color:#666;">
-                診断コード: <strong>${diagnosisId}</strong><br>
-                (ボタンを押せば自動で連携されます)
-            </p>
-        `;
-        // ボタンの直前にコードを表示
-        btnContainer.insertBefore(codeDiv, lineBtn);
+            const codeDiv = document.createElement('div');
+            codeDiv.id = 'diagnosis-code-display';
+            codeDiv.style.marginBottom = '10px';
+            codeDiv.innerHTML = `
+                <p style="font-size:0.8em; color:#666;">
+                    診断コード: <strong>${diagnosisId}</strong><br>
+                    (ボタンを押せば自動で連携されます)
+                </p>
+            `;
+            btnContainer.insertBefore(codeDiv, lineBtn);
+        }
+    } catch(e) {
+        console.error("Button setup error:", e);
     }
 
-    // 4. 【重要】モーダルを表示する処理（これが消えていました）
+    // 4. 【重要】モーダルを表示する処理
+    // ここが確実に実行されるようにしました
     const modal = document.getElementById('lifePlanKarteModal');
     if(modal) {
         modal.style.display = 'block';
-        // スマホなどでスクロールできるようトップにリセット
         modal.scrollTop = 0;
+    } else {
+        console.error("Modal not found: lifePlanKarteModal");
     }
+
+    // ▲▲▲ 修正ここまで ▲▲▲
     document.getElementById('lifePlanKarteModal').style.display = 'flex';
 }
 
