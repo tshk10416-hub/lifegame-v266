@@ -814,9 +814,18 @@
             summary.others += (d.life_event || 0) + (d.social_event || 0);
         });
 
-        if (gameState.retirementBonus) {
-            summary.retirement = gameState.retirementBonus;
+        // ▼▼▼ 修正：退職金の合計計算 ▼▼▼
+    if (gameState.retirementBonus) {
+        // データがオブジェクト形式（プレイヤー別）の場合
+        if (typeof gameState.retirementBonus === 'object') {
+            const p1Retirement = Number(gameState.retirementBonus.player1) || 0;
+            const p2Retirement = Number(gameState.retirementBonus.player2) || 0;
+            summary.retirement = p1Retirement + p2Retirement;
+        } else {
+            // 数値で来ている場合（互換性のため）
+            summary.retirement = Number(gameState.retirementBonus) || 0;
         }
+    }
 
         document.getElementById('g-marriage').innerText = Math.round(summary.marriage).toLocaleString();
         document.getElementById('g-children').innerText = Math.round(summary.children).toLocaleString();
