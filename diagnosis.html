@@ -1217,40 +1217,60 @@
         alert("ゲームデータを読み込みました！\n診断結果が表示されます。");
     }
 
-    // ▼▼▼ 追加：決定ボタンの処理 ▼▼▼
+ // 決定ボタンを押したときの処理
     function loadGameDataFromFirebase() {
         const inputId = document.getElementById('import-diagnosis-id').value;
+        
+        // 入力チェック
         if (!inputId) {
-            alert("コードを入力してください");
+            alert("診断コードを入力（貼り付け）してください");
             return;
         }
+
         const statusMsg = document.getElementById('import-status');
         if(statusMsg) statusMsg.innerText = "読み込み中...";
-        if (typeof firebase === 'undefined' || !firebase.apps.length) {
-            if(typeof firebaseConfig !== 'undefined') firebase.initializeApp(firebaseConfig);
-        }
-        const database = firebase.database();
-        database.ref('diagnosis/' + inputId).once('value').then((snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                applyImportedData(data);
-                if(statusMsg) {
-                    statusMsg.innerText = "読み込み成功！";
-                    statusMsg.style.color = "#48bb78";
-                }
-            } else {
-                alert("データが見つかりません。");
-                if(statusMsg) {
-                    statusMsg.innerText = "データなし";
-                    statusMsg.style.color = "#e53e3e";
-                }
-            }
-        }).catch((error) => {
-            console.error(error);
-            alert("通信エラーが発生しました。");
-        });
-    }
-</script>
 
+        // Firebaseの準備確認
+        if (typeof firebase === 'undefined') {
+            alert("通信の準備中です。少し待ってからもう一度押してください。");
+            return;
+        }
+        
+        // 初期化されていなければ初期化
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const database = firebase.database();
+
+        // データの取得実行
+        database.ref('diagnosis/' + inputId).once('value')
+            .then((snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    // データがあった場合：画面に反映
+                    applyImportedData(data);
+                    
+                    if(statusMsg) {
+                        statusMsg.innerText = "読み込み成功！";
+                        statusMsg.style.color = "#48bb78";
+                    }
+                } else {
+                    // データがなかった場合
+                    alert("データが見つかりません。\nコードが正しいか確認してください。");
+                    if(statusMsg) {
+                        statusMsg.innerText = "データなし";
+                        statusMsg.style.color = "#e53e3e";
+                    }
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+                alert("通信エラーが発生しました。\n電波の良い場所で再度お試しください。");
+            });
+    }
+    // ▲▲▲ ここまで ▲▲▲
+
+</script>
 </body>
 </html>
