@@ -787,7 +787,7 @@
 
     let gameState = null;
     let currentHouseholdNet = 0; 
-    let currentIncomeBalanceAt65 = 0; // 65歳時点の資産(収支)を保存
+    let currentIncomeBalanceAt65 = 0; 
 
     document.addEventListener('DOMContentLoaded', () => {
         loadGameData();
@@ -801,8 +801,6 @@
             if (savedState) {
                 gameState = JSON.parse(savedState);
                 calculateGameTotals();
-            } else {
-                console.log("No game data found.");
             }
         } catch (e) {
             console.error("Error loading game data", e);
@@ -831,18 +829,16 @@
             summary.others += (d.life_event || 0) + (d.social_event || 0);
         });
 
-        // ▼▼▼ 修正：退職金の合計計算 ▼▼▼
-    if (gameState.retirementBonus) {
-        // データがオブジェクト形式（プレイヤー別）の場合
-        if (typeof gameState.retirementBonus === 'object') {
-            const p1Retirement = Number(gameState.retirementBonus.player1) || 0;
-            const p2Retirement = Number(gameState.retirementBonus.player2) || 0;
-            summary.retirement = p1Retirement + p2Retirement;
-        } else {
-            // 数値で来ている場合（互換性のため）
-            summary.retirement = Number(gameState.retirementBonus) || 0;
+        // ▼退職金の計算修正▼
+        if (gameState.retirementBonus) {
+            if (typeof gameState.retirementBonus === 'object') {
+                const p1 = Number(gameState.retirementBonus.player1) || 0;
+                const p2 = Number(gameState.retirementBonus.player2) || 0;
+                summary.retirement = p1 + p2;
+            } else {
+                summary.retirement = Number(gameState.retirementBonus) || 0;
+            }
         }
-    }
 
         document.getElementById('g-marriage').innerText = Math.round(summary.marriage).toLocaleString();
         document.getElementById('g-children').innerText = Math.round(summary.children).toLocaleString();
@@ -904,7 +900,6 @@
         const monthlyVal = parseFloat(document.getElementById(inputId).value) || 0;
         const remainingYears = parseInt(document.getElementById('remainingYears').innerText) || 0;
         const total = monthlyVal * 12 * remainingYears;
-        
         document.getElementById(previewId).innerText = `総額: ${Math.round(total).toLocaleString()}万円`;
         document.getElementById(previewId).dataset.total = total; 
     }
@@ -913,13 +908,9 @@
         const price = parseFloat(document.getElementById('r-car-price').value) || 0;
         const count = parseInt(document.getElementById('r-car-count').value) || 0;
         const remainingYears = parseInt(document.getElementById('remainingYears').innerText) || 0;
-        // 車の台数を自動調整: 残り年数 / 10年 (10年に1台買い替え想定) で計算し直す
-        // が、ユーザー入力が優先なので、ここではデフォルト値の計算のみを行う
-        // ユーザーが入力した回数を優先
         const purchaseTotal = price * count;
         const maintTotal = remainingYears * UNIT_COSTS.carMaintYear;
         const total = purchaseTotal + maintTotal;
-
         document.getElementById('car-total-preview').innerText = 
             `車両(${Math.round(purchaseTotal)}) + 維持(${Math.round(maintTotal)}) = ${Math.round(total).toLocaleString()}万円`;
         document.getElementById('car-total-preview').dataset.total = total;
@@ -929,7 +920,6 @@
         const unit = parseFloat(document.getElementById('r-child-unit').value) || 0;
         const count = parseInt(document.getElementById('r-child-count').value) || 0;
         const total = unit * count;
-        
         document.getElementById('child-total-preview').innerText = `総額: ${Math.round(total).toLocaleString()}万円`;
         document.getElementById('child-total-preview').dataset.total = total;
     }
@@ -969,18 +959,14 @@
 
     function calculateTotalChildBenefits(childCount) {
         if (childCount <= 0) return 0;
-
         let totalBenefit = 0;
         totalBenefit += childCount * UNIT_COSTS.birthAllowance;
-
         const count1st2nd = Math.min(childCount, 2);
         totalBenefit += count1st2nd * UNIT_COSTS.childAllowance1st2nd;
-
         if (childCount >= 3) {
             const count3rdPlus = childCount - 2;
             totalBenefit += count3rdPlus * UNIT_COSTS.childAllowance3rd;
         }
-
         return Math.round(totalBenefit);
     }
 
@@ -991,7 +977,6 @@
         if (remainingYears < 0) remainingYears = 0;
 
         document.getElementById('remainingYears').innerText = remainingYears;
-
         document.getElementById('r-marriage').value = UNIT_COSTS.marriage;
         document.getElementById('r-house').value = UNIT_COSTS.house;
         
@@ -1004,8 +989,6 @@
         updateChildTotal();
 
         document.getElementById('r-car-price').value = UNIT_COSTS.carPurchase;
-        
-        // 自動車: 残り年数に合わせて台数を自動計算 (10年に1台)
         let autoCarCount = Math.ceil(remainingYears / 10);
         if (autoCarCount < 1) autoCarCount = 1; 
         document.getElementById('r-car-count').value = autoCarCount;
@@ -1022,7 +1005,6 @@
 
         const adjustedOthers = Math.round(UNIT_COSTS.othersFixed * (remainingYears / 40));
         document.getElementById('r-others').value = adjustedOthers;
-
         document.getElementById('r-retirement').value = UNIT_COSTS.retirement;
     }
 
@@ -1049,8 +1031,6 @@
         const remainingYears = parseInt(document.getElementById('remainingYears').innerText) || 0;
         const lifetimeIncome = Math.round(currentHouseholdNet * remainingYears);
         
-        // 収支バランス計算 (現在の貯蓄を加算)
-        // 65歳時点資産 = (現在貯蓄 + 未来の収入 + 退職金 + 手当) - (生涯支出 + 投資元本) + 運用益
         const incomeBalance = (currentSavings + lifetimeIncome + valRetirement + valChildBenefits) - totalReal + valInvestProfit;
         currentIncomeBalanceAt65 = incomeBalance;
 
@@ -1079,12 +1059,8 @@
         document.getElementById('resultArea').style.display = 'block';
         document.getElementById('resultArea').scrollIntoView({behavior: 'smooth'});
 
-        // 老後シミュレーション実行
         const simResult = calculateRetirementSim();
-
-        // アドバイス生成
         generateAdvice(totalReal, totalGame, incomeBalance, valInvestProfit, simResult);
-        
         drawChart(totalGame, totalReal, lifetimeIncome, valRetirement, valChildBenefits, valInvestProfit, currentSavings);
     }
 
@@ -1105,9 +1081,7 @@
         const msgEl = document.getElementById('sim-message');
         
         resultEl.innerText = Math.round(finalAsset).toLocaleString() + "万円";
-        
         let bankruptAge = lifeAge;
-
         if (finalAsset >= 0) {
             resultEl.className = "sim-result-val sim-result-safe";
             msgEl.innerHTML = `<i class="fas fa-check-circle" style="color:#48bb78;"></i> ${lifeAge}歳まで資産が持ちます！<br>ゆとりある老後が期待できます。`;
@@ -1122,70 +1096,26 @@
             } else {
                 bankruptAge = 65; 
             }
-            
             msgEl.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#e53e3e;"></i> 資金不足の恐れがあります。<br>今のままだと <strong>約${Math.floor(bankruptAge)}歳</strong> で資金が尽きる計算です。`;
         }
-
         return { finalAsset, lifeAge, bankruptAge };
     }
 
     function generateAdvice(real, game, incomeBalance, investProfit, simResult) {
         const div = document.getElementById('finalAdvice');
         let html = `<h3><i class="fas fa-user-tie"></i> プロの総合診断コメント</h3>`;
-        
         const { finalAsset, lifeAge, bankruptAge } = simResult;
-
         if (finalAsset >= 2000) {
-            html += `
-                <div style="background:#f0fff4; border-left:4px solid #48bb78; padding:10px;">
-                    <strong style="font-size:1.2em; color:#2f855a;">【判定: Sランク】 素晴らしい資産設計です！</strong>
-                    <p style="margin:5px 0;">
-                        現役時代の収支バランスが非常に良く、老後も「ゆとりある生活（月36万円想定）」を維持しながら${lifeAge}歳まで十分に資産が持つ見込みです。<br>
-                        余剰資金を使って、趣味や旅行、お孫さんへの援助など、人生を豊かにするプランを積極的に立てましょう。
-                    </p>
-                </div>`;
+            html += `<div style="background:#f0fff4; border-left:4px solid #48bb78; padding:10px;"><strong style="font-size:1.2em; color:#2f855a;">【判定: Sランク】 素晴らしい資産設計です！</strong><p style="margin:5px 0;">現役時代の収支バランスが非常に良く、老後も「ゆとりある生活（月36万円想定）」を維持しながら${lifeAge}歳まで十分に資産が持つ見込みです。<br>余剰資金を使って、趣味や旅行、お孫さんへの援助など、人生を豊かにするプランを積極的に立てましょう。</p></div>`;
         } else if (finalAsset >= 0) {
-            html += `
-                <div style="background:#ebf8ff; border-left:4px solid #2b6cb0; padding:10px;">
-                    <strong style="font-size:1.2em; color:#2c5282;">【判定: Aランク】 概ね順調な計画です。</strong>
-                    <p style="margin:5px 0;">
-                        今の生活水準であれば、平均的な寿命まで資金ショートすることなく暮らせるでしょう。<br>
-                        ただし、介護や家のリフォームなど、予期せぬ大きな出費があるとギリギリになる可能性があります。iDeCoや新NISAを活用し、もうひと回り資産を厚くしておくと盤石です。
-                    </p>
-                </div>`;
+            html += `<div style="background:#ebf8ff; border-left:4px solid #2b6cb0; padding:10px;"><strong style="font-size:1.2em; color:#2c5282;">【判定: Aランク】 概ね順調な計画です。</strong><p style="margin:5px 0;">今の生活水準であれば、平均的な寿命まで資金ショートすることなく暮らせるでしょう。<br>ただし、介護や家のリフォームなど、予期せぬ大きな出費があるとギリギリになる可能性があります。iDeCoや新NISAを活用し、もうひと回り資産を厚くしておくと盤石です。</p></div>`;
         } else if (bankruptAge >= 85) {
-            html += `
-                <div style="background:#fffaf0; border-left:4px solid #d69e2e; padding:10px;">
-                    <strong style="font-size:1.2em; color:#975a16;">【判定: Bランク】 長生きリスクへの備えが必要です。</strong>
-                    <p style="margin:5px 0;">
-                        ${Math.floor(bankruptAge)}歳頃までは持ちますが、人生100年時代を考えると少し心許ない結果です。<br>
-                        「働く期間を延ばす」「年金の受給開始を遅らせる（繰下げ受給）」といった対策で、資産寿命をあと10年延ばす工夫を検討しましょう。
-                    </p>
-                </div>`;
+            html += `<div style="background:#fffaf0; border-left:4px solid #d69e2e; padding:10px;"><strong style="font-size:1.2em; color:#975a16;">【判定: Bランク】 長生きリスクへの備えが必要です。</strong><p style="margin:5px 0;">${Math.floor(bankruptAge)}歳頃までは持ちますが、人生100年時代を考えると少し心許ない結果です。<br>「働く期間を延ばす」「年金の受給開始を遅らせる（繰下げ受給）」といった対策で、資産寿命をあと10年延ばす工夫を検討しましょう。</p></div>`;
         } else {
-            html += `
-                <div style="background:#fff5f5; border-left:4px solid #e53e3e; padding:10px;">
-                    <strong style="font-size:1.2em; color:#c53030;">【判定: Cランク】 早急な見直しを推奨します。</strong>
-                    <p style="margin:5px 0;">
-                        現在の収支バランスのままだと、老後早い段階で資金が底をつくリスクが高いです。<br>
-                        まずは「固定費（通信費・保険・サブスク）」の削減や、住宅予算の見直しを行い、現役時代の貯蓄ペースを上げることが最優先です。プロと一緒に家計の断捨離から始めましょう。
-                    </p>
-                </div>`;
+            html += `<div style="background:#fff5f5; border-left:4px solid #e53e3e; padding:10px;"><strong style="font-size:1.2em; color:#c53030;">【判定: Cランク】 早急な見直しを推奨します。</strong><p style="margin:5px 0;">現在の収支バランスのままだと、老後早い段階で資金が底をつくリスクが高いです。<br>まずは「固定費（通信費・保険・サブスク）」の削減や、住宅予算の見直しを行い、現役時代の貯蓄ペースを上げることが最優先です。プロと一緒に家計の断捨離から始めましょう。</p></div>`;
         }
-
-        html += `<div style="margin-top:15px; font-size:0.9em; color:#555;">
-            <ul>
-                ${investProfit > 300 ? `<li><i class="fas fa-check" style="color:#48bb78;"></i> <strong>投資効果:</strong> 複利運用が効いています。このまま継続することで、インフレリスクにも強い家計になります。</li>` : `<li><i class="fas fa-exclamation-circle" style="color:#d69e2e;"></i> <strong>投資活用:</strong> 資産寿命を延ばすために、少額からでも「積立投資」を検討する価値があります。</li>`}
-                <li><i class="fas fa-child" style="color:#48bb78;"></i> <strong>子育て支援:</strong> 児童手当等の公的支援は約${Math.round(calculateTotalChildBenefits(parseInt(document.getElementById('r-child-count').value)||0)/100)*100}万円相当の収入増効果があります。これを教育費として確実に積み立てることが重要です。</li>
-            </ul>
-        </div>`;
-
-        html += `<div style="text-align:center; margin-top:20px;">
-            <a href="#" style="background:var(--primary); color:white; padding:12px 25px; border-radius:30px; text-decoration:none; font-weight:bold; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-                詳細な解決策をLINEで相談する
-            </a>
-        </div>`;
-
+        html += `<div style="margin-top:15px; font-size:0.9em; color:#555;"><ul>${investProfit > 300 ? `<li><i class="fas fa-check" style="color:#48bb78;"></i> <strong>投資効果:</strong> 複利運用が効いています。このまま継続することで、インフレリスクにも強い家計になります。</li>` : `<li><i class="fas fa-exclamation-circle" style="color:#d69e2e;"></i> <strong>投資活用:</strong> 資産寿命を延ばすために、少額からでも「積立投資」を検討する価値があります。</li>`}<li><i class="fas fa-child" style="color:#48bb78;"></i> <strong>子育て支援:</strong> 児童手当等の公的支援は約${Math.round(calculateTotalChildBenefits(parseInt(document.getElementById('r-child-count').value)||0)/100)*100}万円相当の収入増効果があります。これを教育費として確実に積み立てることが重要です。</li></ul></div>`;
+        html += `<div style="text-align:center; margin-top:20px;"><a href="#" style="background:var(--primary); color:white; padding:12px 25px; border-radius:30px; text-decoration:none; font-weight:bold; box-shadow:0 4px 6px rgba(0,0,0,0.1);">詳細な解決策をLINEで相談する</a></div>`;
         div.innerHTML = html;
     }
 
@@ -1193,9 +1123,7 @@
     function drawChart(gameVal, realVal, incomeVal, retirementVal, benefitsVal, profitVal, savingsVal) {
         const ctx = document.getElementById('comparisonChart').getContext('2d');
         if (myChart) myChart.destroy();
-
         const totalIncome = incomeVal + retirementVal + benefitsVal + profitVal + savingsVal;
-
         myChart = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -1229,15 +1157,11 @@
                         }
                     }
                 },
-                scales: {
-                    y: { beginAtZero: true }
-                }
+                scales: { y: { beginAtZero: true } }
             }
         });
     }
-    // ▼▼▼ 追加：Firebase連携＆自動読み込みロジック ▼▼▼
 
-    // 1. Firebase初期化 (game.jsと同じ設定)
     const firebaseConfig = {
         apiKey: "AIzaSyC2M3jt4skKm_eqxZjl9H7UhESboidXN0M",
         authDomain: "lifemarrige-293b1.firebaseapp.com",
@@ -1248,7 +1172,6 @@
         appId: "1:12201049552:web:4b369bb67baaf47b2b8dd5"
     };
 
-    // Firebase SDKが読み込まれていない場合の動的ロード
     function loadFirebaseSDK(callback) {
         if (typeof firebase !== 'undefined') { callback(); return; }
         const script1 = document.createElement('script');
@@ -1262,18 +1185,13 @@
         document.body.appendChild(script1);
     }
 
-    // 2. データ読み込み実行
     loadFirebaseSDK(() => {
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
-
-        // URLから ?uid=xxxxx を取得
         const urlParams = new URLSearchParams(window.location.search);
         const uid = urlParams.get('uid');
-
         if (uid) {
             console.log("Loading data for UID:", uid);
-            // データベースから取得
             database.ref('diagnosis/' + uid).once('value').then((snapshot) => {
                 const data = snapshot.val();
                 if (data) {
@@ -1283,34 +1201,54 @@
         }
     });
 
-    // 3. 取得したデータを画面に反映
     function applyImportedData(data) {
-        // グローバル変数 gameState を上書き
         gameState = data;
-        
-        // 既存の集計関数を呼び出して「ゲーム実績」欄を更新
         calculateGameTotals();
-
-        // 入力フォームへの自動入力
         if(data.players) {
-            // 年収 (額面)
             if(data.players.player1) document.getElementById('incomeSelf').value = data.players.player1.grossIncome || 0;
             if(data.players.player2) document.getElementById('incomePartner').value = data.players.player2.grossIncome || 0;
         }
         if(data.totalAssets) {
             document.getElementById('currentSavings').value = Math.round(data.totalAssets);
         }
-        
-        // 退職金などのデフォルト値も更新
         updateRealDefaults(); 
-        
-        // 手取り再計算
         calculateHouseholdNetIncome();
-
-        // 最後に診断実行
         calculateDiagnosis();
-        
         alert("ゲームデータを読み込みました！\n診断結果が表示されます。");
+    }
+
+    // ▼▼▼ 追加：決定ボタンの処理 ▼▼▼
+    function loadGameDataFromFirebase() {
+        const inputId = document.getElementById('import-diagnosis-id').value;
+        if (!inputId) {
+            alert("コードを入力してください");
+            return;
+        }
+        const statusMsg = document.getElementById('import-status');
+        if(statusMsg) statusMsg.innerText = "読み込み中...";
+        if (typeof firebase === 'undefined' || !firebase.apps.length) {
+            if(typeof firebaseConfig !== 'undefined') firebase.initializeApp(firebaseConfig);
+        }
+        const database = firebase.database();
+        database.ref('diagnosis/' + inputId).once('value').then((snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                applyImportedData(data);
+                if(statusMsg) {
+                    statusMsg.innerText = "読み込み成功！";
+                    statusMsg.style.color = "#48bb78";
+                }
+            } else {
+                alert("データが見つかりません。");
+                if(statusMsg) {
+                    statusMsg.innerText = "データなし";
+                    statusMsg.style.color = "#e53e3e";
+                }
+            }
+        }).catch((error) => {
+            console.error(error);
+            alert("通信エラーが発生しました。");
+        });
     }
 </script>
 
