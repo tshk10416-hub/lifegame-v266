@@ -474,6 +474,23 @@
     </style>
 </head>
 <body>
+<div class="container" id="manual-input-area" style="margin-bottom: 25px; border: 3px solid #FF7F50; background-color: #fffaf0; border-radius: 15px; padding: 20px;">
+        <h3 style="text-align:center; color:#FF7F50; margin-top:0;">
+            <i class="fas fa-key"></i> 診断コードの入力
+        </h3>
+        <p style="text-align:center; font-size:0.9em; color:#555; margin-bottom:15px;">
+            ゲーム終了時にコピーされたコードを<br>
+            <strong>ここに貼り付け（ペースト）</strong>してください
+        </p>
+        <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+            <input type="tel" id="import-diagnosis-id" placeholder="ここを長押しして貼り付け" 
+                   style="padding:12px; border:2px solid #ccc; border-radius:8px; width:220px; text-align:center; font-size:1.1em; font-weight:bold;">
+            <button onclick="loadGameDataFromFirebase()" class="btn-primary" style="padding:12px 25px; background-color:#FF7F50; font-weight:bold; border-radius:8px; width:auto;">
+                決定
+            </button>
+        </div>
+        <p id="import-status" style="text-align:center; font-weight:bold; color:#e53e3e; margin-top:10px; min-height:1.2em;"></p>
+    </div>
 
 <div class="container">
     <header>
