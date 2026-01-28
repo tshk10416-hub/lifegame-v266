@@ -2494,7 +2494,7 @@ function showLifePlanKarte() {
             ts = firebase.database.ServerValue.TIMESTAMP;
         }
 
-        // お客様のゲーム変数をそのまま保存
+       // ▼▼▼ 修正箇所：退職金データを追加 ▼▼▼
         const exportData = {
             players: players,
             balanceHistory: balanceHistory,
@@ -2505,6 +2505,10 @@ function showLifePlanKarte() {
             insurance: insurance,
             totalAssets: totalAssets,
             currentAge: currentAge,
+            
+            // ★これを追加！ (退職金の内訳データを保存)
+            retirementBonus: gameState.retirementBonus,
+            
             roomId: (typeof roomIdInput !== 'undefined' && roomIdInput) ? roomIdInput.value : "unknown",
             timestamp: ts
         };
