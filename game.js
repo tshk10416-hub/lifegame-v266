@@ -2530,7 +2530,7 @@ function showLifePlanKarte() {
         const lineBtn = document.getElementById('line-connect-btn');
         if (lineBtn) {
             // ★公式LINEのURL
-            const lineUrl = "https://lin.ee/xxxxxxx"; 
+            const lineUrl = "https://line.me/R/ti/p/@480gjare"; 
 
             lineBtn.href = lineUrl;
             lineBtn.target = "_blank";
@@ -3225,3 +3225,4 @@ function prepareLineDiagnosisData() {
     // ※ID検索用URLスキームを使用
     return `https://line.me/R/ti/p/${lineId}`;
 }
+
