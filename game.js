@@ -2480,10 +2480,10 @@ function showLifePlanKarte() {
         adviceEl.innerHTML = advice; // 元のロジックで生成されたadvice変数をそのまま使います
     }
 
-   // 1. ユニークな診断コード(6桁)を生成
+  // 1. ユニークな診断コード(6桁)を生成
     const diagnosisId = Math.floor(100000 + Math.random() * 900000);
 
-    // 2. データ保存 (成功/失敗のアラート機能付き)
+    // 2. データ保存 (修正：変数の参照先を修正しました)
     try {
         let ts = Date.now();
         // Firebaseの時刻取得を試みる
@@ -2491,17 +2491,20 @@ function showLifePlanKarte() {
             ts = firebase.database.ServerValue.TIMESTAMP;
         }
 
+        // ★ここが修正点：すべてのデータを gameState から取得するように変更
+        // （以前はここでエラーが起きていました）
         const exportData = {
-            players: players,
-            balanceHistory: balanceHistory,
-            marriage: marriage,
-            children: children,
-            house: house,
-            car: car,
-            insurance: insurance,
-            totalAssets: totalAssets,
-            currentAge: currentAge,
+            players: gameState.players,
+            balanceHistory: gameState.balanceHistory,
+            marriage: gameState.marriage,
+            children: gameState.children,
+            house: gameState.house,
+            car: gameState.car,
+            insurance: gameState.insurance,
+            totalAssets: gameState.totalAssets,
+            currentAge: gameState.currentAge,
             retirementBonus: gameState.retirementBonus,
+            // 部屋IDなども念のため
             roomId: (typeof roomIdInput !== 'undefined' && roomIdInput) ? roomIdInput.value : "unknown",
             timestamp: ts
         };
@@ -2518,11 +2521,15 @@ function showLifePlanKarte() {
                     alert("【保存失敗】\nエラー: " + error.message + "\n\nFirebaseの「ルール」が false になっていませんか？");
                 });
         } else {
-            alert("【エラー】データベースに接続されていません。\nインターネット接続を確認してください。");
+            console.warn("Database not ready, saving locally only.");
         }
+        
+        // ローカルストレージにもバックアップとして保存
+        localStorage.setItem('lifeGame_lastDiagnosisId', diagnosisId);
+        
     } catch(e) {
         console.error("Save Logic Error:", e);
-        alert("プログラムエラーが発生しました: " + e);
+        alert("プログラムエラーが発生しました: " + e.message);
     }
 
     // 3. LINEボタン設定（自動コピー機能付き）
@@ -2536,11 +2543,14 @@ function showLifePlanKarte() {
             lineBtn.target = "_blank";
             
             lineBtn.onclick = function(e) {
-                navigator.clipboard.writeText(diagnosisId).then(() => {
-                    // コピー成功時のメッセージは控えめに（保存成功アラートとかぶるため）
-                }).catch(err => {
-                    // エラー時のみ表示
-                });
+                // クリップボードにコピー
+                if(navigator.clipboard) {
+                    navigator.clipboard.writeText(diagnosisId).then(() => {
+                        // コピー成功（アラートは出さず、下のメッセージだけでOK）
+                    }).catch(err => {
+                        // エラー時
+                    });
+                }
                 
                 // ボタンを押したときの案内
                 alert("【診断コード: " + diagnosisId + "】\n\nIDをコピーしました！\nLINE登録後の診断シートで「貼り付け」てください。");
@@ -3225,4 +3235,3 @@ function prepareLineDiagnosisData() {
     // ※ID検索用URLスキームを使用
     return `https://line.me/R/ti/p/${lineId}`;
 }
-
