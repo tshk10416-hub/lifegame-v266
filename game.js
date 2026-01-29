@@ -2480,17 +2480,17 @@ function showLifePlanKarte() {
         adviceEl.innerHTML = advice; // 元のロジックで生成されたadvice変数をそのまま使います
     }
 
-    // 1. ユニークな診断コード(6桁)を生成
+   // 1. ユニークな診断コード(6桁)を生成
     const diagnosisId = Math.floor(100000 + Math.random() * 900000);
 
-    // 2. データ保存 (エラー対策付き)
+    // 2. データ保存 (成功/失敗のアラート機能付き)
     try {
         let ts = Date.now();
+        // Firebaseの時刻取得を試みる
         if(typeof firebase !== 'undefined' && firebase.database && firebase.database.ServerValue) {
             ts = firebase.database.ServerValue.TIMESTAMP;
         }
 
-        // ゲーム変数を保存
         const exportData = {
             players: players,
             balanceHistory: balanceHistory,
@@ -2501,36 +2501,49 @@ function showLifePlanKarte() {
             insurance: insurance,
             totalAssets: totalAssets,
             currentAge: currentAge,
-            retirementBonus: gameState.retirementBonus, // 退職金も保存
+            retirementBonus: gameState.retirementBonus,
             roomId: (typeof roomIdInput !== 'undefined' && roomIdInput) ? roomIdInput.value : "unknown",
             timestamp: ts
         };
 
         if(typeof database !== 'undefined' && database) {
-            database.ref('diagnosis/' + diagnosisId).set(exportData);
+            // ★保存処理
+            database.ref('diagnosis/' + diagnosisId).set(exportData)
+                .then(() => {
+                    // ★成功したらアラートを出す（確認用）
+                    alert("【保存成功】\nクラウドへの保存に成功しました！\n診断コード: " + diagnosisId);
+                })
+                .catch((error) => {
+                    // ★失敗したらエラーを出す
+                    alert("【保存失敗】\nエラー: " + error.message + "\n\nFirebaseの「ルール」が false になっていませんか？");
+                });
+        } else {
+            alert("【エラー】データベースに接続されていません。\nインターネット接続を確認してください。");
         }
     } catch(e) {
-        console.error("Data Save Error (Ignored):", e);
+        console.error("Save Logic Error:", e);
+        alert("プログラムエラーが発生しました: " + e);
     }
 
     // 3. LINEボタン設定（自動コピー機能付き）
     try {
         const lineBtn = document.getElementById('line-connect-btn');
         if (lineBtn) {
-            // ★公式LINEのURL（）
-            // 例: "https://line.me/R/ti/p/@あなたのID"
-            const lineUrl = "https://line.me/R/ti/p/@480gjare"; 
+            // ★公式LINEのURL
+            const lineUrl = "https://lin.ee/xxxxxxx"; 
 
             lineBtn.href = lineUrl;
             lineBtn.target = "_blank";
             
-            // ★クリック時にIDをクリップボードにコピーする
             lineBtn.onclick = function(e) {
                 navigator.clipboard.writeText(diagnosisId).then(() => {
-                    alert("【診断コード: " + diagnosisId + "】\n\nIDをコピーしました！\nLINE登録後の診断シートで「貼り付け」てください。");
+                    // コピー成功時のメッセージは控えめに（保存成功アラートとかぶるため）
                 }).catch(err => {
-                    alert("診断コードは「" + diagnosisId + "」です。\nメモしてLINEへお進みください。");
+                    // エラー時のみ表示
                 });
+                
+                // ボタンを押したときの案内
+                alert("【診断コード: " + diagnosisId + "】\n\nIDをコピーしました！\nLINE登録後の診断シートで「貼り付け」てください。");
             };
             
             // コード表示エリアの更新
