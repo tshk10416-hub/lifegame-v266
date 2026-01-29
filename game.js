@@ -2470,75 +2470,78 @@ function showLifePlanKarte() {
     document.getElementById('karte-rank-title').textContent = rankTitle;
     document.getElementById('karte-advice-text').innerHTML = advice;
    
-    // 1. ユニークな診断コード(6桁)を生成
-    // ※ここでは生成だけしておき、保存はまだしません
+    // 1. 診断コードの準備（生成だけして、まだ保存はしません）
     const diagnosisId = Math.floor(100000 + Math.random() * 900000);
 
-    // 2. LINEボタン設定 (クリック時に保存を実行)
+    // 2. LINEボタン設定（クリック時に初めて保存を実行）
     try {
         const lineBtn = document.getElementById('line-connect-btn');
         if (lineBtn) {
             // ★公式LINEのURL
             const lineUrl = "https://line.me/R/ti/p/@480gjare"; 
+
+            // ボタンの初期状態: リンクを無効化しておく
+            lineBtn.href = "javascript:void(0)"; 
+            lineBtn.target = ""; 
             
-            // ボタンの初期設定
-            lineBtn.href = "#"; // 最初は飛ばないようにする（保存完了後に飛ばすため）
-            lineBtn.target = ""; // 別タブ設定も一時解除
-
-            // ★クリック時の処理（ここに保存ロジックを移動）
+            // ★クリックイベント（ここに全ての処理を集約）
             lineBtn.onclick = function(e) {
-                e.preventDefault(); // 一旦リンク移動を止める
-                
-                // ボタンを連打できないようにする
-                lineBtn.style.pointerEvents = "none";
+                e.preventDefault(); // 画面遷移を一旦止める
+
+                // ボタンの連打防止と見た目変更
+                if (lineBtn.getAttribute('data-processing') === 'true') return;
+                lineBtn.setAttribute('data-processing', 'true');
+                const originalText = lineBtn.innerHTML;
                 lineBtn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> 保存中...";
+                lineBtn.style.opacity = "0.7";
 
-                // --- データ保存処理開始 ---
-                try {
-                    let ts = Date.now();
-                    if(typeof firebase !== 'undefined' && firebase.database && firebase.database.ServerValue) {
-                        ts = firebase.database.ServerValue.TIMESTAMP;
-                    }
+                // --- 保存処理の関数 ---
+                const performSave = () => {
+                    return new Promise((resolve) => {
+                        try {
+                            // タイムスタンプ取得
+                            let ts = Date.now();
+                            if(typeof firebase !== 'undefined' && firebase.database && firebase.database.ServerValue) {
+                                ts = firebase.database.ServerValue.TIMESTAMP;
+                            }
 
-                    const exportData = {
-                        players: gameState.players,
-                        balanceHistory: gameState.balanceHistory,
-                        marriage: gameState.marriage,
-                        children: gameState.children,
-                        house: gameState.house,
-                        car: gameState.car,
-                        insurance: gameState.insurance,
-                        totalAssets: gameState.totalAssets,
-                        currentAge: gameState.currentAge,
-                        retirementBonus: gameState.retirementBonus,
-                        roomId: (typeof roomIdInput !== 'undefined' && roomIdInput) ? roomIdInput.value : "unknown",
-                        timestamp: ts
-                    };
+                            // 保存データ作成
+                            const exportData = {
+                                players: gameState.players,
+                                balanceHistory: gameState.balanceHistory,
+                                marriage: gameState.marriage,
+                                children: gameState.children,
+                                house: gameState.house,
+                                car: gameState.car,
+                                insurance: gameState.insurance,
+                                totalAssets: gameState.totalAssets,
+                                currentAge: gameState.currentAge,
+                                retirementBonus: gameState.retirementBonus,
+                                roomId: (typeof roomIdInput !== 'undefined' && roomIdInput) ? roomIdInput.value : "unknown",
+                                timestamp: ts
+                            };
 
-                    // 保存実行
-                    if(typeof database !== 'undefined' && database) {
-                        database.ref('diagnosis/' + diagnosisId).set(exportData)
-                            .then(() => {
-                                // 保存成功！
-                                finishProcess();
-                            })
-                            .catch((error) => {
-                                console.error("Firebase Save Error:", error);
-                                alert("保存に失敗しましたが、LINEへ移動します。\n(エラー: " + error.message + ")");
-                                finishProcess(); // 失敗しても移動はさせる
-                            });
-                    } else {
-                        // データベースがない場合（ローカル動作など）
-                        finishProcess();
-                    }
-                } catch(err) {
-                    console.error("Save Logic Error:", err);
-                    finishProcess();
-                }
+                            // Firebaseへ保存
+                            if(typeof database !== 'undefined' && database) {
+                                database.ref('diagnosis/' + diagnosisId).set(exportData)
+                                    .then(() => resolve(true))
+                                    .catch((err) => {
+                                        console.error("Save Error:", err);
+                                        resolve(false); // エラーでも進む
+                                    });
+                            } else {
+                                resolve(false); // DBなし
+                            }
+                        } catch(e) {
+                            console.error("Logic Error:", e);
+                            resolve(false);
+                        }
+                    });
+                };
 
-                // 保存完了後の処理（コピーして移動）
-                function finishProcess() {
-                    // クリップボードにコピー
+                // --- 保存実行後の処理 ---
+                performSave().then((success) => {
+                    // IDをクリップボードにコピー
                     if(navigator.clipboard) {
                         navigator.clipboard.writeText(diagnosisId).catch(() => {});
                     }
@@ -2546,18 +2549,20 @@ function showLifePlanKarte() {
                     // ローカルストレージにバックアップ
                     localStorage.setItem('lifeGame_lastDiagnosisId', diagnosisId);
 
+                    // 完了アラート
                     alert("【診断コード: " + diagnosisId + "】\n\nデータを保存し、IDをコピーしました！\nLINE登録後の診断シートで「貼り付け」てください。");
 
                     // LINEへ移動
                     window.open(lineUrl, '_blank');
 
                     // ボタンを元に戻す
-                    lineBtn.style.pointerEvents = "auto";
-                    lineBtn.innerHTML = "LINEに登録してアンケートへ";
-                }
+                    lineBtn.innerHTML = originalText;
+                    lineBtn.style.opacity = "1";
+                    lineBtn.removeAttribute('data-processing');
+                });
             };
             
-            // コード表示エリアの更新
+            // コード表示エリアの更新（案内文）
             const btnContainer = lineBtn.parentNode;
             const existingCode = document.getElementById('diagnosis-code-display');
             if(existingCode) existingCode.remove();
@@ -2568,7 +2573,7 @@ function showLifePlanKarte() {
             codeDiv.innerHTML = `
                 <p style="font-size:0.8em; color:#666;">
                     診断コード: <strong style="font-size:1.2em; color:#e53e3e;">${diagnosisId}</strong><br>
-                    (ボタンを押すと保存・コピーされます)
+                    (ボタンを押すとデータが保存されます)
                 </p>
             `;
             btnContainer.insertBefore(codeDiv, lineBtn);
