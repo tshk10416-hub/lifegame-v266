@@ -2470,90 +2470,91 @@ function showLifePlanKarte() {
     document.getElementById('karte-rank-title').textContent = rankTitle;
     document.getElementById('karte-advice-text').innerHTML = advice;
    
-  // （...前略... 上のアドバイス生成ロジックは触らずそのまま残します）
-
-    // ▼▼▼ ここから下を修正・置き換え ▼▼▼
-
-    // アドバイスを表示
-    const adviceEl = document.getElementById('karte-advice-text');
-    if(adviceEl) {
-        adviceEl.innerHTML = advice; // 元のロジックで生成されたadvice変数をそのまま使います
-    }
-
-  // 1. ユニークな診断コード(6桁)を生成
+    // 1. ユニークな診断コード(6桁)を生成
+    // ※ここでは生成だけしておき、保存はまだしません
     const diagnosisId = Math.floor(100000 + Math.random() * 900000);
 
-    // 2. データ保存 (修正：変数の参照先を修正しました)
-    try {
-        let ts = Date.now();
-        // Firebaseの時刻取得を試みる
-        if(typeof firebase !== 'undefined' && firebase.database && firebase.database.ServerValue) {
-            ts = firebase.database.ServerValue.TIMESTAMP;
-        }
-
-        // ★ここが修正点：すべてのデータを gameState から取得するように変更
-        // （以前はここでエラーが起きていました）
-        const exportData = {
-            players: gameState.players,
-            balanceHistory: gameState.balanceHistory,
-            marriage: gameState.marriage,
-            children: gameState.children,
-            house: gameState.house,
-            car: gameState.car,
-            insurance: gameState.insurance,
-            totalAssets: gameState.totalAssets,
-            currentAge: gameState.currentAge,
-            retirementBonus: gameState.retirementBonus,
-            // 部屋IDなども念のため
-            roomId: (typeof roomIdInput !== 'undefined' && roomIdInput) ? roomIdInput.value : "unknown",
-            timestamp: ts
-        };
-
-        if(typeof database !== 'undefined' && database) {
-            // ★保存処理
-            database.ref('diagnosis/' + diagnosisId).set(exportData)
-                .then(() => {
-                    // ★成功したらアラートを出す（確認用）
-                    alert("【保存成功】\nクラウドへの保存に成功しました！\n診断コード: " + diagnosisId);
-                })
-                .catch((error) => {
-                    // ★失敗したらエラーを出す
-                    alert("【保存失敗】\nエラー: " + error.message + "\n\nFirebaseの「ルール」が false になっていませんか？");
-                });
-        } else {
-            console.warn("Database not ready, saving locally only.");
-        }
-        
-        // ローカルストレージにもバックアップとして保存
-        localStorage.setItem('lifeGame_lastDiagnosisId', diagnosisId);
-        
-    } catch(e) {
-        console.error("Save Logic Error:", e);
-        alert("プログラムエラーが発生しました: " + e.message);
-    }
-
-    // 3. LINEボタン設定（自動コピー機能付き）
+    // 2. LINEボタン設定 (クリック時に保存を実行)
     try {
         const lineBtn = document.getElementById('line-connect-btn');
         if (lineBtn) {
             // ★公式LINEのURL
             const lineUrl = "https://line.me/R/ti/p/@480gjare"; 
-
-            lineBtn.href = lineUrl;
-            lineBtn.target = "_blank";
             
+            // ボタンの初期設定
+            lineBtn.href = "#"; // 最初は飛ばないようにする（保存完了後に飛ばすため）
+            lineBtn.target = ""; // 別タブ設定も一時解除
+
+            // ★クリック時の処理（ここに保存ロジックを移動）
             lineBtn.onclick = function(e) {
-                // クリップボードにコピー
-                if(navigator.clipboard) {
-                    navigator.clipboard.writeText(diagnosisId).then(() => {
-                        // コピー成功（アラートは出さず、下のメッセージだけでOK）
-                    }).catch(err => {
-                        // エラー時
-                    });
-                }
+                e.preventDefault(); // 一旦リンク移動を止める
                 
-                // ボタンを押したときの案内
-                alert("【診断コード: " + diagnosisId + "】\n\nIDをコピーしました！\nLINE登録後の診断シートで「貼り付け」てください。");
+                // ボタンを連打できないようにする
+                lineBtn.style.pointerEvents = "none";
+                lineBtn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> 保存中...";
+
+                // --- データ保存処理開始 ---
+                try {
+                    let ts = Date.now();
+                    if(typeof firebase !== 'undefined' && firebase.database && firebase.database.ServerValue) {
+                        ts = firebase.database.ServerValue.TIMESTAMP;
+                    }
+
+                    const exportData = {
+                        players: gameState.players,
+                        balanceHistory: gameState.balanceHistory,
+                        marriage: gameState.marriage,
+                        children: gameState.children,
+                        house: gameState.house,
+                        car: gameState.car,
+                        insurance: gameState.insurance,
+                        totalAssets: gameState.totalAssets,
+                        currentAge: gameState.currentAge,
+                        retirementBonus: gameState.retirementBonus,
+                        roomId: (typeof roomIdInput !== 'undefined' && roomIdInput) ? roomIdInput.value : "unknown",
+                        timestamp: ts
+                    };
+
+                    // 保存実行
+                    if(typeof database !== 'undefined' && database) {
+                        database.ref('diagnosis/' + diagnosisId).set(exportData)
+                            .then(() => {
+                                // 保存成功！
+                                finishProcess();
+                            })
+                            .catch((error) => {
+                                console.error("Firebase Save Error:", error);
+                                alert("保存に失敗しましたが、LINEへ移動します。\n(エラー: " + error.message + ")");
+                                finishProcess(); // 失敗しても移動はさせる
+                            });
+                    } else {
+                        // データベースがない場合（ローカル動作など）
+                        finishProcess();
+                    }
+                } catch(err) {
+                    console.error("Save Logic Error:", err);
+                    finishProcess();
+                }
+
+                // 保存完了後の処理（コピーして移動）
+                function finishProcess() {
+                    // クリップボードにコピー
+                    if(navigator.clipboard) {
+                        navigator.clipboard.writeText(diagnosisId).catch(() => {});
+                    }
+                    
+                    // ローカルストレージにバックアップ
+                    localStorage.setItem('lifeGame_lastDiagnosisId', diagnosisId);
+
+                    alert("【診断コード: " + diagnosisId + "】\n\nデータを保存し、IDをコピーしました！\nLINE登録後の診断シートで「貼り付け」てください。");
+
+                    // LINEへ移動
+                    window.open(lineUrl, '_blank');
+
+                    // ボタンを元に戻す
+                    lineBtn.style.pointerEvents = "auto";
+                    lineBtn.innerHTML = "LINEに登録してアンケートへ";
+                }
             };
             
             // コード表示エリアの更新
@@ -2567,7 +2568,7 @@ function showLifePlanKarte() {
             codeDiv.innerHTML = `
                 <p style="font-size:0.8em; color:#666;">
                     診断コード: <strong style="font-size:1.2em; color:#e53e3e;">${diagnosisId}</strong><br>
-                    (ボタンを押すと自動でコピーされます)
+                    (ボタンを押すと保存・コピーされます)
                 </p>
             `;
             btnContainer.insertBefore(codeDiv, lineBtn);
@@ -2576,7 +2577,7 @@ function showLifePlanKarte() {
         console.error("Button Setup Error:", e);
     }
 
-    // 4. カルテ画面を確実に表示する
+    // 3. カルテ画面を確実に表示する
     const modal = document.getElementById('lifePlanKarteModal');
     if(modal) {
         modal.style.display = 'block';
@@ -3233,5 +3234,5 @@ function prepareLineDiagnosisData() {
 
     // 友だち追加画面を開くURL (https://line.me/R/ti/p/{LINE_ID})
     // ※ID検索用URLスキームを使用
-    return `https://line.me/R/ti/p/${lineId}`;
+    return `https://line.me/R/ti/p/@480gjare`;
 }
