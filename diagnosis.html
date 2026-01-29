@@ -807,6 +807,7 @@
         }
     }
 
+   // ▼▼▼ 修正：月額表示に対応した集計関数 ▼▼▼
     function calculateGameTotals() {
         if (!gameState || !gameState.balanceHistory) return;
 
@@ -815,9 +816,14 @@
             insurance: 0, living: 0, investment: 0, others: 0,
             retirement: 0 
         };
+        
+        let totalYears = 0; // 総経過年数（月額計算用）
 
+        // 履歴から集計
         gameState.balanceHistory.forEach(h => {
             const years = h.years || 10;
+            totalYears += years; // 年数を足していく
+            
             const d = h.details;
             summary.children += (d.childCost || 0) * years;
             summary.house += (d.houseCost || 0) * years;
@@ -829,7 +835,7 @@
             summary.others += (d.life_event || 0) + (d.social_event || 0);
         });
 
-        // ▼退職金の計算修正▼
+        // 退職金の集計
         if (gameState.retirementBonus) {
             if (typeof gameState.retirementBonus === 'object') {
                 const p1 = Number(gameState.retirementBonus.player1) || 0;
@@ -839,6 +845,65 @@
                 summary.retirement = Number(gameState.retirementBonus) || 0;
             }
         }
+
+        // --- 表示への反映 ---
+
+        // 通常のセット関数
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if(el) el.innerText = Math.round(val).toLocaleString();
+        };
+
+        // ★月額も一緒に表示する関数（保険・生活費・投資用）
+        const setValWithMonthly = (id, totalVal) => {
+            const el = document.getElementById(id);
+            if(!el) return;
+            
+            const totalStr = Math.round(totalVal).toLocaleString();
+            
+            // データがあり、期間が0でない場合
+            if (totalYears > 0 && totalVal > 0) {
+                // 月平均 = 総額(万) ÷ 年数 ÷ 12ヶ月
+                const monthly = totalVal / totalYears / 12;
+                // 小数点第1位まで表示 (例: 2.5)
+                const monthlyStr = monthly.toFixed(1); 
+                
+                // HTMLで2段組みにして表示
+                el.innerHTML = `
+                    ${totalStr}
+                    <span style="display:block; font-size:0.8em; color:#666; font-weight:normal; margin-top:2px;">
+                        (月平均 ${monthlyStr}万)
+                    </span>
+                `;
+            } else {
+                el.innerText = totalStr;
+            }
+        };
+
+        // 各項目を表示
+        setVal('g-marriage', summary.marriage);
+        setVal('g-children', summary.children);
+        setVal('g-house', summary.house);
+        setVal('g-car', summary.car);
+        
+        // ★ここが変更点：月額も表示
+        setValWithMonthly('g-insurance', summary.insurance);
+        setValWithMonthly('g-living', summary.living);
+        setValWithMonthly('g-investment', summary.investment);
+        
+        setVal('g-others', summary.others);
+        setVal('g-retirement', summary.retirement);
+
+        // ゲーム総支出の計算と表示
+        let expenseSum = summary.marriage + summary.children + summary.house + summary.car + 
+                         summary.insurance + summary.living + summary.investment + summary.others;
+        
+        const totalCostEl = document.getElementById('totalGameCost');
+        if(totalCostEl) {
+            totalCostEl.dataset.val = expenseSum;
+            totalCostEl.innerText = Math.round(expenseSum).toLocaleString();
+        }
+    }
 
         document.getElementById('g-marriage').innerText = Math.round(summary.marriage).toLocaleString();
         document.getElementById('g-children').innerText = Math.round(summary.children).toLocaleString();
@@ -855,7 +920,7 @@
         
         document.getElementById('totalGameCost').dataset.val = expenseSum;
         document.getElementById('totalGameCost').innerText = Math.round(expenseSum).toLocaleString();
-    }
+    
 
     function calculateNetFromGross(gross) {
         if (gross <= 0) return 0;
