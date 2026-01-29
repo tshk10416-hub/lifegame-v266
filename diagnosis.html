@@ -471,6 +471,43 @@
             .income-wrapper input { width: 100%; font-size: 1.1rem; }
             .sim-input-grid { grid-template-columns: 1fr; }
         }
+        /* 1. 入力欄のデザイン（スマホでも見やすく） */
+    .real-input, .mini-input, input[type="number"] {
+        font-size: 16px !important; /* スマホで拡大されないサイズ */
+        padding: 12px !important;
+        border-radius: 8px !important;
+        border: 2px solid #bee3f8 !important;
+        background-color: #f7fafc !important;
+        touch-action: manipulation; /* スマホでの操作性向上 */
+    }
+
+    /* 2. 備考・根拠の文字サイズ（大きくする） */
+    .source-text {
+        font-size: 0.85rem !important; /* 文字を大きく */
+        line-height: 1.5 !important;
+        color: #4a5568 !important;
+    }
+
+    /* 3. LINEボタンのデザイン修正（変な改行を防ぐ） */
+    #finalAdvice a {
+        display: inline-block !important;
+        width: auto !important;
+        max-width: 90% !important;
+        white-space: normal !important; /* 自然な改行 */
+        line-height: 1.4 !important;
+        font-size: 1rem !important;
+        padding: 15px 30px !important;
+    }
+    
+    /* 4. 月平均表示用のスタイル */
+    .monthly-avg {
+        display: block;
+        font-size: 0.8em;
+        color: #2b6cb0;
+        font-weight: bold;
+        margin-top: 4px;
+        white-space: nowrap;
+    }
     </style>
 </head>
 <body>
@@ -807,8 +844,7 @@
         }
     }
 
-   // ▼▼▼ 修正：月額表示に対応した集計関数 ▼▼▼
-    function calculateGameTotals() {
+   function calculateGameTotals() {
         if (!gameState || !gameState.balanceHistory) return;
 
         let summary = {
@@ -817,12 +853,12 @@
             retirement: 0 
         };
         
-        let totalYears = 0; // 総経過年数（月額計算用）
+        let totalYears = 0; // ゲームの総期間
 
         // 履歴から集計
         gameState.balanceHistory.forEach(h => {
-            const years = h.years || 10;
-            totalYears += years; // 年数を足していく
+            const years = Number(h.years) || 10; // データがない場合は10年と仮定
+            totalYears += years; 
             
             const d = h.details;
             summary.children += (d.childCost || 0) * years;
@@ -846,32 +882,31 @@
             }
         }
 
-        // --- 表示への反映 ---
-
-        // 通常のセット関数
+        // --- 表示への反映関数 ---
         const setVal = (id, val) => {
             const el = document.getElementById(id);
             if(el) el.innerText = Math.round(val).toLocaleString();
         };
 
-        // ★月額も一緒に表示する関数（保険・生活費・投資用）
+        // ★月額表示用関数（改良版）
         const setValWithMonthly = (id, totalVal) => {
             const el = document.getElementById(id);
             if(!el) return;
             
             const totalStr = Math.round(totalVal).toLocaleString();
             
-            // データがあり、期間が0でない場合
-            if (totalYears > 0 && totalVal > 0) {
-                // 月平均 = 総額(万) ÷ 年数 ÷ 12ヶ月
-                const monthly = totalVal / totalYears / 12;
-                // 小数点第1位まで表示 (例: 2.5)
+            // 期間が0なら40年と仮定して計算（エラー防止）
+            const years = totalYears > 0 ? totalYears : 40;
+
+            // 金額が0以上なら月平均を計算して表示
+            if (totalVal > 0) {
+                // 月平均 = 総額 ÷ 年数 ÷ 12
+                const monthly = totalVal / years / 12;
                 const monthlyStr = monthly.toFixed(1); 
                 
-                // HTMLで2段組みにして表示
                 el.innerHTML = `
                     ${totalStr}
-                    <span style="display:block; font-size:0.8em; color:#666; font-weight:normal; margin-top:2px;">
+                    <span class="monthly-avg">
                         (月平均 ${monthlyStr}万)
                     </span>
                 `;
@@ -886,7 +921,7 @@
         setVal('g-house', summary.house);
         setVal('g-car', summary.car);
         
-        // ★ここが変更点：月額も表示
+        // ★月平均も表示（保険、生活費、投資）
         setValWithMonthly('g-insurance', summary.insurance);
         setValWithMonthly('g-living', summary.living);
         setValWithMonthly('g-investment', summary.investment);
@@ -894,7 +929,7 @@
         setVal('g-others', summary.others);
         setVal('g-retirement', summary.retirement);
 
-        // ゲーム総支出の計算と表示
+        // ゲーム総支出の合計
         let expenseSum = summary.marriage + summary.children + summary.house + summary.car + 
                          summary.insurance + summary.living + summary.investment + summary.others;
         
@@ -1166,21 +1201,56 @@
         return { finalAsset, lifeAge, bankruptAge };
     }
 
+   // ▼▼▼ 修正：アドバイス生成＆LINEボタン改良 ▼▼▼
     function generateAdvice(real, game, incomeBalance, investProfit, simResult) {
         const div = document.getElementById('finalAdvice');
         let html = `<h3><i class="fas fa-user-tie"></i> プロの総合診断コメント</h3>`;
+        
         const { finalAsset, lifeAge, bankruptAge } = simResult;
+        
+        // ランク判定ロジック
         if (finalAsset >= 2000) {
-            html += `<div style="background:#f0fff4; border-left:4px solid #48bb78; padding:10px;"><strong style="font-size:1.2em; color:#2f855a;">【判定: Sランク】 素晴らしい資産設計です！</strong><p style="margin:5px 0;">現役時代の収支バランスが非常に良く、老後も「ゆとりある生活（月36万円想定）」を維持しながら${lifeAge}歳まで十分に資産が持つ見込みです。<br>余剰資金を使って、趣味や旅行、お孫さんへの援助など、人生を豊かにするプランを積極的に立てましょう。</p></div>`;
+            html += `<div style="background:#f0fff4; border-left:4px solid #48bb78; padding:10px;"><strong style="font-size:1.2em; color:#2f855a;">【判定: Sランク】 素晴らしい資産設計です！</strong><p style="margin:5px 0;">現役時代の収支バランスが非常に良く、老後もゆとりある生活を維持しながら${lifeAge}歳まで十分に資産が持つ見込みです。</p></div>`;
         } else if (finalAsset >= 0) {
-            html += `<div style="background:#ebf8ff; border-left:4px solid #2b6cb0; padding:10px;"><strong style="font-size:1.2em; color:#2c5282;">【判定: Aランク】 概ね順調な計画です。</strong><p style="margin:5px 0;">今の生活水準であれば、平均的な寿命まで資金ショートすることなく暮らせるでしょう。<br>ただし、介護や家のリフォームなど、予期せぬ大きな出費があるとギリギリになる可能性があります。iDeCoや新NISAを活用し、もうひと回り資産を厚くしておくと盤石です。</p></div>`;
+            html += `<div style="background:#ebf8ff; border-left:4px solid #2b6cb0; padding:10px;"><strong style="font-size:1.2em; color:#2c5282;">【判定: Aランク】 概ね順調な計画です。</strong><p style="margin:5px 0;">今の生活水準であれば、平均的な寿命まで資金ショートすることなく暮らせるでしょう。</p></div>`;
         } else if (bankruptAge >= 85) {
-            html += `<div style="background:#fffaf0; border-left:4px solid #d69e2e; padding:10px;"><strong style="font-size:1.2em; color:#975a16;">【判定: Bランク】 長生きリスクへの備えが必要です。</strong><p style="margin:5px 0;">${Math.floor(bankruptAge)}歳頃までは持ちますが、人生100年時代を考えると少し心許ない結果です。<br>「働く期間を延ばす」「年金の受給開始を遅らせる（繰下げ受給）」といった対策で、資産寿命をあと10年延ばす工夫を検討しましょう。</p></div>`;
+            html += `<div style="background:#fffaf0; border-left:4px solid #d69e2e; padding:10px;"><strong style="font-size:1.2em; color:#975a16;">【判定: Bランク】 長生きリスクへの備えが必要です。</strong><p style="margin:5px 0;">${Math.floor(bankruptAge)}歳頃までは持ちますが、人生100年時代を考えると少し心許ない結果です。</p></div>`;
         } else {
-            html += `<div style="background:#fff5f5; border-left:4px solid #e53e3e; padding:10px;"><strong style="font-size:1.2em; color:#c53030;">【判定: Cランク】 早急な見直しを推奨します。</strong><p style="margin:5px 0;">現在の収支バランスのままだと、老後早い段階で資金が底をつくリスクが高いです。<br>まずは「固定費（通信費・保険・サブスク）」の削減や、住宅予算の見直しを行い、現役時代の貯蓄ペースを上げることが最優先です。プロと一緒に家計の断捨離から始めましょう。</p></div>`;
+            html += `<div style="background:#fff5f5; border-left:4px solid #e53e3e; padding:10px;"><strong style="font-size:1.2em; color:#c53030;">【判定: Cランク】 早急な見直しを推奨します。</strong><p style="margin:5px 0;">現在の収支バランスのままだと、老後早い段階で資金が底をつくリスクが高いです。</p></div>`;
         }
-        html += `<div style="margin-top:15px; font-size:0.9em; color:#555;"><ul>${investProfit > 300 ? `<li><i class="fas fa-check" style="color:#48bb78;"></i> <strong>投資効果:</strong> 複利運用が効いています。このまま継続することで、インフレリスクにも強い家計になります。</li>` : `<li><i class="fas fa-exclamation-circle" style="color:#d69e2e;"></i> <strong>投資活用:</strong> 資産寿命を延ばすために、少額からでも「積立投資」を検討する価値があります。</li>`}<li><i class="fas fa-child" style="color:#48bb78;"></i> <strong>子育て支援:</strong> 児童手当等の公的支援は約${Math.round(calculateTotalChildBenefits(parseInt(document.getElementById('r-child-count').value)||0)/100)*100}万円相当の収入増効果があります。これを教育費として確実に積み立てることが重要です。</li></ul></div>`;
-        html += `<div style="text-align:center; margin-top:20px;"><a href="#" style="background:var(--primary); color:white; padding:12px 25px; border-radius:30px; text-decoration:none; font-weight:bold; box-shadow:0 4px 6px rgba(0,0,0,0.1);">詳細な解決策をLINEで相談する</a></div>`;
+
+        // アドバイスリスト
+        html += `<div style="margin-top:15px; font-size:0.9em; color:#555;"><ul>`;
+        if(investProfit > 300) {
+            html += `<li><i class="fas fa-check" style="color:#48bb78;"></i> <strong>投資効果:</strong> 複利運用が効いています。</li>`;
+        } else {
+            html += `<li><i class="fas fa-exclamation-circle" style="color:#d69e2e;"></i> <strong>投資活用:</strong> 積立投資の検討をおすすめします。</li>`;
+        }
+        html += `<li><i class="fas fa-child" style="color:#48bb78;"></i> <strong>子育て支援:</strong> 児童手当を教育費として積み立てましょう。</li></ul></div>`;
+
+        // ★修正点：LINEボタン（スタイルをclassではなくインラインで強力に指定）
+        // 見やすく改行し、ボタン幅を調整
+        html += `
+            <div style="text-align:center; margin-top:25px; margin-bottom:10px;">
+                <p style="font-size:0.9em; font-weight:bold; color:#2b6cb0; margin-bottom:10px;">
+                    ▼ あなただけの改善プランを作成 ▼
+                </p>
+                <a href="#" style="
+                    display: inline-block;
+                    background: #06c755; /* LINEカラー */
+                    color: white; 
+                    padding: 15px 20px; 
+                    border-radius: 50px; 
+                    text-decoration: none; 
+                    font-weight: bold; 
+                    font-size: 1.1em;
+                    box-shadow: 0 4px 10px rgba(6, 199, 85, 0.4);
+                    transition: transform 0.2s;
+                ">
+                    <i class="fab fa-line"></i> 詳細な解決策をLINEで相談する
+                </a>
+            </div>`;
+            
         div.innerHTML = html;
     }
 
