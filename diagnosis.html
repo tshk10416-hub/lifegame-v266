@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v14.0_Fix_AutoScroll
+    // バージョン確認用ID: v15.0_Fix_Result_Display
     // =========================================================
 
     // ▼▼▼ CSS調整（入力欄の単位表示スペース確保） ▼▼▼
@@ -975,7 +975,25 @@
         updateRealDefaults(); 
         calculateHouseholdNetIncome(); 
         addUnitsToInputs(); 
+        
+        // ★追加：HTMLのラベル「支出合計」等を「65歳時点の貯蓄」に書き換え
+        updateResultLabels();
     });
+
+    // ★追加：診断結果のラベル書き換え関数
+    function updateResultLabels() {
+        const totalRealCostEl = document.getElementById('totalRealCost');
+        if (totalRealCostEl) {
+            // 親要素などを遡ってラベルを探す、あるいは単純に周囲のテキストを変更する
+            // ここでは確実性を高めるため、結果エリア全体のHTMLを置換する方法をとります
+            // ※「支出合計」という文字が含まれていれば変更
+            const resultArea = document.getElementById('resultArea');
+            if (resultArea) {
+                resultArea.innerHTML = resultArea.innerHTML.replace(/生涯支出合計/g, '65歳時点の貯蓄額');
+                resultArea.innerHTML = resultArea.innerHTML.replace(/現実の必要資金合計/g, '65歳時点の貯蓄額');
+            }
+        }
+    }
 
     function addUnitsToInputs() {
         const targetIds = [
@@ -1003,7 +1021,6 @@
             if (savedState) {
                 gameState = JSON.parse(savedState);
                 calculateGameTotals();
-                // ※ここでは診断(calculateDiagnosis)は呼びません
             }
         } catch (e) { console.error(e); }
     }
@@ -1043,18 +1060,21 @@
             }
         }
 
+        // ★修正点：ここから「+ "万円"」を削除しました（HTML側の単位を使用）
         const setVal = (id, val) => {
             const el = document.getElementById(id);
-            if(el) el.innerText = Math.round(val).toLocaleString() + "万円";
+            if(el) el.innerText = Math.round(val).toLocaleString(); 
         };
 
+        // ★修正点：ここも単位の重複を防ぐため削除・テンプレート修正
         const setValWithMonthly = (id, totalVal) => {
             const el = document.getElementById(id);
             if(!el) return;
-            const totalStr = Math.round(totalVal).toLocaleString() + "万円";
+            const totalStr = Math.round(totalVal).toLocaleString(); // 単位なし
             const years = totalYears > 0 ? totalYears : 40;
             if (totalVal > 0) {
                 const monthly = totalVal / years / 12;
+                // 月平均には単位が必要（ここはHTMLに元々ないため）
                 el.innerHTML = `${totalStr}<span class="monthly-avg">(月平均 ${monthly.toFixed(1)}万円)</span>`;
             } else {
                 el.innerText = totalStr;
@@ -1077,7 +1097,8 @@
         const totalCostEl = document.getElementById('totalGameCost');
         if(totalCostEl) {
             totalCostEl.dataset.val = expenseSum;
-            totalCostEl.innerText = Math.round(expenseSum).toLocaleString() + "万円";
+            // ここも単位削除（HTML側に任せる）
+            totalCostEl.innerText = Math.round(expenseSum).toLocaleString();
         }
     }
 
@@ -1223,7 +1244,6 @@
     }
 
     function calculateDiagnosis() {
-        // ★診断ボタンを押されたときだけ動く処理
         const valMarriage = parseInt(document.getElementById('r-marriage').value) || 0;
         const valChildrenCost = parseFloat(document.getElementById('child-total-preview').dataset.total) || 0;
         const valHouse = parseInt(document.getElementById('r-house').value) || 0;
@@ -1247,7 +1267,21 @@
         const incomeBalance = (currentSavings + lifetimeIncome + valRetirement + valChildBenefits) - totalReal + valInvestProfit;
         currentIncomeBalanceAt65 = incomeBalance;
 
-        document.getElementById('totalRealCost').innerText = totalReal.toLocaleString() + "万円";
+        // ★修正点：ここを「支出合計」ではなく「65歳時点の貯蓄」に置き換え
+        // 元々「totalRealCost」というIDの場所に支出を表示していましたが、
+        // ここに貯蓄額（incomeBalance）を表示するように変更します。
+        const totalRealCostEl = document.getElementById('totalRealCost');
+        if(totalRealCostEl) {
+            // 色分け（プラスなら緑、マイナスなら赤）
+            if (incomeBalance >= 0) {
+                totalRealCostEl.style.color = "#48bb78";
+                totalRealCostEl.innerText = "+" + incomeBalance.toLocaleString() + "万円";
+            } else {
+                totalRealCostEl.style.color = "#e53e3e";
+                totalRealCostEl.innerText = incomeBalance.toLocaleString() + "万円";
+            }
+        }
+
         document.getElementById('lifetimeIncome').innerText = lifetimeIncome.toLocaleString();
         
         const balanceDiv = document.getElementById('incomeBalanceCheck');
@@ -1268,6 +1302,9 @@
 
         document.getElementById('resultArea').style.display = 'block';
         document.getElementById('resultArea').scrollIntoView({behavior: 'smooth'});
+
+        // 診断結果のラベル書き換え（念のため再度実行）
+        updateResultLabels();
 
         const simResult = calculateRetirementSim();
         generateAdvice(totalReal, totalGame, incomeBalance, valInvestProfit, simResult);
@@ -1391,7 +1428,6 @@
         });
     }
 
-    // 決定ボタン処理（修正：勝手なスクロールを防止）
     function loadGameDataFromFirebase() {
         const inputId = document.getElementById('import-diagnosis-id').value;
         if (!inputId) { alert("診断コードを入力（貼り付け）してください"); return; }
@@ -1417,17 +1453,11 @@
 
     function applyImportedData(data) {
         gameState = data;
-        
-        // 1. ゲーム実績の集計だけを行う
         calculateGameTotals();
-
-        // 2. 年収・貯蓄の上書きは行わない（ベース値維持）
-        
-        // 3. 入力欄の初期計算（デフォルト値の再計算）
         updateRealDefaults(); 
         calculateHouseholdNetIncome();
-
-        // ★修正点：ここで「calculateDiagnosis()」を呼ばないことで、勝手な診断とスクロールを防ぎます。
+        
+        // 診断の自動実行は停止（勝手なスクロール防止）
         
         alert("【確認用】反映完了\nゲームデータを読み込みました！\n\n続けて「あなたの現実プラン」を入力し、\n最後に一番下の診断ボタンを押してください。");
     }
