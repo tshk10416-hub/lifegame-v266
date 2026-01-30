@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v18.0_ForceFix_Units_Labels
+    // バージョン確認用ID: v21.0_Final_Action_Plan
     // =========================================================
 
     // ▼▼▼ CSS調整（入力欄の単位表示スペース確保） ▼▼▼
@@ -975,7 +975,6 @@
         calculateHouseholdNetIncome(); 
         addUnitsToInputs(); 
         
-        // 初期ロード時にもラベル修正を実行
         setTimeout(updateResultLabels, 500); 
     });
 
@@ -984,16 +983,11 @@
         const resultArea = document.getElementById('resultArea');
         if (resultArea) {
             let html = resultArea.innerHTML;
-            
-            // 1. まずメインの文言を置換
             html = html.replace(/あなたが65歳までに必要な資金総額.*\(支出合計\)/g, 'あなたの65歳時点の資金総額');
             html = html.replace(/あなたが65歳までに必要な資金総額/g, 'あなたの65歳時点の資金総額');
-            
-            // 2. 余計なカッコ書きを削除
             html = html.replace(/\(資金総額\)/g, '');
             html = html.replace(/\(支出合計\)/g, '');
-            html = html.replace(/\(資金\)/g, ''); // 念のため
-
+            html = html.replace(/\(資金\)/g, '');
             resultArea.innerHTML = html;
         }
     }
@@ -1063,7 +1057,6 @@
             }
         }
 
-        // --- テーブル内は「万円」をつける ---
         const setVal = (id, val) => {
             const el = document.getElementById(id);
             if(el) el.innerText = Math.round(val).toLocaleString() + "万円";
@@ -1095,11 +1088,10 @@
         let expenseSum = summary.marriage + summary.children + summary.house + summary.car + 
                          summary.insurance + summary.living + summary.investment + summary.others;
         
-        // ★修正点：合計欄（totalGameCost）は「数字のみ」にする（HTMLに単位があるため）
+        // 単位重複防止
         const totalCostEl = document.getElementById('totalGameCost');
         if(totalCostEl) {
             totalCostEl.dataset.val = expenseSum;
-            // 単位をつけずに数字だけセット
             totalCostEl.innerText = Math.round(expenseSum).toLocaleString();
         }
     }
@@ -1206,7 +1198,7 @@
         totalBenefit += count1st2nd * UNIT_COSTS.childAllowance1st2nd;
         if (childCount >= 3) {
             const count3rdPlus = childCount - 2;
-            totalBenefit += count3rdPlus * UNIT_COSTS.childAllowance3rd;
+            totalBenefit += count3rdPlus * UNIT_COSTS.childAllowance1st2nd;
         }
         return Math.round(totalBenefit);
     }
@@ -1269,7 +1261,6 @@
         const incomeBalance = (currentSavings + lifetimeIncome + valRetirement + valChildBenefits) - totalReal + valInvestProfit;
         currentIncomeBalanceAt65 = incomeBalance;
 
-        // ★ラベルの修正をここでも実行
         updateResultLabels();
 
         const totalRealCostEl = document.getElementById('totalRealCost');
@@ -1283,23 +1274,53 @@
             }
         }
 
-        document.getElementById('lifetimeIncome').innerText = lifetimeIncome.toLocaleString();
-        
+        // ▼▼▼ 修正箇所：「投資」を含めたアクションプランに変更 ▼▼▼
+        const incomeProjEl = document.querySelector('.net-income-projection');
+        if (incomeProjEl) {
+            let monthlyAction = 0;
+            if (remainingYears > 0) {
+                monthlyAction = Math.round(Math.abs(incomeBalance) / remainingYears / 12 * 10) / 10;
+            }
+            
+            let icon = '';
+            let title = 'あなたの現在のアクションプラン';
+            let message = '';
+            let styleColor = '';
+            let bgColor = '';
+            let borderColor = '';
+
+            if (incomeBalance >= 0) {
+                // 黒字の場合
+                icon = '<i class="fas fa-check-circle" style="color:#48bb78;"></i>';
+                styleColor = '#276749';
+                bgColor = '#f0fff4';
+                borderColor = '#48bb78';
+                message = `素晴らしい結果です！現在のペースなら、<span style="font-size:1.4em; font-weight:bold; color:#2f855a;">毎月 ${monthlyAction}万円</span> の余剰資金が生まれます。<br>この分を<strong>積立投資</strong>などに回して、さらに資産を効率よく増やすのがおすすめです。`;
+            } else {
+                // 赤字の場合
+                icon = '<i class="fas fa-exclamation-triangle" style="color:#e53e3e;"></i>';
+                styleColor = '#742a2a';
+                bgColor = '#fff5f5';
+                borderColor = '#e53e3e';
+                message = `この赤字をなくすためには、<span style="font-size:1.4em; font-weight:bold; color:#c53030;">今から毎月 ${monthlyAction}万円</span> の準備が必要です。<br>単なる貯金だけでなく、<strong>iDeCoやNISAなどの積立投資</strong>も活用して、効率よく準備していきましょう。`;
+            }
+
+            incomeProjEl.style.backgroundColor = bgColor;
+            incomeProjEl.style.borderColor = borderColor;
+            incomeProjEl.style.color = styleColor;
+            incomeProjEl.innerHTML = `
+                <div style="font-size:1.1em; font-weight:bold; margin-bottom:10px; border-bottom:1px dashed ${borderColor}; padding-bottom:5px;">
+                    ${icon} ${title}
+                </div>
+                <div style="line-height:1.6;">
+                    ${message}
+                </div>
+            `;
+        }
+        // ▲▲▲ 修正ここまで ▲▲▲
+
         const balanceDiv = document.getElementById('incomeBalanceCheck');
-        let balanceHtml = "";
-        if (incomeBalance >= 0) {
-            balanceHtml = `<span style="color:#48bb78;">収支予測(65歳): +${incomeBalance.toLocaleString()}万円 (黒字)</span>`;
-        } else {
-            balanceHtml = `<span style="color:#e53e3e;">収支予測(65歳): ${incomeBalance.toLocaleString()}万円 (赤字)</span>`;
-        }
-        let extraInfo = [];
-        if (currentSavings > 0) extraInfo.push(`現在貯蓄${currentSavings}万`);
-        if (valRetirement > 0) extraInfo.push(`退職金${valRetirement}万`);
-        if (valInvestProfit > 0) extraInfo.push(`運用益${valInvestProfit}万`);
-        if (extraInfo.length > 0) {
-            balanceHtml += `<br><span style="font-size:0.8em; color:#2b6cb0;">(プラス要因: ${extraInfo.join(', ')})</span>`;
-        }
-        balanceDiv.innerHTML = balanceHtml;
+        if(balanceDiv) balanceDiv.innerHTML = ""; 
 
         document.getElementById('resultArea').style.display = 'block';
         document.getElementById('resultArea').scrollIntoView({behavior: 'smooth'});
