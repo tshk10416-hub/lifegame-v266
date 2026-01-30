@@ -1413,18 +1413,20 @@
 
     function applyImportedData(data) {
         gameState = data;
-        calculateGameTotals();
         
-        // ★修正済み：以下の行を削除したため、年収・貯蓄は固定値が維持されます
-        /*
-        if(data.players) { ... }
-        if(data.totalAssets) { ... }
-        */
+        // ゲーム実績の集計と表示（ここだけ実行）
+        calculateGameTotals();
 
+        // ※年収・貯蓄の上書きは廃止済みのためスキップ
+
+        // 入力欄の初期計算（デフォルト値の計算など）
         updateRealDefaults(); 
         calculateHouseholdNetIncome();
-        calculateDiagnosis();
-        alert("ゲームデータを読み込みました！\n診断結果が表示されます。");
+
+        // ★修正点：勝手に診断を実行しないように削除
+        // calculateDiagnosis(); 
+        
+        alert("ゲームデータを反映しました！\n\n続けて「あなたの現実プラン」を入力し、\n最後に一番下の診断ボタンを押してください。");
     }
 </script>
 </body>
