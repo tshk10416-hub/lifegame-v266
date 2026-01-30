@@ -631,7 +631,7 @@
             
             <div style="text-align:center; margin:15px 0;">
                 <div class="current-asset-input">
-                    <label for="currentSavings"><i class="fas fa-piggy-bank"></i> 現在の貯蓄額 (世帯)</label>
+                    <label for="currentSavings"><i class="fas fa-piggy-bank"></i> 現在の (世帯)</label>
                     <input type="number" id="currentSavings" value="300" step="10" oninput="calculateHouseholdNetIncome()">
                     <span>万円</span>
                 </div>
@@ -869,11 +869,8 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
 <script>
-    // ▼▼▼ 修正：CSS調整（入力欄の単位表示スペースを確保） ▼▼▼
+    // ▼▼▼ CSS調整（入力欄の単位表示スペース確保） ▼▼▼
     const styleFix = document.createElement('style');
     styleFix.innerHTML = `
         /* 単位付き入力欄のレイアウト修正 */
@@ -883,18 +880,16 @@
             width: 100% !important;
             box-sizing: border-box !important;
         }
-        /* 単位ラッパー内の入力欄は幅を自動調整（100%強制を解除） */
         .unit-wrapper input, 
         .unit-wrapper .real-input, 
         .unit-wrapper .mini-input {
-            width: 0 !important; /* flex-growで伸ばすため一旦0に */
+            width: 0 !important;
             flex-grow: 1 !important;
             min-width: 0 !important;
             border-top-right-radius: 0 !important;
             border-bottom-right-radius: 0 !important;
-            margin-right: -2px !important; /* 枠線を繋げる調整 */
+            margin-right: -2px !important;
         }
-        /* 単位ラベルのデザイン */
         .unit-span {
             background-color: #edf2f7;
             border: 2px solid #bee3f8;
@@ -910,9 +905,8 @@
             border-top-right-radius: 8px;
             border-bottom-right-radius: 8px;
             white-space: nowrap;
-            align-self: stretch; /* 入力欄と高さを合わせる */
+            align-self: stretch;
         }
-        /* スマホ表示時の調整 */
         @media (max-width: 768px) {
             .unit-wrapper input {
                 font-size: 16px !important;
@@ -941,7 +935,6 @@
         childAllowance3rd: 648
     };
 
-    // Firebase設定
     const firebaseConfig = {
         apiKey: "AIzaSyC2M3jt4skKm_eqxZjl9H7UhESboidXN0M",
         authDomain: "lifemarrige-293b1.firebaseapp.com",
@@ -963,38 +956,36 @@
     let currentIncomeBalanceAt65 = 0; 
 
     document.addEventListener('DOMContentLoaded', () => {
+        // ★修正：ご要望のベース金額を初期値としてセット
+        const setDefaults = () => {
+            const iSelf = document.getElementById('incomeSelf');
+            const iPartner = document.getElementById('incomePartner');
+            const iSave = document.getElementById('currentSavings');
+            
+            if(iSelf) iSelf.value = 400; // 本人400万
+            if(iPartner) iPartner.value = 0; // パートナー0万
+            if(iSave) iSave.value = 300; // 貯蓄300万
+        };
+        setDefaults();
+
         loadGameData();
         updateRealDefaults(); 
         calculateHouseholdNetIncome(); 
-        addUnitsToInputs(); // 単位追加実行
+        addUnitsToInputs(); 
     });
 
-    // ▼▼▼ 修正：入力欄に「万円」をつける関数（対象を厳選） ▼▼▼
     function addUnitsToInputs() {
-        // 元々HTMLに単位がついていない項目だけを対象にする
-        // （二重表示を防ぐため、incomeSelfなどは除外しました）
         const targetIds = [
-            'r-marriage',   // 結婚
-            'r-house',      // 住宅
-            'r-others',     // その他
-            'r-retirement'  // 退職金
+            'r-marriage', 'r-house', 'r-others', 'r-retirement'
         ];
-
         targetIds.forEach(id => {
             const el = document.getElementById(id);
             if(el) {
-                // 既に適用済みなら何もしない
                 if(el.parentNode.className === 'unit-wrapper') return;
-
-                // ラッパーを作成
                 const wrapper = document.createElement('div');
                 wrapper.className = 'unit-wrapper';
-                
-                // 要素をラップする
                 el.parentNode.insertBefore(wrapper, el);
                 wrapper.appendChild(el);
-
-                // 単位を追加
                 const unitSpan = document.createElement('div');
                 unitSpan.className = 'unit-span';
                 unitSpan.innerText = '万円';
@@ -1002,7 +993,6 @@
             }
         });
     }
-    // ▲▲▲ 修正ここまで ▲▲▲
 
     function loadGameData() {
         try {
@@ -1204,12 +1194,15 @@
         document.getElementById('r-marriage').value = UNIT_COSTS.marriage;
         document.getElementById('r-house').value = UNIT_COSTS.house;
         document.getElementById('r-child-unit').value = UNIT_COSTS.childPerHead;
+        
+        // ★修正：子供の人数はゲームデータを参照するが、他の金額はベース値を優先
         let defaultChildCount = UNIT_COSTS.childCountDefault;
         if (gameState && typeof gameState.children !== 'undefined') {
             defaultChildCount = gameState.children;
         }
         document.getElementById('r-child-count').value = defaultChildCount;
         updateChildTotal();
+        
         document.getElementById('r-car-price').value = UNIT_COSTS.carPurchase;
         let autoCarCount = Math.ceil(remainingYears / 10);
         if (autoCarCount < 1) autoCarCount = 1; 
@@ -1242,7 +1235,6 @@
         const valChildBenefits = calculateTotalChildBenefits(childCount);
         const totalReal = Math.round(valMarriage + valChildrenCost + valHouse + valCar + valInsurance + valLiving + valInvestPrincipal + valOthers);
         
-        // ゲーム実績の集計（再計算を保証）
         calculateGameTotals();
         const totalGame = parseInt(document.getElementById('totalGameCost').dataset.val) || 0;
         
@@ -1395,7 +1387,7 @@
         });
     }
 
-    // 決定ボタン処理
+    // 決定ボタン処理（修正：年収・貯蓄の上書きロジックを削除）
     function loadGameDataFromFirebase() {
         const inputId = document.getElementById('import-diagnosis-id').value;
         if (!inputId) { alert("診断コードを入力（貼り付け）してください"); return; }
@@ -1422,11 +1414,13 @@
     function applyImportedData(data) {
         gameState = data;
         calculateGameTotals();
-        if(data.players) {
-            if(data.players.player1) document.getElementById('incomeSelf').value = data.players.player1.grossIncome || 0;
-            if(data.players.player2) document.getElementById('incomePartner').value = data.players.player2.grossIncome || 0;
-        }
-        if(data.totalAssets) { document.getElementById('currentSavings').value = Math.round(data.totalAssets); }
+        
+        // ★修正済み：以下の行を削除したため、年収・貯蓄は固定値が維持されます
+        /*
+        if(data.players) { ... }
+        if(data.totalAssets) { ... }
+        */
+
         updateRealDefaults(); 
         calculateHouseholdNetIncome();
         calculateDiagnosis();
