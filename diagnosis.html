@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v17.0_Final_Polish
+    // バージョン確認用ID: v18.0_ForceFix_Units_Labels
     // =========================================================
 
     // ▼▼▼ CSS調整（入力欄の単位表示スペース確保） ▼▼▼
@@ -975,22 +975,26 @@
         calculateHouseholdNetIncome(); 
         addUnitsToInputs(); 
         
-        updateResultLabels();
+        // 初期ロード時にもラベル修正を実行
+        setTimeout(updateResultLabels, 500); 
     });
 
-    // ★修正点：ラベルの書き換えロジックを修正
+    // ★修正：ラベルの余計な文字を強力に削除
     function updateResultLabels() {
         const resultArea = document.getElementById('resultArea');
         if (resultArea) {
-            // 「あなたが65歳までに必要な資金総額 (支出合計)」をカッコごと置換
-            // 特殊文字であるカッコ()をエスケープして指定します
-            resultArea.innerHTML = resultArea.innerHTML.replace(
-                /あなたが65歳までに必要な資金総額 \(支出合計\)/g, 
-                'あなたの65歳時点の資金総額'
-            );
+            let html = resultArea.innerHTML;
             
-            // 念のため、以前の修正で残ってしまったかもしれないゴミも削除
-            resultArea.innerHTML = resultArea.innerHTML.replace(/ \(資金総額\)/g, '');
+            // 1. まずメインの文言を置換
+            html = html.replace(/あなたが65歳までに必要な資金総額.*\(支出合計\)/g, 'あなたの65歳時点の資金総額');
+            html = html.replace(/あなたが65歳までに必要な資金総額/g, 'あなたの65歳時点の資金総額');
+            
+            // 2. 余計なカッコ書きを削除
+            html = html.replace(/\(資金総額\)/g, '');
+            html = html.replace(/\(支出合計\)/g, '');
+            html = html.replace(/\(資金\)/g, ''); // 念のため
+
+            resultArea.innerHTML = html;
         }
     }
 
@@ -1059,6 +1063,7 @@
             }
         }
 
+        // --- テーブル内は「万円」をつける ---
         const setVal = (id, val) => {
             const el = document.getElementById(id);
             if(el) el.innerText = Math.round(val).toLocaleString() + "万円";
@@ -1090,11 +1095,11 @@
         let expenseSum = summary.marriage + summary.children + summary.house + summary.car + 
                          summary.insurance + summary.living + summary.investment + summary.others;
         
-        // ★修正点：合計欄の単位重複を解消
+        // ★修正点：合計欄（totalGameCost）は「数字のみ」にする（HTMLに単位があるため）
         const totalCostEl = document.getElementById('totalGameCost');
         if(totalCostEl) {
             totalCostEl.dataset.val = expenseSum;
-            // HTML側に「万円」の文字があるため、ここでは数字だけを入れる
+            // 単位をつけずに数字だけセット
             totalCostEl.innerText = Math.round(expenseSum).toLocaleString();
         }
     }
@@ -1264,6 +1269,7 @@
         const incomeBalance = (currentSavings + lifetimeIncome + valRetirement + valChildBenefits) - totalReal + valInvestProfit;
         currentIncomeBalanceAt65 = incomeBalance;
 
+        // ★ラベルの修正をここでも実行
         updateResultLabels();
 
         const totalRealCostEl = document.getElementById('totalRealCost');
