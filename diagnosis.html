@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v16.0_Fix_Label_and_Unit
+    // バージョン確認用ID: v17.0_Final_Polish
     // =========================================================
 
     // ▼▼▼ CSS調整（入力欄の単位表示スペース確保） ▼▼▼
@@ -975,17 +975,22 @@
         calculateHouseholdNetIncome(); 
         addUnitsToInputs(); 
         
-        // ラベルの書き換え実行
         updateResultLabels();
     });
 
-    // ★修正：診断結果のラベル書き換え関数（より強力に置換）
+    // ★修正点：ラベルの書き換えロジックを修正
     function updateResultLabels() {
         const resultArea = document.getElementById('resultArea');
         if (resultArea) {
-            // 見出しのh2やpタグの中身を書き換える
-            resultArea.innerHTML = resultArea.innerHTML.replace(/あなたが65歳までに必要な資金総額/g, 'あなたの65歳時点の資金総額');
-            resultArea.innerHTML = resultArea.innerHTML.replace(/支出合計/g, '資金総額'); 
+            // 「あなたが65歳までに必要な資金総額 (支出合計)」をカッコごと置換
+            // 特殊文字であるカッコ()をエスケープして指定します
+            resultArea.innerHTML = resultArea.innerHTML.replace(
+                /あなたが65歳までに必要な資金総額 \(支出合計\)/g, 
+                'あなたの65歳時点の資金総額'
+            );
+            
+            // 念のため、以前の修正で残ってしまったかもしれないゴミも削除
+            resultArea.innerHTML = resultArea.innerHTML.replace(/ \(資金総額\)/g, '');
         }
     }
 
@@ -1054,25 +1059,18 @@
             }
         }
 
-        // ★修正点：ゲーム実績の「万円」を復活（重複しないように注意）
-        // HTML内に既に「万円」という文字がハードコーディングされている場合は二重になる恐れがありますが、
-        // プログラムでテキストを上書きする方式なら大丈夫です。
-        
         const setVal = (id, val) => {
             const el = document.getElementById(id);
-            // 数値 + "万円" をセット
             if(el) el.innerText = Math.round(val).toLocaleString() + "万円";
         };
 
         const setValWithMonthly = (id, totalVal) => {
             const el = document.getElementById(id);
             if(!el) return;
-            // 数値 + "万円" をセット
             const totalStr = Math.round(totalVal).toLocaleString() + "万円";
             const years = totalYears > 0 ? totalYears : 40;
             if (totalVal > 0) {
                 const monthly = totalVal / years / 12;
-                // 月平均も見やすく整形
                 el.innerHTML = `${totalStr}<span class="monthly-avg">(月平均 ${monthly.toFixed(1)}万円)</span>`;
             } else {
                 el.innerText = totalStr;
@@ -1092,11 +1090,12 @@
         let expenseSum = summary.marriage + summary.children + summary.house + summary.car + 
                          summary.insurance + summary.living + summary.investment + summary.others;
         
+        // ★修正点：合計欄の単位重複を解消
         const totalCostEl = document.getElementById('totalGameCost');
         if(totalCostEl) {
             totalCostEl.dataset.val = expenseSum;
-            // 合計欄にも「万円」をつける
-            totalCostEl.innerText = Math.round(expenseSum).toLocaleString() + "万円";
+            // HTML側に「万円」の文字があるため、ここでは数字だけを入れる
+            totalCostEl.innerText = Math.round(expenseSum).toLocaleString();
         }
     }
 
@@ -1265,7 +1264,6 @@
         const incomeBalance = (currentSavings + lifetimeIncome + valRetirement + valChildBenefits) - totalReal + valInvestProfit;
         currentIncomeBalanceAt65 = incomeBalance;
 
-        // ★ラベルの書き換え（診断実行時にも念のため）
         updateResultLabels();
 
         const totalRealCostEl = document.getElementById('totalRealCost');
