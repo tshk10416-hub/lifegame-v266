@@ -460,54 +460,117 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        @media (max-width: 600px) {
-            .container { padding: 10px; width: 100%; border-radius: 0; box-shadow: none; }
-            h1 { font-size: 1.5rem; }
-            .comparison-table th, .comparison-table td { padding: 10px 5px; font-size: 0.8rem; }
-            .game-val, .real-input, .mini-input { font-size: 1rem; }
-            .category-cell { font-size: 0.8rem; flex-direction: column; align-items: flex-start; gap: 2px; }
-            .income-inputs { gap: 10px; }
-            .income-group { width: 45%; }
-            .income-wrapper input { width: 100%; font-size: 1.1rem; }
-            .sim-input-grid { grid-template-columns: 1fr; }
+       /* ▼▼▼ 決定版：スマホ対応デザイン（カード型＋備考欄修正） ▼▼▼ */
+    @media (max-width: 768px) {
+        
+        /* 全体の余白調整 */
+        .container {
+            padding: 10px;
+            width: 95%;
         }
-        /* 1. 入力欄のデザイン（スマホでも見やすく） */
-    .real-input, .mini-input, input[type="number"] {
-        font-size: 16px !important; /* スマホで拡大されないサイズ */
-        padding: 12px !important;
-        border-radius: 8px !important;
-        border: 2px solid #bee3f8 !important;
-        background-color: #f7fafc !important;
-        touch-action: manipulation; /* スマホでの操作性向上 */
-    }
 
-    /* 2. 備考・根拠の文字サイズ（大きくする） */
-    .source-text {
-        font-size: 0.85rem !important; /* 文字を大きく */
-        line-height: 1.5 !important;
-        color: #4a5568 !important;
-    }
+        h1 { font-size: 1.4rem; }
 
-    /* 3. LINEボタンのデザイン修正（変な改行を防ぐ） */
-    #finalAdvice a {
-        display: inline-block !important;
-        width: auto !important;
-        max-width: 90% !important;
-        white-space: normal !important; /* 自然な改行 */
-        line-height: 1.4 !important;
-        font-size: 1rem !important;
-        padding: 15px 30px !important;
+        /* --- ここから：表をカード型に変身させる魔法 --- */
+        table, thead, tbody, th, td, tr {
+            display: block; /* ブロック要素にする（横並び解除） */
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* ヘッダー行（項目名など）は非表示にする */
+        thead tr {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+        }
+
+        /* 1つの項目（行）を1枚のカードにする */
+        tbody tr {
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            margin-bottom: 25px; /* カードごとの間隔 */
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            position: relative; /* 子要素の配置基準 */
+        }
+
+        /* セル（中身）のデザイン */
+        td {
+            border: none;
+            padding: 8px 0;
+            position: relative;
+            text-align: left;
+        }
+
+        /* ▼ 1列目：項目名（ゲーム実績など）のデザイン */
+        td:nth-of-type(1) {
+            background-color: #ebf8ff;
+            color: var(--primary);
+            font-weight: 900;
+            font-size: 1.1rem;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        /* ▼ 2列目・3列目：数値データのデザイン */
+        td:nth-of-type(2), 
+        td:nth-of-type(3) {
+            border-bottom: 1px solid #eee;
+            padding-left: 5px;
+            margin-bottom: 5px;
+        }
+        
+        /* 「現実の計画」入力欄を目立たせるラベルを追加 */
+        td:nth-of-type(3)::before {
+            content: "▼ あなたの現実プランを入力";
+            display: block;
+            font-size: 0.85em;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        /* ▼ 4列目：備考・根拠（一番下に配置して見やすく） */
+        td:nth-of-type(4) {
+            background-color: #f7fafc; /* 背景色で区別 */
+            color: #4a5568;
+            font-size: 0.9em; /* 少し小さくして読みやすく */
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px; /* 上に余白 */
+            border-top: 2px dashed #cbd5e0; /* 区切り線 */
+            line-height: 1.6; /* 行間を広げて読みやすく */
+        }
+        
+        /* 備考欄のタイトル的装飾 */
+        td:nth-of-type(4)::before {
+            content: "【算出根拠・備考】";
+            display: block;
+            font-weight: bold;
+            color: #718096;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        /* --- 入力欄やボタンの調整 --- */
+        input[type="number"], .real-input, .mini-input {
+            width: 100% !important; /* 横幅いっぱいに */
+            font-size: 16px !important; /* 文字大きく */
+            padding: 12px !important;
+            box-sizing: border-box;
+            border: 2px solid #bee3f8;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        /* 矢印アイコンなどは消す（レイアウトが変わるため） */
+        .fa-arrow-right { display: none; }
     }
-    
-    /* 4. 月平均表示用のスタイル */
-    .monthly-avg {
-        display: block;
-        font-size: 0.8em;
-        color: #2b6cb0;
-        font-weight: bold;
-        margin-top: 4px;
-        white-space: nowrap;
-    }
+   
     </style>
 </head>
 <body>
