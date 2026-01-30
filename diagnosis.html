@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v24.0_Safe_Text_Update
+    // バージョン確認用ID: v25.0_Fix_Line_Link
     // =========================================================
 
     // ▼▼▼ CSS調整 ▼▼▼
@@ -919,23 +919,37 @@
         calculateHouseholdNetIncome(); 
         addUnitsToInputs(); 
         
-        // 起動時にラベルを安全に書き換え
-        safeLabelUpdate();
+        let checkCount = 0;
+        const interval = setInterval(() => {
+            updateResultLabels();
+            checkCount++;
+            if(checkCount > 20) clearInterval(interval);
+        }, 100);
     });
 
-    // ★修正点：安全なラベル書き換え（innerHTMLを丸ごと変えない）
-    function safeLabelUpdate() {
-        // 1. 「支出合計」のラベル修正
-        const summaryDiv = document.querySelector('.result-summary');
-        if (summaryDiv) {
-            const pTags = summaryDiv.getElementsByTagName('p');
-            for (let p of pTags) {
-                if (p.innerHTML.includes('支出合計') || p.innerHTML.includes('資金総額')) {
-                    p.innerHTML = 'あなたの65歳時点の資金総額'; // 上書き
-                    break;
-                }
+    function updateResultLabels() {
+        const resultArea = document.getElementById('resultArea');
+        if (resultArea) {
+            let html = resultArea.innerHTML;
+            if (html.includes("生涯収支の予測")) {
+                html = html.replace(/生涯収支の予測/g, 'あなたの現在のアクションプラン');
             }
+            html = html.replace(/あなたが65歳までに必要な資金総額.*\(支出合計\)/g, 'あなたの65歳時点の資金総額');
+            html = html.replace(/あなたが65歳までに必要な資金総額/g, 'あなたの65歳時点の資金総額');
+            html = html.replace(/\(資金総額\)/g, '');
+            html = html.replace(/\(支出合計\)/g, '');
+            html = html.replace(/\(資金\)/g, '');
+            html = html.replace(/万円万円/g, '万円');
+
+            if (resultArea.innerHTML !== html) resultArea.innerHTML = html;
         }
+        
+        const headings = document.querySelectorAll('h2, h3, h4, div.title');
+        headings.forEach(el => {
+            if(el.innerText.includes("生涯収支の予測")) {
+                el.innerText = el.innerText.replace("生涯収支の予測", "あなたの現在のアクションプラン");
+            }
+        });
     }
 
     function addUnitsToInputs() {
@@ -993,7 +1007,6 @@
             }
         }
 
-        // 個別項目には「万円」をつける
         const setVal = (id, val) => {
             const el = document.getElementById(id);
             if(el) el.innerText = Math.round(val).toLocaleString() + "万円";
@@ -1023,7 +1036,6 @@
 
         let expenseSum = summary.marriage + summary.children + summary.house + summary.car + summary.insurance + summary.living + summary.investment + summary.others;
         
-        // ★合計欄（totalGameCost）はHTMLに「万円」があるので数字のみ
         const totalCostEl = document.getElementById('totalGameCost');
         if(totalCostEl) {
             totalCostEl.dataset.val = expenseSum;
@@ -1145,7 +1157,6 @@
     }
 
     function calculateDiagnosis() {
-        // 入力値の取得
         const vMarr = parseInt(document.getElementById('r-marriage').value) || 0;
         const vChild = parseFloat(document.getElementById('child-total-preview').dataset.total) || 0;
         const vHouse = parseInt(document.getElementById('r-house').value) || 0;
@@ -1162,7 +1173,6 @@
         
         const totalReal = Math.round(vMarr + vChild + vHouse + vCar + vIns + vLive + vInvP + vOth);
         
-        // ゲーム実績再計算
         calculateGameTotals();
         
         const yrs = parseInt(document.getElementById('remainingYears').innerText) || 0;
@@ -1170,10 +1180,8 @@
         const balance = (vSave + lifeInc + vRet + vBen) - totalReal + vInvG;
         currentIncomeBalanceAt65 = balance;
 
-        // ラベルを安全に修正
-        safeLabelUpdate();
+        updateResultLabels();
 
-        // 結果表示 (合計欄)
         const totalRealEl = document.getElementById('totalRealCost');
         if(totalRealEl) {
             totalRealEl.style.color = balance >= 0 ? "#48bb78" : "#e53e3e";
@@ -1182,8 +1190,6 @@
 
         document.getElementById('lifetimeIncome').innerText = lifeInc.toLocaleString();
         
-        // ▼▼▼ 修正箇所：「生涯収支」を「アクションプラン」で完全上書き ▼▼▼
-        // class="net-income-projection" の要素の中身を全て入れ替える
         const incomeProjEl = document.querySelector('.net-income-projection');
         if (incomeProjEl) {
             let mAction = 0;
@@ -1192,12 +1198,10 @@
             let icon = '', title = 'あなたの現在のアクションプラン', msg = '', styleCol = '', bgCol = '', borCol = '';
 
             if (balance >= 0) {
-                // 黒字
                 icon = '<i class="fas fa-check-circle" style="color:#48bb78;"></i>';
                 styleCol = '#276749'; bgCol = '#f0fff4'; borCol = '#48bb78';
                 msg = `素晴らしい計画です！今のペースなら、<span style="font-size:1.3em; font-weight:bold; color:#2f855a;">毎月 ${mAction}万円</span> の余剰資金が生まれます。<br>この資金を銀行に眠らせておくのはもったいないです。新NISAなどを活用して、お金にも働いてもらう<strong>「資産運用」</strong>を始めると、老後資金がさらに盤石になります。`;
             } else {
-                // 赤字
                 icon = '<i class="fas fa-exclamation-triangle" style="color:#e53e3e;"></i>';
                 styleCol = '#742a2a'; bgCol = '#fff5f5'; borCol = '#e53e3e';
                 msg = `この赤字をなくすには、<span style="font-size:1.3em; font-weight:bold; color:#c53030;">今から毎月 ${mAction}万円</span> の準備が必要です。<br>家計の見直しはもちろんですが、少額からでも<strong>「積立投資」</strong>を始めることで、時間を味方につけて効率よく資産を作ることができます。`;
@@ -1206,7 +1210,6 @@
             incomeProjEl.style.backgroundColor = bgCol;
             incomeProjEl.style.borderColor = borCol;
             incomeProjEl.style.color = styleCol;
-            // 中身を完全に書き換えるため「生涯収支の予測」という文字は消滅します
             incomeProjEl.innerHTML = `
                 <div style="font-size:1.1em; font-weight:bold; margin-bottom:10px; border-bottom:1px dashed ${borCol}; padding-bottom:5px;">
                     ${icon} ${title}
@@ -1214,20 +1217,13 @@
                 <div style="line-height:1.6;">${msg}</div>
             `;
         }
-        // ▲▲▲ 修正ここまで ▲▲▲
 
-        // 不要なエリアをクリア
         const balanceDiv = document.getElementById('incomeBalanceCheck');
         if(balanceDiv) balanceDiv.innerHTML = ""; 
 
-        // エリアを表示
-        const resArea = document.getElementById('resultArea');
-        if(resArea) {
-            resArea.style.display = 'block';
-            resArea.scrollIntoView({behavior: 'smooth'});
-        }
+        document.getElementById('resultArea').style.display = 'block';
+        document.getElementById('resultArea').scrollIntoView({behavior: 'smooth'});
 
-        // アドバイスとグラフ
         const sim = calculateRetirementSim();
         generateAdvice(0, 0, 0, vInvG, sim);
         
@@ -1287,13 +1283,16 @@
         else if (s.final >= 0) html += `<div style="background:#ebf8ff; border-left:4px solid #2b6cb0; padding:10px;"><strong style="color:#2c5282;">【Aランク】 概ね順調な計画です。</strong><p>今の生活水準であれば、平均的な寿命まで資金ショートすることなく暮らせるでしょう。</p></div>`;
         else html += `<div style="background:#fff5f5; border-left:4px solid #e53e3e; padding:10px;"><strong style="color:#c53030;">【要対策】 見直しを推奨します。</strong><p>老後資金が不足するリスクがあります。iDeCoやNISAでの準備を急ぎましょう。</p></div>`;
         
+        // ▼▼▼ 修正点：target="_blank" を追加して別タブで開くように変更 ▼▼▼
         html += `
             <div style="text-align:center; margin-top:25px; margin-bottom:10px;">
                 <p style="font-size:0.9em; font-weight:bold; color:#2b6cb0; margin-bottom:10px;">▼ あなただけの改善プランを作成 ▼</p>
-                <a href="https://line.me/R/ti/p/@480gjare" style="display: inline-block; background: #06c755; color: white; padding: 15px 20px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1.1em; box-shadow: 0 4px 10px rgba(6, 199, 85, 0.4);">
+                <a href="https://line.me/R/ti/p/@480gjare" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #06c755; color: white; padding: 15px 20px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1.1em; box-shadow: 0 4px 10px rgba(6, 199, 85, 0.4);">
                     <i class="fab fa-line"></i> 詳細な解決策をLINEで相談する
                 </a>
             </div>`;
+        // ▲▲▲ 修正ここまで ▲▲▲
+        
         div.innerHTML = html;
     }
 
