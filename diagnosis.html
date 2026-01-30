@@ -912,11 +912,58 @@
     let currentHouseholdNet = 0; 
     let currentIncomeBalanceAt65 = 0; 
 
+   // ▼▼▼ 修正：起動時の処理（入力欄への単位追加を含む） ▼▼▼
     document.addEventListener('DOMContentLoaded', () => {
         loadGameData();
         updateRealDefaults(); 
         calculateHouseholdNetIncome(); 
+        
+        // ★追加：入力欄に「万円」を表示する処理
+        addUnitsToInputs();
     });
+
+    // ★追加：入力欄を整形して単位をつける関数
+    function addUnitsToInputs() {
+        // 単位「万円」をつけたい入力欄のIDリスト
+        const targetIds = [
+            'incomeSelf', 'incomePartner',
+            'r-marriage', 'r-child-unit', 'r-house', 
+            'r-car-price', 
+            'r-insurance-monthly', 'r-living-monthly', 'r-invest-monthly',
+            'r-others', 'r-retirement', 'currentSavings'
+        ];
+
+        targetIds.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) {
+                // すでに適用済みならスキップ
+                if(el.parentNode.className === 'unit-wrapper') return;
+
+                // 入力欄をdivで囲んで、横に「万円」を置く
+                const wrapper = document.createElement('div');
+                wrapper.className = 'unit-wrapper';
+                wrapper.style.display = 'flex';
+                wrapper.style.alignItems = 'center';
+                wrapper.style.gap = '5px';
+                wrapper.style.width = '100%';
+
+                el.parentNode.insertBefore(wrapper, el);
+                wrapper.appendChild(el);
+
+                const unitSpan = document.createElement('span');
+                unitSpan.innerText = '万円';
+                unitSpan.style.fontWeight = 'bold';
+                unitSpan.style.color = '#718096';
+                unitSpan.style.fontSize = '0.9em';
+                unitSpan.style.whiteSpace = 'nowrap';
+                wrapper.appendChild(unitSpan);
+
+                // 入力欄のデザイン調整（幅を自動調整）
+                el.style.flex = '1';
+                el.style.width = 'auto'; 
+            }
+        });
+    }
 
     function loadGameData() {
         try {
@@ -930,7 +977,7 @@
         }
     }
 
-    // ▼月平均表示に対応した集計関数
+    // ▼▼▼ 修正：単位「万円」を追加した集計関数 ▼▼▼
     function calculateGameTotals() {
         if (!gameState || !gameState.balanceHistory) return;
 
@@ -958,7 +1005,6 @@
             summary.others += (d.life_event || 0) + (d.social_event || 0);
         });
 
-        // 退職金の集計
         if (gameState.retirementBonus) {
             if (typeof gameState.retirementBonus === 'object') {
                 const p1 = Number(gameState.retirementBonus.player1) || 0;
@@ -969,29 +1015,27 @@
             }
         }
 
-        // 表示関数
+        // 表示関数（修正：単位を追加）
         const setVal = (id, val) => {
             const el = document.getElementById(id);
-            if(el) el.innerText = Math.round(val).toLocaleString();
+            if(el) el.innerText = Math.round(val).toLocaleString() + "万円";
         };
 
         const setValWithMonthly = (id, totalVal) => {
             const el = document.getElementById(id);
             if(!el) return;
             
-            const totalStr = Math.round(totalVal).toLocaleString();
-            // 期間が0なら40年と仮定
+            const totalStr = Math.round(totalVal).toLocaleString() + "万円";
             const years = totalYears > 0 ? totalYears : 40;
 
             if (totalVal > 0) {
-                // 月平均 = 総額 ÷ 年数 ÷ 12
                 const monthly = totalVal / years / 12;
                 const monthlyStr = monthly.toFixed(1); 
                 
                 el.innerHTML = `
                     ${totalStr}
                     <span class="monthly-avg">
-                        (月平均 ${monthlyStr}万)
+                        (月平均 ${monthlyStr}万円)
                     </span>
                 `;
             } else {
@@ -1017,7 +1061,7 @@
         const totalCostEl = document.getElementById('totalGameCost');
         if(totalCostEl) {
             totalCostEl.dataset.val = expenseSum;
-            totalCostEl.innerText = Math.round(expenseSum).toLocaleString();
+            totalCostEl.innerText = Math.round(expenseSum).toLocaleString() + "万円";
         }
     }
 
