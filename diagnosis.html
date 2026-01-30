@@ -870,10 +870,13 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
+    // =========================================================
+    // バージョン確認用ID: v14.0_Fix_AutoScroll
+    // =========================================================
+
     // ▼▼▼ CSS調整（入力欄の単位表示スペース確保） ▼▼▼
     const styleFix = document.createElement('style');
     styleFix.innerHTML = `
-        /* 単位付き入力欄のレイアウト修正 */
         .unit-wrapper {
             display: flex !important;
             align-items: center !important;
@@ -956,7 +959,7 @@
     let currentIncomeBalanceAt65 = 0; 
 
     document.addEventListener('DOMContentLoaded', () => {
-        // ★修正：ご要望のベース金額を初期値としてセット
+        // ベース金額の初期セット
         const setDefaults = () => {
             const iSelf = document.getElementById('incomeSelf');
             const iPartner = document.getElementById('incomePartner');
@@ -1000,6 +1003,7 @@
             if (savedState) {
                 gameState = JSON.parse(savedState);
                 calculateGameTotals();
+                // ※ここでは診断(calculateDiagnosis)は呼びません
             }
         } catch (e) { console.error(e); }
     }
@@ -1195,7 +1199,6 @@
         document.getElementById('r-house').value = UNIT_COSTS.house;
         document.getElementById('r-child-unit').value = UNIT_COSTS.childPerHead;
         
-        // ★修正：子供の人数はゲームデータを参照するが、他の金額はベース値を優先
         let defaultChildCount = UNIT_COSTS.childCountDefault;
         if (gameState && typeof gameState.children !== 'undefined') {
             defaultChildCount = gameState.children;
@@ -1220,6 +1223,7 @@
     }
 
     function calculateDiagnosis() {
+        // ★診断ボタンを押されたときだけ動く処理
         const valMarriage = parseInt(document.getElementById('r-marriage').value) || 0;
         const valChildrenCost = parseFloat(document.getElementById('child-total-preview').dataset.total) || 0;
         const valHouse = parseInt(document.getElementById('r-house').value) || 0;
@@ -1387,7 +1391,7 @@
         });
     }
 
-    // 決定ボタン処理（修正：年収・貯蓄の上書きロジックを削除）
+    // 決定ボタン処理（修正：勝手なスクロールを防止）
     function loadGameDataFromFirebase() {
         const inputId = document.getElementById('import-diagnosis-id').value;
         if (!inputId) { alert("診断コードを入力（貼り付け）してください"); return; }
@@ -1414,19 +1418,18 @@
     function applyImportedData(data) {
         gameState = data;
         
-        // ゲーム実績の集計と表示（ここだけ実行）
+        // 1. ゲーム実績の集計だけを行う
         calculateGameTotals();
 
-        // ※年収・貯蓄の上書きは廃止済みのためスキップ
-
-        // 入力欄の初期計算（デフォルト値の計算など）
+        // 2. 年収・貯蓄の上書きは行わない（ベース値維持）
+        
+        // 3. 入力欄の初期計算（デフォルト値の再計算）
         updateRealDefaults(); 
         calculateHouseholdNetIncome();
 
-        // ★修正点：勝手に診断を実行しないように削除
-        // calculateDiagnosis(); 
+        // ★修正点：ここで「calculateDiagnosis()」を呼ばないことで、勝手な診断とスクロールを防ぎます。
         
-        alert("ゲームデータを反映しました！\n\n続けて「あなたの現実プラン」を入力し、\n最後に一番下の診断ボタンを押してください。");
+        alert("【確認用】反映完了\nゲームデータを読み込みました！\n\n続けて「あなたの現実プラン」を入力し、\n最後に一番下の診断ボタンを押してください。");
     }
 </script>
 </body>
