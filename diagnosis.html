@@ -871,10 +871,10 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v22.0_Force_Refresh_Investment
+    // バージョン確認用ID: v23.0_Total_Text_Replacement
     // =========================================================
 
-    // ▼▼▼ CSS調整（入力欄の単位表示スペース確保） ▼▼▼
+    // ▼▼▼ CSS調整 ▼▼▼
     const styleFix = document.createElement('style');
     styleFix.innerHTML = `
         .unit-wrapper { display: flex !important; align-items: center !important; width: 100% !important; box-sizing: border-box !important; }
@@ -919,32 +919,46 @@
         calculateHouseholdNetIncome(); 
         addUnitsToInputs(); 
         
-        // 強力なラベル修正ループ（100msごとに10回実行）
+        // ★修正点：100msごとにテキスト監視を行い、「生涯収支の予測」を抹消する
         let checkCount = 0;
         const interval = setInterval(() => {
             updateResultLabels();
             checkCount++;
-            if(checkCount > 10) clearInterval(interval);
+            if(checkCount > 20) clearInterval(interval); // 2秒間監視
         }, 100);
     });
 
-    // ★修正：ラベル・単位の強力なクリーニング関数
+    // ★修正点：強力なテキスト置換関数
     function updateResultLabels() {
         const resultArea = document.getElementById('resultArea');
         if (resultArea) {
             let html = resultArea.innerHTML;
-            // ラベルの修正
+            
+            // 1. 「生涯収支の予測」を「あなたの現在のアクションプラン」に置換
+            if (html.includes("生涯収支の予測")) {
+                html = html.replace(/生涯収支の予測/g, 'あなたの現在のアクションプラン');
+            }
+            
+            // 2. その他のラベル修正（前回の分）
             html = html.replace(/あなたが65歳までに必要な資金総額.*\(支出合計\)/g, 'あなたの65歳時点の資金総額');
             html = html.replace(/あなたが65歳までに必要な資金総額/g, 'あなたの65歳時点の資金総額');
-            // 不要な文字の削除
             html = html.replace(/\(資金総額\)/g, '');
             html = html.replace(/\(支出合計\)/g, '');
             html = html.replace(/\(資金\)/g, '');
-            // 「万円万円」の撲滅（もし発生していたら消す）
-            html = html.replace(/万円万円/g, '万円');
             
+            // 3. 単位重複防止
+            html = html.replace(/万円万円/g, '万円');
+
             if (resultArea.innerHTML !== html) resultArea.innerHTML = html;
         }
+        
+        // 念のため、見出しタグ(h2, h3など)を直接検索して書き換える
+        const headings = document.querySelectorAll('h2, h3, h4, div.title');
+        headings.forEach(el => {
+            if(el.innerText.includes("生涯収支の予測")) {
+                el.innerText = el.innerText.replace("生涯収支の予測", "あなたの現在のアクションプラン");
+            }
+        });
     }
 
     function addUnitsToInputs() {
@@ -1031,7 +1045,7 @@
 
         let expenseSum = summary.marriage + summary.children + summary.house + summary.car + summary.insurance + summary.living + summary.investment + summary.others;
         
-        // ★修正：合計欄は数字のみ（HTML側の「万円」と重複しないように）
+        // 合計欄は数字のみ
         const totalCostEl = document.getElementById('totalGameCost');
         if(totalCostEl) {
             totalCostEl.dataset.val = expenseSum;
@@ -1119,7 +1133,7 @@
         if (c <= 0) return 0;
         let t = c * UNIT_COSTS.birthAllowance;
         t += Math.min(c, 2) * UNIT_COSTS.childAllowance1st2nd;
-        if (c >= 3) t += (c - 2) * UNIT_COSTS.childAllowance3rd;
+        if (c >= 3) t += (c - 2) * UNIT_COSTS.childAllowance1st2nd;
         return Math.round(t);
     }
 
@@ -1192,7 +1206,7 @@
             let mAction = 0;
             if (yrs > 0) mAction = Math.round(Math.abs(balance) / yrs / 12 * 10) / 10;
             
-            let icon = '', title = '現在のアクションプラン', msg = '', styleCol = '', bgCol = '', borCol = '';
+            let icon = '', title = 'あなたの現在のアクションプラン', msg = '', styleCol = '', bgCol = '', borCol = '';
 
             if (balance >= 0) {
                 // 黒字の場合
@@ -1202,7 +1216,7 @@
             } else {
                 // 赤字の場合
                 icon = '<i class="fas fa-exclamation-triangle" style="color:#e53e3e;"></i>';
-                styleCol = '#742a2a'; bgCol = '#fff5f5'; borCol = '#e53e3e';
+                styleColor = '#742a2a'; bgCol = '#fff5f5'; borCol = '#e53e3e';
                 msg = `この赤字をなくすには、<span style="font-size:1.3em; font-weight:bold; color:#c53030;">今から毎月 ${mAction}万円</span> の準備が必要です。<br>家計の見直しはもちろんですが、少額からでも<strong>「積立投資」</strong>を始めることで、時間を味方につけて効率よく資産を作ることができます。`;
             }
 
@@ -1223,7 +1237,7 @@
         document.getElementById('resultArea').scrollIntoView({behavior: 'smooth'});
 
         const sim = calculateRetirementSim();
-        generateAdvice(0, 0, 0, vInvG, sim); // 引数簡略化
+        generateAdvice(0, 0, 0, vInvG, sim);
         
         // グラフ描画
         const ctx = document.getElementById('comparisonChart').getContext('2d');
@@ -1304,7 +1318,7 @@
                 const data = snapshot.val();
                 if (data) {
                     applyImportedData(data);
-                    if(statusMsg) { statusMsg.innerText = "【最新版 v22.0】読み込み成功！"; statusMsg.style.color = "#48bb78"; }
+                    if(statusMsg) { statusMsg.innerText = "読み込み成功！"; statusMsg.style.color = "#48bb78"; }
                 } else {
                     alert("データが見つかりません");
                     if(statusMsg) { statusMsg.innerText = "データなし"; statusMsg.style.color = "#e53e3e"; }
@@ -1318,7 +1332,7 @@
         updateRealDefaults(); 
         calculateHouseholdNetIncome();
         // 診断の自動実行はなし
-        alert("【確認用：最新版 v22.0】\nゲームデータを反映しました！\n\n続けて「あなたの現実プラン」を入力し、\n最後に一番下の診断ボタンを押してください。");
+        alert("【確認用：最新版 v23.0】\nゲームデータを反映しました！\n\n続けて「あなたの現実プラン」を入力し、\n最後に一番下の診断ボタンを押してください。");
     }
 </script>
 </body>
