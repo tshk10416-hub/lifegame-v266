@@ -803,6 +803,9 @@
     </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 <script>
     const UNIT_COSTS = {
         marriage: 350,
@@ -821,6 +824,26 @@
         childAllowance1st2nd: 234, 
         childAllowance3rd: 648
     };
+
+    // Firebase設定
+    const firebaseConfig = {
+        apiKey: "AIzaSyC2M3jt4skKm_eqxZjl9H7UhESboidXN0M",
+        authDomain: "lifemarrige-293b1.firebaseapp.com",
+        databaseURL: "https://lifemarrige-293b1-default-rtdb.firebaseio.com",
+        projectId: "lifemarrige-293b1",
+        storageBucket: "lifemarrige-293b1.firebasestorage.app",
+        messagingSenderId: "12201049552",
+        appId: "1:12201049552:web:4b369bb67baaf47b2b8dd5"
+    };
+
+    // ★重要：画面が開いたら即座に初期化する
+    try {
+        if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+    } catch(e) {
+        console.error("Firebase Init Error:", e);
+    }
 
     let gameState = null;
     let currentHouseholdNet = 0; 
@@ -844,7 +867,8 @@
         }
     }
 
-   function calculateGameTotals() {
+    // ▼月平均表示に対応した集計関数
+    function calculateGameTotals() {
         if (!gameState || !gameState.balanceHistory) return;
 
         let summary = {
@@ -853,11 +877,11 @@
             retirement: 0 
         };
         
-        let totalYears = 0; // ゲームの総期間
+        let totalYears = 0;
 
         // 履歴から集計
         gameState.balanceHistory.forEach(h => {
-            const years = Number(h.years) || 10; // データがない場合は10年と仮定
+            const years = Number(h.years) || 10;
             totalYears += years; 
             
             const d = h.details;
@@ -882,23 +906,20 @@
             }
         }
 
-        // --- 表示への反映関数 ---
+        // 表示関数
         const setVal = (id, val) => {
             const el = document.getElementById(id);
             if(el) el.innerText = Math.round(val).toLocaleString();
         };
 
-        // ★月額表示用関数（改良版）
         const setValWithMonthly = (id, totalVal) => {
             const el = document.getElementById(id);
             if(!el) return;
             
             const totalStr = Math.round(totalVal).toLocaleString();
-            
-            // 期間が0なら40年と仮定して計算（エラー防止）
+            // 期間が0なら40年と仮定
             const years = totalYears > 0 ? totalYears : 40;
 
-            // 金額が0以上なら月平均を計算して表示
             if (totalVal > 0) {
                 // 月平均 = 総額 ÷ 年数 ÷ 12
                 const monthly = totalVal / years / 12;
@@ -915,13 +936,11 @@
             }
         };
 
-        // 各項目を表示
         setVal('g-marriage', summary.marriage);
         setVal('g-children', summary.children);
         setVal('g-house', summary.house);
         setVal('g-car', summary.car);
         
-        // ★月平均も表示（保険、生活費、投資）
         setValWithMonthly('g-insurance', summary.insurance);
         setValWithMonthly('g-living', summary.living);
         setValWithMonthly('g-investment', summary.investment);
@@ -929,7 +948,6 @@
         setVal('g-others', summary.others);
         setVal('g-retirement', summary.retirement);
 
-        // ゲーム総支出の合計
         let expenseSum = summary.marriage + summary.children + summary.house + summary.car + 
                          summary.insurance + summary.living + summary.investment + summary.others;
         
@@ -939,23 +957,6 @@
             totalCostEl.innerText = Math.round(expenseSum).toLocaleString();
         }
     }
-
-        document.getElementById('g-marriage').innerText = Math.round(summary.marriage).toLocaleString();
-        document.getElementById('g-children').innerText = Math.round(summary.children).toLocaleString();
-        document.getElementById('g-house').innerText = Math.round(summary.house).toLocaleString();
-        document.getElementById('g-car').innerText = Math.round(summary.car).toLocaleString();
-        document.getElementById('g-insurance').innerText = Math.round(summary.insurance).toLocaleString();
-        document.getElementById('g-living').innerText = Math.round(summary.living).toLocaleString();
-        document.getElementById('g-investment').innerText = Math.round(summary.investment).toLocaleString();
-        document.getElementById('g-others').innerText = Math.round(summary.others).toLocaleString();
-        document.getElementById('g-retirement').innerText = Math.round(summary.retirement).toLocaleString();
-
-        let expenseSum = summary.marriage + summary.children + summary.house + summary.car + 
-                         summary.insurance + summary.living + summary.investment + summary.others;
-        
-        document.getElementById('totalGameCost').dataset.val = expenseSum;
-        document.getElementById('totalGameCost').innerText = Math.round(expenseSum).toLocaleString();
-    
 
     function calculateNetFromGross(gross) {
         if (gross <= 0) return 0;
@@ -1201,14 +1202,12 @@
         return { finalAsset, lifeAge, bankruptAge };
     }
 
-   // ▼▼▼ 修正：アドバイス生成＆LINEボタン改良 ▼▼▼
     function generateAdvice(real, game, incomeBalance, investProfit, simResult) {
         const div = document.getElementById('finalAdvice');
         let html = `<h3><i class="fas fa-user-tie"></i> プロの総合診断コメント</h3>`;
         
         const { finalAsset, lifeAge, bankruptAge } = simResult;
         
-        // ランク判定ロジック
         if (finalAsset >= 2000) {
             html += `<div style="background:#f0fff4; border-left:4px solid #48bb78; padding:10px;"><strong style="font-size:1.2em; color:#2f855a;">【判定: Sランク】 素晴らしい資産設計です！</strong><p style="margin:5px 0;">現役時代の収支バランスが非常に良く、老後もゆとりある生活を維持しながら${lifeAge}歳まで十分に資産が持つ見込みです。</p></div>`;
         } else if (finalAsset >= 0) {
@@ -1219,7 +1218,6 @@
             html += `<div style="background:#fff5f5; border-left:4px solid #e53e3e; padding:10px;"><strong style="font-size:1.2em; color:#c53030;">【判定: Cランク】 早急な見直しを推奨します。</strong><p style="margin:5px 0;">現在の収支バランスのままだと、老後早い段階で資金が底をつくリスクが高いです。</p></div>`;
         }
 
-        // アドバイスリスト
         html += `<div style="margin-top:15px; font-size:0.9em; color:#555;"><ul>`;
         if(investProfit > 300) {
             html += `<li><i class="fas fa-check" style="color:#48bb78;"></i> <strong>投資効果:</strong> 複利運用が効いています。</li>`;
@@ -1228,8 +1226,6 @@
         }
         html += `<li><i class="fas fa-child" style="color:#48bb78;"></i> <strong>子育て支援:</strong> 児童手当を教育費として積み立てましょう。</li></ul></div>`;
 
-        // ★修正点：LINEボタン（スタイルをclassではなくインラインで強力に指定）
-        // 見やすく改行し、ボタン幅を調整
         html += `
             <div style="text-align:center; margin-top:25px; margin-bottom:10px;">
                 <p style="font-size:0.9em; font-weight:bold; color:#2b6cb0; margin-bottom:10px;">
@@ -1237,7 +1233,7 @@
                 </p>
                 <a href="#" style="
                     display: inline-block;
-                    background: #06c755; /* LINEカラー */
+                    background: #06c755; 
                     color: white; 
                     padding: 15px 20px; 
                     border-radius: 50px; 
@@ -1297,44 +1293,46 @@
         });
     }
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyC2M3jt4skKm_eqxZjl9H7UhESboidXN0M",
-        authDomain: "lifemarrige-293b1.firebaseapp.com",
-        databaseURL: "https://lifemarrige-293b1-default-rtdb.firebaseio.com",
-        projectId: "lifemarrige-293b1",
-        storageBucket: "lifemarrige-293b1.firebasestorage.app",
-        messagingSenderId: "12201049552",
-        appId: "1:12201049552:web:4b369bb67baaf47b2b8dd5"
-    };
+    // ★重要：決定ボタン処理
+    function loadGameDataFromFirebase() {
+        const inputId = document.getElementById('import-diagnosis-id').value;
+        if (!inputId) {
+            alert("診断コードを入力（貼り付け）してください");
+            return;
+        }
 
-    function loadFirebaseSDK(callback) {
-        if (typeof firebase !== 'undefined') { callback(); return; }
-        const script1 = document.createElement('script');
-        script1.src = "https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js";
-        script1.onload = () => {
-            const script2 = document.createElement('script');
-            script2.src = "https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js";
-            script2.onload = callback;
-            document.body.appendChild(script2);
-        };
-        document.body.appendChild(script1);
-    }
+        const statusMsg = document.getElementById('import-status');
+        if(statusMsg) statusMsg.innerText = "読み込み中...";
 
-    loadFirebaseSDK(() => {
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        if (typeof firebase === 'undefined') {
+            alert("通信の準備中です。数秒待ってから再度押してください。");
+            return;
+        }
+        
         const database = firebase.database();
-        const urlParams = new URLSearchParams(window.location.search);
-        const uid = urlParams.get('uid');
-        if (uid) {
-            console.log("Loading data for UID:", uid);
-            database.ref('diagnosis/' + uid).once('value').then((snapshot) => {
+
+        database.ref('diagnosis/' + inputId).once('value')
+            .then((snapshot) => {
                 const data = snapshot.val();
                 if (data) {
                     applyImportedData(data);
+                    if(statusMsg) {
+                        statusMsg.innerText = "読み込み成功！";
+                        statusMsg.style.color = "#48bb78";
+                    }
+                } else {
+                    alert("データが見つかりません。\nコードが正しいか確認してください。");
+                    if(statusMsg) {
+                        statusMsg.innerText = "データなし";
+                        statusMsg.style.color = "#e53e3e";
+                    }
                 }
+            })
+            .catch((error) => {
+                console.error(error);
+                alert("通信エラーが発生しました。");
             });
-        }
-    });
+    }
 
     function applyImportedData(data) {
         gameState = data;
@@ -1351,61 +1349,6 @@
         calculateDiagnosis();
         alert("ゲームデータを読み込みました！\n診断結果が表示されます。");
     }
-
- // 決定ボタンを押したときの処理
-    function loadGameDataFromFirebase() {
-        const inputId = document.getElementById('import-diagnosis-id').value;
-        
-        // 入力チェック
-        if (!inputId) {
-            alert("診断コードを入力（貼り付け）してください");
-            return;
-        }
-
-        const statusMsg = document.getElementById('import-status');
-        if(statusMsg) statusMsg.innerText = "読み込み中...";
-
-        // Firebaseの準備確認
-        if (typeof firebase === 'undefined') {
-            alert("通信の準備中です。少し待ってからもう一度押してください。");
-            return;
-        }
-        
-        // 初期化されていなければ初期化
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
-        const database = firebase.database();
-
-        // データの取得実行
-        database.ref('diagnosis/' + inputId).once('value')
-            .then((snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    // データがあった場合：画面に反映
-                    applyImportedData(data);
-                    
-                    if(statusMsg) {
-                        statusMsg.innerText = "読み込み成功！";
-                        statusMsg.style.color = "#48bb78";
-                    }
-                } else {
-                    // データがなかった場合
-                    alert("データが見つかりません。\nコードが正しいか確認してください。");
-                    if(statusMsg) {
-                        statusMsg.innerText = "データなし";
-                        statusMsg.style.color = "#e53e3e";
-                    }
-                }
-            })
-            .catch((error) => {
-                console.error(error);
-                alert("通信エラーが発生しました。\n電波の良い場所で再度お試しください。");
-            });
-    }
-    // ▲▲▲ ここまで ▲▲▲
-
 </script>
 </body>
 </html>
