@@ -869,7 +869,60 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 <script>
+    // ▼▼▼ 修正：CSS調整（入力欄の単位表示スペースを確保） ▼▼▼
+    const styleFix = document.createElement('style');
+    styleFix.innerHTML = `
+        /* 単位付き入力欄のレイアウト修正 */
+        .unit-wrapper {
+            display: flex !important;
+            align-items: center !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        /* 単位ラッパー内の入力欄は幅を自動調整（100%強制を解除） */
+        .unit-wrapper input, 
+        .unit-wrapper .real-input, 
+        .unit-wrapper .mini-input {
+            width: 0 !important; /* flex-growで伸ばすため一旦0に */
+            flex-grow: 1 !important;
+            min-width: 0 !important;
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+            margin-right: -2px !important; /* 枠線を繋げる調整 */
+        }
+        /* 単位ラベルのデザイン */
+        .unit-span {
+            background-color: #edf2f7;
+            border: 2px solid #bee3f8;
+            border-left: none;
+            color: #4a5568;
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding: 0 10px;
+            height: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+            white-space: nowrap;
+            align-self: stretch; /* 入力欄と高さを合わせる */
+        }
+        /* スマホ表示時の調整 */
+        @media (max-width: 768px) {
+            .unit-wrapper input {
+                font-size: 16px !important;
+                padding: 10px !important;
+            }
+        }
+    `;
+    document.head.appendChild(styleFix);
+    // ▲▲▲ CSS修正ここまで ▲▲▲
+
     const UNIT_COSTS = {
         marriage: 350,
         childPerHead: 1500,
@@ -899,71 +952,57 @@
         appId: "1:12201049552:web:4b369bb67baaf47b2b8dd5"
     };
 
-    // ★重要：画面が開いたら即座に初期化する
     try {
         if (typeof firebase !== 'undefined' && !firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
-    } catch(e) {
-        console.error("Firebase Init Error:", e);
-    }
+    } catch(e) { console.error(e); }
 
     let gameState = null;
     let currentHouseholdNet = 0; 
     let currentIncomeBalanceAt65 = 0; 
 
-   // ▼▼▼ 修正：起動時の処理（入力欄への単位追加を含む） ▼▼▼
     document.addEventListener('DOMContentLoaded', () => {
         loadGameData();
         updateRealDefaults(); 
         calculateHouseholdNetIncome(); 
-        
-        // ★追加：入力欄に「万円」を表示する処理
-        addUnitsToInputs();
+        addUnitsToInputs(); // 単位追加実行
     });
 
-    // ★追加：入力欄を整形して単位をつける関数
+    // ▼▼▼ 修正：入力欄に「万円」をつける関数（対象を厳選） ▼▼▼
     function addUnitsToInputs() {
-        // 単位「万円」をつけたい入力欄のIDリスト
+        // 元々HTMLに単位がついていない項目だけを対象にする
+        // （二重表示を防ぐため、incomeSelfなどは除外しました）
         const targetIds = [
-            'incomeSelf', 'incomePartner',
-            'r-marriage', 'r-child-unit', 'r-house', 
-            'r-car-price', 
-            'r-insurance-monthly', 'r-living-monthly', 'r-invest-monthly',
-            'r-others', 'r-retirement', 'currentSavings'
+            'r-marriage',   // 結婚
+            'r-house',      // 住宅
+            'r-others',     // その他
+            'r-retirement'  // 退職金
         ];
 
         targetIds.forEach(id => {
             const el = document.getElementById(id);
             if(el) {
-                // すでに適用済みならスキップ
+                // 既に適用済みなら何もしない
                 if(el.parentNode.className === 'unit-wrapper') return;
 
-                // 入力欄をdivで囲んで、横に「万円」を置く
+                // ラッパーを作成
                 const wrapper = document.createElement('div');
                 wrapper.className = 'unit-wrapper';
-                wrapper.style.display = 'flex';
-                wrapper.style.alignItems = 'center';
-                wrapper.style.gap = '5px';
-                wrapper.style.width = '100%';
-
+                
+                // 要素をラップする
                 el.parentNode.insertBefore(wrapper, el);
                 wrapper.appendChild(el);
 
-                const unitSpan = document.createElement('span');
+                // 単位を追加
+                const unitSpan = document.createElement('div');
+                unitSpan.className = 'unit-span';
                 unitSpan.innerText = '万円';
-                unitSpan.style.fontWeight = 'bold';
-                unitSpan.style.color = '#718096';
-                unitSpan.style.fontSize = '0.9em';
-                unitSpan.style.whiteSpace = 'nowrap';
                 wrapper.appendChild(unitSpan);
-
-                // 入力欄のデザイン調整（幅を自動調整）
-                el.style.flex = '1';
-                el.style.width = 'auto'; 
             }
         });
     }
+    // ▲▲▲ 修正ここまで ▲▲▲
 
     function loadGameData() {
         try {
@@ -972,12 +1011,9 @@
                 gameState = JSON.parse(savedState);
                 calculateGameTotals();
             }
-        } catch (e) {
-            console.error("Error loading game data", e);
-        }
+        } catch (e) { console.error(e); }
     }
 
-    // ▼▼▼ 修正：単位「万円」を追加した集計関数 ▼▼▼
     function calculateGameTotals() {
         if (!gameState || !gameState.balanceHistory) return;
 
@@ -989,11 +1025,9 @@
         
         let totalYears = 0;
 
-        // 履歴から集計
         gameState.balanceHistory.forEach(h => {
             const years = Number(h.years) || 10;
             totalYears += years; 
-            
             const d = h.details;
             summary.children += (d.childCost || 0) * years;
             summary.house += (d.houseCost || 0) * years;
@@ -1015,7 +1049,6 @@
             }
         }
 
-        // 表示関数（修正：単位を追加）
         const setVal = (id, val) => {
             const el = document.getElementById(id);
             if(el) el.innerText = Math.round(val).toLocaleString() + "万円";
@@ -1024,20 +1057,11 @@
         const setValWithMonthly = (id, totalVal) => {
             const el = document.getElementById(id);
             if(!el) return;
-            
             const totalStr = Math.round(totalVal).toLocaleString() + "万円";
             const years = totalYears > 0 ? totalYears : 40;
-
             if (totalVal > 0) {
                 const monthly = totalVal / years / 12;
-                const monthlyStr = monthly.toFixed(1); 
-                
-                el.innerHTML = `
-                    ${totalStr}
-                    <span class="monthly-avg">
-                        (月平均 ${monthlyStr}万円)
-                    </span>
-                `;
+                el.innerHTML = `${totalStr}<span class="monthly-avg">(月平均 ${monthly.toFixed(1)}万円)</span>`;
             } else {
                 el.innerText = totalStr;
             }
@@ -1047,11 +1071,9 @@
         setVal('g-children', summary.children);
         setVal('g-house', summary.house);
         setVal('g-car', summary.car);
-        
         setValWithMonthly('g-insurance', summary.insurance);
         setValWithMonthly('g-living', summary.living);
         setValWithMonthly('g-investment', summary.investment);
-        
         setVal('g-others', summary.others);
         setVal('g-retirement', summary.retirement);
 
@@ -1074,12 +1096,10 @@
         else if (gross <= 660) deduction = gross * 0.2 + 44;
         else if (gross <= 850) deduction = gross * 0.1 + 110;
         else deduction = 195;
-
         const socialInsurance = gross * 0.15;
         const basicDeduction = 48;
         let taxableIncome = gross - deduction - socialInsurance - basicDeduction;
         if (taxableIncome < 0) taxableIncome = 0;
-
         let incomeTax = 0;
         if (taxableIncome <= 195) incomeTax = taxableIncome * 0.05;
         else if (taxableIncome <= 330) incomeTax = taxableIncome * 0.10 - 9.75;
@@ -1087,7 +1107,6 @@
         else if (taxableIncome <= 900) incomeTax = taxableIncome * 0.23 - 63.6;
         else if (taxableIncome <= 1800) incomeTax = taxableIncome * 0.33 - 153.6;
         else incomeTax = taxableIncome * 0.40 - 279.6;
-
         const residentTax = (taxableIncome * 0.10) + 0.5;
         const net = gross - (socialInsurance + incomeTax + residentTax);
         return Math.max(0, net);
@@ -1149,17 +1168,14 @@
         const monthlyRate = rate / 100 / 12;
         const totalPrincipal = monthlyInvest * months; 
         const principalYen = monthlyInvest * 10000;
-
         let futureValYen = 0;
         if (rate <= 0) {
             futureValYen = totalPrincipal * 10000;
         } else {
             futureValYen = principalYen * (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate;
         }
-
         const futureValMan = Math.round(futureValYen / 10000);
         const profit = futureValMan - Math.round(totalPrincipal);
-
         displayDiv.innerHTML = `元本: ${Math.round(totalPrincipal)}万 / 運用益: <span style="color:#48bb78;">+${profit.toLocaleString()}</span>万`;
         displayDiv.dataset.profit = profit;
         displayDiv.dataset.principal = totalPrincipal;
@@ -1187,7 +1203,6 @@
         document.getElementById('remainingYears').innerText = remainingYears;
         document.getElementById('r-marriage').value = UNIT_COSTS.marriage;
         document.getElementById('r-house').value = UNIT_COSTS.house;
-        
         document.getElementById('r-child-unit').value = UNIT_COSTS.childPerHead;
         let defaultChildCount = UNIT_COSTS.childCountDefault;
         if (gameState && typeof gameState.children !== 'undefined') {
@@ -1195,22 +1210,17 @@
         }
         document.getElementById('r-child-count').value = defaultChildCount;
         updateChildTotal();
-
         document.getElementById('r-car-price').value = UNIT_COSTS.carPurchase;
         let autoCarCount = Math.ceil(remainingYears / 10);
         if (autoCarCount < 1) autoCarCount = 1; 
         document.getElementById('r-car-count').value = autoCarCount;
         updateCarTotal();
-
         document.getElementById('r-insurance-monthly').value = UNIT_COSTS.insuranceMonthly;
         updateMonthlyTotal('r-insurance-monthly', 'insurance-total-preview');
-
         document.getElementById('r-living-monthly').value = UNIT_COSTS.livingMonthly;
         updateMonthlyTotal('r-living-monthly', 'living-total-preview');
-
         document.getElementById('r-invest-monthly').value = UNIT_COSTS.investMonthly;
         calculateInvestmentResult();
-
         const adjustedOthers = Math.round(UNIT_COSTS.othersFixed * (remainingYears / 40));
         document.getElementById('r-others').value = adjustedOthers;
         document.getElementById('r-retirement').value = UNIT_COSTS.retirement;
@@ -1226,19 +1236,18 @@
         const valInvestPrincipal = parseFloat(document.getElementById('invest-result-display').dataset.principal) || 0;
         const valInvestProfit = parseFloat(document.getElementById('invest-result-display').dataset.profit) || 0;
         const valOthers = parseInt(document.getElementById('r-others').value) || 0;
-        
         const valRetirement = parseInt(document.getElementById('r-retirement').value) || 0;
         const currentSavings = parseInt(document.getElementById('currentSavings').value) || 0;
-
         const childCount = parseInt(document.getElementById('r-child-count').value) || 0;
         const valChildBenefits = calculateTotalChildBenefits(childCount);
-
         const totalReal = Math.round(valMarriage + valChildrenCost + valHouse + valCar + valInsurance + valLiving + valInvestPrincipal + valOthers);
+        
+        // ゲーム実績の集計（再計算を保証）
+        calculateGameTotals();
         const totalGame = parseInt(document.getElementById('totalGameCost').dataset.val) || 0;
         
         const remainingYears = parseInt(document.getElementById('remainingYears').innerText) || 0;
         const lifetimeIncome = Math.round(currentHouseholdNet * remainingYears);
-        
         const incomeBalance = (currentSavings + lifetimeIncome + valRetirement + valChildBenefits) - totalReal + valInvestProfit;
         currentIncomeBalanceAt65 = incomeBalance;
 
@@ -1247,18 +1256,15 @@
         
         const balanceDiv = document.getElementById('incomeBalanceCheck');
         let balanceHtml = "";
-        
         if (incomeBalance >= 0) {
             balanceHtml = `<span style="color:#48bb78;">収支予測(65歳): +${incomeBalance.toLocaleString()}万円 (黒字)</span>`;
         } else {
             balanceHtml = `<span style="color:#e53e3e;">収支予測(65歳): ${incomeBalance.toLocaleString()}万円 (赤字)</span>`;
         }
-        
         let extraInfo = [];
         if (currentSavings > 0) extraInfo.push(`現在貯蓄${currentSavings}万`);
         if (valRetirement > 0) extraInfo.push(`退職金${valRetirement}万`);
         if (valInvestProfit > 0) extraInfo.push(`運用益${valInvestProfit}万`);
-        
         if (extraInfo.length > 0) {
             balanceHtml += `<br><span style="font-size:0.8em; color:#2b6cb0;">(プラス要因: ${extraInfo.join(', ')})</span>`;
         }
@@ -1276,15 +1282,11 @@
         const lifeAge = parseInt(document.getElementById('sim-age').value) || 95;
         const monthlyCost = parseFloat(document.getElementById('sim-cost').value) || 36;
         const monthlyPension = parseFloat(document.getElementById('sim-pension').value) || 22;
-        
         const years = lifeAge - 65;
         if (years <= 0) return { finalAsset: currentIncomeBalanceAt65, lifeAge: 65, bankruptAge: 65 };
-
         const totalOldCost = monthlyCost * 12 * years;
         const totalOldIncome = monthlyPension * 12 * years;
-        
         const finalAsset = currentIncomeBalanceAt65 + totalOldIncome - totalOldCost;
-        
         const resultEl = document.getElementById('sim-final-asset');
         const msgEl = document.getElementById('sim-message');
         
@@ -1301,9 +1303,7 @@
                 bankruptAge = 65 + lastingYears;
                 if (bankruptAge < 65) bankruptAge = 65; 
                 if (bankruptAge > lifeAge) bankruptAge = lifeAge; 
-            } else {
-                bankruptAge = 65; 
-            }
+            } else { bankruptAge = 65; }
             msgEl.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#e53e3e;"></i> 資金不足の恐れがあります。<br>今のままだと <strong>約${Math.floor(bankruptAge)}歳</strong> で資金が尽きる計算です。`;
         }
         return { finalAsset, lifeAge, bankruptAge };
@@ -1312,7 +1312,6 @@
     function generateAdvice(real, game, incomeBalance, investProfit, simResult) {
         const div = document.getElementById('finalAdvice');
         let html = `<h3><i class="fas fa-user-tie"></i> プロの総合診断コメント</h3>`;
-        
         const { finalAsset, lifeAge, bankruptAge } = simResult;
         
         if (finalAsset >= 2000) {
@@ -1326,11 +1325,8 @@
         }
 
         html += `<div style="margin-top:15px; font-size:0.9em; color:#555;"><ul>`;
-        if(investProfit > 300) {
-            html += `<li><i class="fas fa-check" style="color:#48bb78;"></i> <strong>投資効果:</strong> 複利運用が効いています。</li>`;
-        } else {
-            html += `<li><i class="fas fa-exclamation-circle" style="color:#d69e2e;"></i> <strong>投資活用:</strong> 積立投資の検討をおすすめします。</li>`;
-        }
+        if(investProfit > 300) html += `<li><i class="fas fa-check" style="color:#48bb78;"></i> <strong>投資効果:</strong> 複利運用が効いています。</li>`;
+        else html += `<li><i class="fas fa-exclamation-circle" style="color:#d69e2e;"></i> <strong>投資活用:</strong> 積立投資の検討をおすすめします。</li>`;
         html += `<li><i class="fas fa-child" style="color:#48bb78;"></i> <strong>子育て支援:</strong> 児童手当を教育費として積み立てましょう。</li></ul></div>`;
 
         html += `
@@ -1353,7 +1349,6 @@
                     <i class="fab fa-line"></i> 詳細な解決策をLINEで相談する
                 </a>
             </div>`;
-            
         div.innerHTML = html;
     }
 
@@ -1400,22 +1395,14 @@
         });
     }
 
-    // ★重要：決定ボタン処理
+    // 決定ボタン処理
     function loadGameDataFromFirebase() {
         const inputId = document.getElementById('import-diagnosis-id').value;
-        if (!inputId) {
-            alert("診断コードを入力（貼り付け）してください");
-            return;
-        }
-
+        if (!inputId) { alert("診断コードを入力（貼り付け）してください"); return; }
         const statusMsg = document.getElementById('import-status');
         if(statusMsg) statusMsg.innerText = "読み込み中...";
 
-        if (typeof firebase === 'undefined') {
-            alert("通信の準備中です。数秒待ってから再度押してください。");
-            return;
-        }
-        
+        if (typeof firebase === 'undefined') { alert("通信の準備中です。数秒待ってから再度押してください。"); return; }
         const database = firebase.database();
 
         database.ref('diagnosis/' + inputId).once('value')
@@ -1423,22 +1410,13 @@
                 const data = snapshot.val();
                 if (data) {
                     applyImportedData(data);
-                    if(statusMsg) {
-                        statusMsg.innerText = "読み込み成功！";
-                        statusMsg.style.color = "#48bb78";
-                    }
+                    if(statusMsg) { statusMsg.innerText = "読み込み成功！"; statusMsg.style.color = "#48bb78"; }
                 } else {
                     alert("データが見つかりません。\nコードが正しいか確認してください。");
-                    if(statusMsg) {
-                        statusMsg.innerText = "データなし";
-                        statusMsg.style.color = "#e53e3e";
-                    }
+                    if(statusMsg) { statusMsg.innerText = "データなし"; statusMsg.style.color = "#e53e3e"; }
                 }
             })
-            .catch((error) => {
-                console.error(error);
-                alert("通信エラーが発生しました。");
-            });
+            .catch((error) => { console.error(error); alert("通信エラーが発生しました。"); });
     }
 
     function applyImportedData(data) {
@@ -1448,9 +1426,7 @@
             if(data.players.player1) document.getElementById('incomeSelf').value = data.players.player1.grossIncome || 0;
             if(data.players.player2) document.getElementById('incomePartner').value = data.players.player2.grossIncome || 0;
         }
-        if(data.totalAssets) {
-            document.getElementById('currentSavings').value = Math.round(data.totalAssets);
-        }
+        if(data.totalAssets) { document.getElementById('currentSavings').value = Math.round(data.totalAssets); }
         updateRealDefaults(); 
         calculateHouseholdNetIncome();
         calculateDiagnosis();
