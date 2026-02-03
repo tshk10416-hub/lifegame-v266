@@ -871,69 +871,103 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v30.0_Adjust_Food_Transport
+    // バージョン確認用ID: v31.0_Mobile_Layout_Fix
     // =========================================================
 
-    // ▼▼▼ CSS調整 ▼▼▼
+    // ▼▼▼ CSS調整（スマホ表示に特化した修正） ▼▼▼
     const styleFix = document.createElement('style');
     styleFix.innerHTML = `
+        /* 既存のスタイル */
         .unit-wrapper { display: flex !important; align-items: center !important; width: 100% !important; box-sizing: border-box !important; }
         .unit-wrapper input, .unit-wrapper .real-input, .unit-wrapper .mini-input { width: 0 !important; flex-grow: 1 !important; min-width: 0 !important; border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; margin-right: -2px !important; }
         .unit-span { background-color: #edf2f7; border: 2px solid #bee3f8; border-left: none; color: #4a5568; font-weight: bold; font-size: 0.9rem; padding: 0 10px; height: auto; display: flex; align-items: center; justify-content: center; border-top-right-radius: 8px; border-bottom-right-radius: 8px; white-space: nowrap; align-self: stretch; }
         
+        /* 備考欄のボタン */
         .detail-btn {
             background-color: #3182ce; color: white; border: none; border-radius: 5px;
-            padding: 8px 5px; 
-            margin-top: 8px; 
-            cursor: pointer; font-size: 0.85rem; 
-            white-space: nowrap;
-            transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 8px 5px; margin-top: 8px; cursor: pointer; font-size: 0.85rem; 
+            white-space: nowrap; transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: block; width: 100%; text-align: center;
         }
         .detail-btn:hover { background-color: #2b6cb0; }
 
+        /* ▼▼▼ モーダルのスマホ対応強化 ▼▼▼ */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.5); z-index: 9999; display: none;
             justify-content: center; align-items: center;
         }
         .modal-content {
-            background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px;
-            max-height: 85vh; overflow-y: auto;
+            background: white; padding: 20px; border-radius: 12px; 
+            width: 95%; /* スマホで幅広く使う */
+            max-width: 400px;
+            max-height: 90vh; overflow-y: auto;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease;
         }
         .modal-header { font-weight: bold; font-size: 1.1rem; margin-bottom: 15px; color: #2d3748; border-bottom: 2px solid #ebf8ff; padding-bottom: 10px; }
-        .modal-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #edf2f7; padding-bottom: 5px; }
-        .modal-row label { font-size: 0.9rem; color: #4a5568; flex: 1; }
-        .modal-row input { width: 70px; padding: 6px; border: 1px solid #bee3f8; border-radius: 5px; text-align: right; margin-right: 5px; font-size: 1rem; }
+        
+        /* 行のデザイン修正 */
+        .modal-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 12px; 
+            border-bottom: 1px dashed #edf2f7; 
+            padding-bottom: 8px; 
+        }
+        
+        /* ラベル（項目名）の崩れ防止 */
+        .modal-row label { 
+            font-size: 0.95rem; 
+            color: #4a5568; 
+            flex: 1; 
+            white-space: nowrap; /* ★これが重要：文字の折り返しを禁止 */
+            margin-right: 10px;
+        }
+        
+        /* 入力エリアの調整 */
+        .input-group {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0; /* 縮小させない */
+        }
+        .modal-row input { 
+            width: 70px; /* 固定幅 */
+            padding: 8px; 
+            border: 1px solid #bee3f8; 
+            border-radius: 5px; 
+            text-align: right; 
+            margin-right: 5px; 
+            font-size: 16px; /* ★スマホでズームしないサイズ */
+        }
+        
         .modal-total { margin-top: 15px; padding-top: 15px; border-top: 2px solid #ebf8ff; text-align: right; font-weight: bold; font-size: 1.2rem; color: #2b6cb0; }
         .modal-actions { margin-top: 20px; display: flex; justify-content: space-between; gap: 10px; position: sticky; bottom: 0; background: white; padding-top: 10px; }
         
-        .btn-cancel { flex: 1; background: #cbd5e0; color: #4a5568; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-confirm { flex: 2; background: #48bb78; color: white; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(72,187,120,0.3); }
+        .btn-cancel { flex: 1; background: #cbd5e0; color: #4a5568; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-confirm { flex: 2; background: #48bb78; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(72,187,120,0.3); }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* 極小画面対応 */
+        @media (max-width: 350px) {
+            .modal-row label { font-size: 0.8rem; }
+            .modal-row input { width: 60px; }
+        }
         @media (max-width: 768px) { .unit-wrapper input { font-size: 16px !important; padding: 10px !important; } }
     `;
     document.head.appendChild(styleFix);
 
     const UNIT_COSTS = {
         marriage: 350, childPerHead: 1500, childCountDefault: 2, house: 4500, carPurchase: 300, carCountDefault: 4, carMaintYear: 15, insuranceMonthly: 2.5, 
-        livingMonthly: 22, // 合計22万円
+        livingMonthly: 22, 
         investMonthly: 0, othersFixed: 2000, retirement: 1000, birthAllowance: 50, childAllowance1st2nd: 234, childAllowance3rd: 648
     };
 
-    // ★修正点：食費8万、交通費1万に変更（合計22万）
     let livingBreakdown = { 
-        food: 8.0,      // 食費 (8.5 -> 8.0)
-        utility: 2.5,   // 水道光熱費
-        comm: 1.5,      // 通信費
-        medical: 1.0,   // 医療費
-        transport: 1.0, // 交通費 (0.5 -> 1.0)
-        daily: 2.0,     // 日用品・被服
-        furniture: 1.0, // 家具・家電積立
-        pocket: 3.0,    // お小遣い
-        other: 2.0      // その他予備
+        food: 8.0, utility: 2.5, comm: 1.5, 
+        medical: 1.0, transport: 1.0, daily: 2.0, 
+        furniture: 1.0, pocket: 3.0, other: 2.0 
     };
 
     const firebaseConfig = {
@@ -976,19 +1010,17 @@
         }, 100);
     });
 
-    // ▼▼▼ 生活費詳細モーダル機能 ▼▼▼
+    // ▼▼▼ 生活費詳細モーダル機能（スマホ対応版） ▼▼▼
     function initLivingDetailFeature() {
         const targetInput = document.getElementById('r-living-monthly');
         if(!targetInput) return;
 
-        // ボタン作成
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'detail-btn';
         btn.innerHTML = '<i class="fas fa-list-ul"></i> 内訳を設定';
         btn.onclick = openLivingModal;
         
-        // 備考欄(td.source-text)に追加
         const row = targetInput.closest('tr');
         if(row) {
             const remarksCell = row.querySelector('.source-text');
@@ -997,23 +1029,29 @@
             }
         }
 
-        // モーダルHTML追加
+        // 入力欄をdivで囲んで横並びを強化
+        const createRow = (label, id) => `
+            <div class="modal-row">
+                <label>${label}</label>
+                <div class="input-group">
+                    <input type="number" id="${id}" step="0.1" oninput="calcModalTotal()">
+                    <span>万円</span>
+                </div>
+            </div>`;
+
         const modalHtml = `
             <div id="livingModal" class="modal-overlay">
                 <div class="modal-content">
                     <div class="modal-header"><i class="fas fa-calculator"></i> 生活費の内訳設定 (月額)</div>
-                    
-                    <div class="modal-row"><label>🍱 食費</label><input type="number" id="m-food" step="0.1" oninput="calcModalTotal()">万円</div>
-                    <div class="modal-row"><label>💡 水道光熱費</label><input type="number" id="m-utility" step="0.1" oninput="calcModalTotal()">万円</div>
-                    <div class="modal-row"><label>📱 通信費</label><input type="number" id="m-comm" step="0.1" oninput="calcModalTotal()">万円</div>
-                    
-                    <div class="modal-row"><label>🏥 医療・薬代</label><input type="number" id="m-medical" step="0.1" oninput="calcModalTotal()">万円</div>
-                    <div class="modal-row"><label>🚃 交通費</label><input type="number" id="m-transport" step="0.1" oninput="calcModalTotal()">万円</div>
-                    <div class="modal-row"><label>🧻 日用品・衣服</label><input type="number" id="m-daily" step="0.1" oninput="calcModalTotal()">万円</div>
-                    
-                    <div class="modal-row"><label>🪑 家具・家電</label><input type="number" id="m-furniture" step="0.1" oninput="calcModalTotal()">万円</div>
-                    <div class="modal-row"><label>👛 お小遣い・交際</label><input type="number" id="m-pocket" step="0.1" oninput="calcModalTotal()">万円</div>
-                    <div class="modal-row"><label>📦 その他</label><input type="number" id="m-other" step="0.1" oninput="calcModalTotal()">万円</div>
+                    ${createRow('🍱 食費', 'm-food')}
+                    ${createRow('💡 水道光熱費', 'm-utility')}
+                    ${createRow('📱 通信費', 'm-comm')}
+                    ${createRow('🏥 医療・薬代', 'm-medical')}
+                    ${createRow('🚃 交通費', 'm-transport')}
+                    ${createRow('🧻 日用品', 'm-daily')}
+                    ${createRow('🪑 家具・家電', 'm-furniture')}
+                    ${createRow('👛 お小遣い・交際', 'm-pocket')}
+                    ${createRow('📦 その他', 'm-other')}
                     
                     <div class="modal-total">合計: <span id="m-total-display">0</span> 万円</div>
                     
@@ -1080,7 +1118,7 @@
         updateMonthlyTotal('r-living-monthly', 'living-total-preview');
         closeLivingModal();
     }
-    // ▲▲▲ 生活費詳細機能ここまで ▲▲▲
+    // ▲▲▲ 機能ここまで ▲▲▲
 
     function updateResultLabels() {
         const resultArea = document.getElementById('resultArea');
