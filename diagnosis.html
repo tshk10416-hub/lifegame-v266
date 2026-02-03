@@ -664,7 +664,7 @@
                 <th style="width: 25%;">項目</th>
                 <th class="game-header" style="width: 20%;">ゲーム実績<br><small>(万円)</small></th>
                 <th class="real-header" style="width: 35%;">あなたの現実<br><small>入力エリア</small></th>
-                <th style="width: 20%;">備考・根拠</th>
+                <th style="width: 20%;">備考</th>
             </tr>
         </thead>
         <tbody>
@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v25.0_Fix_Line_Link
+    // バージョン確認用ID: v30.0_Adjust_Food_Transport
     // =========================================================
 
     // ▼▼▼ CSS調整 ▼▼▼
@@ -880,12 +880,60 @@
         .unit-wrapper { display: flex !important; align-items: center !important; width: 100% !important; box-sizing: border-box !important; }
         .unit-wrapper input, .unit-wrapper .real-input, .unit-wrapper .mini-input { width: 0 !important; flex-grow: 1 !important; min-width: 0 !important; border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; margin-right: -2px !important; }
         .unit-span { background-color: #edf2f7; border: 2px solid #bee3f8; border-left: none; color: #4a5568; font-weight: bold; font-size: 0.9rem; padding: 0 10px; height: auto; display: flex; align-items: center; justify-content: center; border-top-right-radius: 8px; border-bottom-right-radius: 8px; white-space: nowrap; align-self: stretch; }
+        
+        .detail-btn {
+            background-color: #3182ce; color: white; border: none; border-radius: 5px;
+            padding: 8px 5px; 
+            margin-top: 8px; 
+            cursor: pointer; font-size: 0.85rem; 
+            white-space: nowrap;
+            transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: block; width: 100%; text-align: center;
+        }
+        .detail-btn:hover { background-color: #2b6cb0; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 9999; display: none;
+            justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px;
+            max-height: 85vh; overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease;
+        }
+        .modal-header { font-weight: bold; font-size: 1.1rem; margin-bottom: 15px; color: #2d3748; border-bottom: 2px solid #ebf8ff; padding-bottom: 10px; }
+        .modal-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #edf2f7; padding-bottom: 5px; }
+        .modal-row label { font-size: 0.9rem; color: #4a5568; flex: 1; }
+        .modal-row input { width: 70px; padding: 6px; border: 1px solid #bee3f8; border-radius: 5px; text-align: right; margin-right: 5px; font-size: 1rem; }
+        .modal-total { margin-top: 15px; padding-top: 15px; border-top: 2px solid #ebf8ff; text-align: right; font-weight: bold; font-size: 1.2rem; color: #2b6cb0; }
+        .modal-actions { margin-top: 20px; display: flex; justify-content: space-between; gap: 10px; position: sticky; bottom: 0; background: white; padding-top: 10px; }
+        
+        .btn-cancel { flex: 1; background: #cbd5e0; color: #4a5568; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-confirm { flex: 2; background: #48bb78; color: white; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(72,187,120,0.3); }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @media (max-width: 768px) { .unit-wrapper input { font-size: 16px !important; padding: 10px !important; } }
     `;
     document.head.appendChild(styleFix);
 
     const UNIT_COSTS = {
-        marriage: 350, childPerHead: 1500, childCountDefault: 2, house: 4500, carPurchase: 300, carCountDefault: 4, carMaintYear: 15, insuranceMonthly: 2.5, livingMonthly: 17, investMonthly: 0, othersFixed: 2000, retirement: 1000, birthAllowance: 50, childAllowance1st2nd: 234, childAllowance3rd: 648
+        marriage: 350, childPerHead: 1500, childCountDefault: 2, house: 4500, carPurchase: 300, carCountDefault: 4, carMaintYear: 15, insuranceMonthly: 2.5, 
+        livingMonthly: 22, // 合計22万円
+        investMonthly: 0, othersFixed: 2000, retirement: 1000, birthAllowance: 50, childAllowance1st2nd: 234, childAllowance3rd: 648
+    };
+
+    // ★修正点：食費8万、交通費1万に変更（合計22万）
+    let livingBreakdown = { 
+        food: 8.0,      // 食費 (8.5 -> 8.0)
+        utility: 2.5,   // 水道光熱費
+        comm: 1.5,      // 通信費
+        medical: 1.0,   // 医療費
+        transport: 1.0, // 交通費 (0.5 -> 1.0)
+        daily: 2.0,     // 日用品・被服
+        furniture: 1.0, // 家具・家電積立
+        pocket: 3.0,    // お小遣い
+        other: 2.0      // その他予備
     };
 
     const firebaseConfig = {
@@ -914,6 +962,7 @@
             if(iSave) iSave.value = 300; 
         };
         setDefaults();
+        initLivingDetailFeature();
         loadGameData();
         updateRealDefaults(); 
         calculateHouseholdNetIncome(); 
@@ -926,6 +975,112 @@
             if(checkCount > 20) clearInterval(interval);
         }, 100);
     });
+
+    // ▼▼▼ 生活費詳細モーダル機能 ▼▼▼
+    function initLivingDetailFeature() {
+        const targetInput = document.getElementById('r-living-monthly');
+        if(!targetInput) return;
+
+        // ボタン作成
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'detail-btn';
+        btn.innerHTML = '<i class="fas fa-list-ul"></i> 内訳を設定';
+        btn.onclick = openLivingModal;
+        
+        // 備考欄(td.source-text)に追加
+        const row = targetInput.closest('tr');
+        if(row) {
+            const remarksCell = row.querySelector('.source-text');
+            if(remarksCell) {
+                remarksCell.appendChild(btn);
+            }
+        }
+
+        // モーダルHTML追加
+        const modalHtml = `
+            <div id="livingModal" class="modal-overlay">
+                <div class="modal-content">
+                    <div class="modal-header"><i class="fas fa-calculator"></i> 生活費の内訳設定 (月額)</div>
+                    
+                    <div class="modal-row"><label>🍱 食費</label><input type="number" id="m-food" step="0.1" oninput="calcModalTotal()">万円</div>
+                    <div class="modal-row"><label>💡 水道光熱費</label><input type="number" id="m-utility" step="0.1" oninput="calcModalTotal()">万円</div>
+                    <div class="modal-row"><label>📱 通信費</label><input type="number" id="m-comm" step="0.1" oninput="calcModalTotal()">万円</div>
+                    
+                    <div class="modal-row"><label>🏥 医療・薬代</label><input type="number" id="m-medical" step="0.1" oninput="calcModalTotal()">万円</div>
+                    <div class="modal-row"><label>🚃 交通費</label><input type="number" id="m-transport" step="0.1" oninput="calcModalTotal()">万円</div>
+                    <div class="modal-row"><label>🧻 日用品・衣服</label><input type="number" id="m-daily" step="0.1" oninput="calcModalTotal()">万円</div>
+                    
+                    <div class="modal-row"><label>🪑 家具・家電</label><input type="number" id="m-furniture" step="0.1" oninput="calcModalTotal()">万円</div>
+                    <div class="modal-row"><label>👛 お小遣い・交際</label><input type="number" id="m-pocket" step="0.1" oninput="calcModalTotal()">万円</div>
+                    <div class="modal-row"><label>📦 その他</label><input type="number" id="m-other" step="0.1" oninput="calcModalTotal()">万円</div>
+                    
+                    <div class="modal-total">合計: <span id="m-total-display">0</span> 万円</div>
+                    
+                    <div class="modal-actions">
+                        <button class="btn-cancel" onclick="closeLivingModal()">キャンセル</button>
+                        <button class="btn-confirm" onclick="confirmLivingModal()">この内容で確定</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    function openLivingModal() {
+        document.getElementById('m-food').value = livingBreakdown.food;
+        document.getElementById('m-utility').value = livingBreakdown.utility;
+        document.getElementById('m-comm').value = livingBreakdown.comm;
+        document.getElementById('m-medical').value = livingBreakdown.medical;
+        document.getElementById('m-transport').value = livingBreakdown.transport;
+        document.getElementById('m-daily').value = livingBreakdown.daily;
+        document.getElementById('m-furniture').value = livingBreakdown.furniture;
+        document.getElementById('m-pocket').value = livingBreakdown.pocket;
+        document.getElementById('m-other').value = livingBreakdown.other;
+        
+        calcModalTotal();
+        document.getElementById('livingModal').style.display = 'flex';
+    }
+
+    function closeLivingModal() {
+        document.getElementById('livingModal').style.display = 'none';
+    }
+
+    function calcModalTotal() {
+        const sum = 
+            (parseFloat(document.getElementById('m-food').value) || 0) +
+            (parseFloat(document.getElementById('m-utility').value) || 0) +
+            (parseFloat(document.getElementById('m-comm').value) || 0) +
+            (parseFloat(document.getElementById('m-medical').value) || 0) +
+            (parseFloat(document.getElementById('m-transport').value) || 0) +
+            (parseFloat(document.getElementById('m-daily').value) || 0) +
+            (parseFloat(document.getElementById('m-furniture').value) || 0) +
+            (parseFloat(document.getElementById('m-pocket').value) || 0) +
+            (parseFloat(document.getElementById('m-other').value) || 0);
+        
+        document.getElementById('m-total-display').innerText = Math.round(sum * 10) / 10;
+        return sum;
+    }
+
+    function confirmLivingModal() {
+        const sum = calcModalTotal();
+        
+        livingBreakdown.food = parseFloat(document.getElementById('m-food').value) || 0;
+        livingBreakdown.utility = parseFloat(document.getElementById('m-utility').value) || 0;
+        livingBreakdown.comm = parseFloat(document.getElementById('m-comm').value) || 0;
+        livingBreakdown.medical = parseFloat(document.getElementById('m-medical').value) || 0;
+        livingBreakdown.transport = parseFloat(document.getElementById('m-transport').value) || 0;
+        livingBreakdown.daily = parseFloat(document.getElementById('m-daily').value) || 0;
+        livingBreakdown.furniture = parseFloat(document.getElementById('m-furniture').value) || 0;
+        livingBreakdown.pocket = parseFloat(document.getElementById('m-pocket').value) || 0;
+        livingBreakdown.other = parseFloat(document.getElementById('m-other').value) || 0;
+
+        const mainInput = document.getElementById('r-living-monthly');
+        mainInput.value = Math.round(sum * 10) / 10;
+        updateMonthlyTotal('r-living-monthly', 'living-total-preview');
+        closeLivingModal();
+    }
+    // ▲▲▲ 生活費詳細機能ここまで ▲▲▲
 
     function updateResultLabels() {
         const resultArea = document.getElementById('resultArea');
@@ -1283,7 +1438,6 @@
         else if (s.final >= 0) html += `<div style="background:#ebf8ff; border-left:4px solid #2b6cb0; padding:10px;"><strong style="color:#2c5282;">【Aランク】 概ね順調な計画です。</strong><p>今の生活水準であれば、平均的な寿命まで資金ショートすることなく暮らせるでしょう。</p></div>`;
         else html += `<div style="background:#fff5f5; border-left:4px solid #e53e3e; padding:10px;"><strong style="color:#c53030;">【要対策】 見直しを推奨します。</strong><p>老後資金が不足するリスクがあります。iDeCoやNISAでの準備を急ぎましょう。</p></div>`;
         
-        // ▼▼▼ 修正点：target="_blank" を追加して別タブで開くように変更 ▼▼▼
         html += `
             <div style="text-align:center; margin-top:25px; margin-bottom:10px;">
                 <p style="font-size:0.9em; font-weight:bold; color:#2b6cb0; margin-bottom:10px;">▼ あなただけの改善プランを作成 ▼</p>
@@ -1291,8 +1445,6 @@
                     <i class="fab fa-line"></i> 詳細な解決策をLINEで相談する
                 </a>
             </div>`;
-        // ▲▲▲ 修正ここまで ▲▲▲
-        
         div.innerHTML = html;
     }
 
