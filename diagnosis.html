@@ -871,8 +871,13 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v34.0_Realtime_Advice_Update
+    // バージョン確認用ID: v35.0_PDF_Save_Feature
     // =========================================================
+
+    // ▼▼▼ PDF生成ライブラリの読み込み ▼▼▼
+    const pdfScript = document.createElement('script');
+    pdfScript.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+    document.head.appendChild(pdfScript);
 
     // ▼▼▼ CSS調整 ▼▼▼
     const styleFix = document.createElement('style');
@@ -888,6 +893,24 @@
             display: block; width: 100%; text-align: center;
         }
         .detail-btn:hover { background-color: #2b6cb0; }
+
+        /* PDFボタンのデザイン */
+        .pdf-save-btn {
+            display: inline-block;
+            background: #e53e3e; /* PDFっぽい赤色 */
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.0em;
+            box-shadow: 0 4px 10px rgba(229, 62, 62, 0.4);
+            transition: transform 0.2s;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 15px; /* LINEボタンとの間隔 */
+        }
+        .pdf-save-btn:hover { background-color: #c53030; transform: translateY(-2px); }
 
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -964,16 +987,10 @@
         calculateHouseholdNetIncome(); 
         addUnitsToInputs(); 
         
-        // ★修正点：シミュレーション数値が変わったら、計算＋アドバイス更新を両方行う
         document.addEventListener('input', function(e) {
             if (e.target && (e.target.id === 'sim-age' || e.target.id === 'sim-cost' || e.target.id === 'sim-pension')) {
-                // 1. 老後資金の再計算
                 const simResult = calculateRetirementSim();
-                
-                // 2. 必要な情報をDOMから取得
                 const vInvG = parseFloat(document.getElementById('invest-result-display').dataset.profit) || 0;
-                
-                // 3. 総合コメント（アドバイス）も即座に更新
                 generateAdvice(0, 0, 0, vInvG, simResult);
             }
         });
@@ -986,7 +1003,40 @@
         }, 100);
     });
 
-    // ▼▼▼ 生活費詳細モーダル機能 ▼▼▼
+    // ▼▼▼ PDF保存機能 ▼▼▼
+    function downloadPDF() {
+        const element = document.body; // ページ全体を対象
+        
+        // 保存時に邪魔なボタン類を隠すクラスを付与
+        const btnPDF = document.querySelector('.pdf-save-btn');
+        const btnLINE = document.querySelector('a[href*="line.me"]');
+        const btnImport = document.querySelector('button[onclick="loadGameDataFromFirebase()"]');
+        const inputArea = document.getElementById('import-diagnosis-id');
+        
+        if(btnPDF) btnPDF.style.display = 'none';
+        if(btnLINE) btnLINE.style.display = 'none';
+        if(btnImport) btnImport.style.display = 'none';
+        if(inputArea) inputArea.style.display = 'none';
+
+        const opt = {
+            margin:       0,
+            filename:     'LifeRidge_Diagnosis.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        // PDF生成実行
+        html2pdf().set(opt).from(element).save().then(() => {
+            // 終わったらボタンを再表示
+            if(btnPDF) btnPDF.style.display = 'inline-block';
+            if(btnLINE) btnLINE.style.display = 'inline-block';
+            if(btnImport) btnImport.style.display = 'inline-block';
+            if(inputArea) inputArea.style.display = 'inline-block';
+        });
+    }
+    // ▲▲▲ PDF機能ここまで ▲▲▲
+
     function initLivingDetailFeature() {
         const targetInput = document.getElementById('r-living-monthly');
         if(!targetInput) return;
@@ -1093,7 +1143,6 @@
         updateMonthlyTotal('r-living-monthly', 'living-total-preview');
         closeLivingModal();
     }
-    // ▲▲▲ 機能ここまで ▲▲▲
 
     function updateResultLabels() {
         const resultArea = document.getElementById('resultArea');
@@ -1451,9 +1500,16 @@
         else if (s.final >= 0) html += `<div style="background:#ebf8ff; border-left:4px solid #2b6cb0; padding:10px;"><strong style="color:#2c5282;">【Aランク】 概ね順調な計画です。</strong><p>今の生活水準であれば、平均的な寿命まで資金ショートすることなく暮らせるでしょう。</p></div>`;
         else html += `<div style="background:#fff5f5; border-left:4px solid #e53e3e; padding:10px;"><strong style="color:#c53030;">【要対策】 見直しを推奨します。</strong><p>老後資金が不足するリスクがあります。iDeCoやNISAでの準備を急ぎましょう。</p></div>`;
         
+        // ▼▼▼ PDFボタンとLINEボタンの配置 ▼▼▼
         html += `
             <div style="text-align:center; margin-top:25px; margin-bottom:10px;">
                 <p style="font-size:0.9em; font-weight:bold; color:#2b6cb0; margin-bottom:10px;">▼ あなただけの改善プランを作成 ▼</p>
+                
+                <button class="pdf-save-btn" onclick="downloadPDF()">
+                    <i class="fas fa-file-pdf"></i> 診断結果をPDFで保存する
+                </button>
+                <br>
+
                 <a href="https://line.me/R/ti/p/@480gjare" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #06c755; color: white; padding: 15px 20px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1.1em; box-shadow: 0 4px 10px rgba(6, 199, 85, 0.4);">
                     <i class="fab fa-line"></i> 詳細な解決策をLINEで相談する
                 </a>
