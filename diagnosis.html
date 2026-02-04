@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v32.0_Sim_Realtime_Calc
+    // バージョン確認用ID: v33.0_Strong_Event_Listener
     // =========================================================
 
     // ▼▼▼ CSS調整 ▼▼▼
@@ -958,22 +958,20 @@
         };
         setDefaults();
         
-        // 老後シミュレーション項目のリアルタイム監視設定
-        const simInputs = ['sim-age', 'sim-cost', 'sim-pension'];
-        simInputs.forEach(id => {
-            const el = document.getElementById(id);
-            if(el) {
-                // 入力があるたびに再計算を実行
-                el.addEventListener('input', calculateRetirementSim);
-            }
-        });
-
         initLivingDetailFeature();
         loadGameData();
         updateRealDefaults(); 
         calculateHouseholdNetIncome(); 
         addUnitsToInputs(); 
         
+        // ★修正点：強力なイベント監視（ページ全体の入力をキャッチ）
+        document.addEventListener('input', function(e) {
+            // シミュレーション項目のIDなら再計算を実行
+            if (e.target && (e.target.id === 'sim-age' || e.target.id === 'sim-cost' || e.target.id === 'sim-pension')) {
+                calculateRetirementSim();
+            }
+        });
+
         let checkCount = 0;
         const interval = setInterval(() => {
             updateResultLabels();
