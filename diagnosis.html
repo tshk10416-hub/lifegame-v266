@@ -871,18 +871,16 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v31.0_Mobile_Layout_Fix
+    // バージョン確認用ID: v32.0_Sim_Realtime_Calc
     // =========================================================
 
-    // ▼▼▼ CSS調整（スマホ表示に特化した修正） ▼▼▼
+    // ▼▼▼ CSS調整 ▼▼▼
     const styleFix = document.createElement('style');
     styleFix.innerHTML = `
-        /* 既存のスタイル */
         .unit-wrapper { display: flex !important; align-items: center !important; width: 100% !important; box-sizing: border-box !important; }
         .unit-wrapper input, .unit-wrapper .real-input, .unit-wrapper .mini-input { width: 0 !important; flex-grow: 1 !important; min-width: 0 !important; border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; margin-right: -2px !important; }
         .unit-span { background-color: #edf2f7; border: 2px solid #bee3f8; border-left: none; color: #4a5568; font-weight: bold; font-size: 0.9rem; padding: 0 10px; height: auto; display: flex; align-items: center; justify-content: center; border-top-right-radius: 8px; border-bottom-right-radius: 8px; white-space: nowrap; align-self: stretch; }
         
-        /* 備考欄のボタン */
         .detail-btn {
             background-color: #3182ce; color: white; border: none; border-radius: 5px;
             padding: 8px 5px; margin-top: 8px; cursor: pointer; font-size: 0.85rem; 
@@ -891,7 +889,6 @@
         }
         .detail-btn:hover { background-color: #2b6cb0; }
 
-        /* ▼▼▼ モーダルのスマホ対応強化 ▼▼▼ */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.5); z-index: 9999; display: none;
@@ -899,47 +896,16 @@
         }
         .modal-content {
             background: white; padding: 20px; border-radius: 12px; 
-            width: 95%; /* スマホで幅広く使う */
-            max-width: 400px;
+            width: 95%; max-width: 400px;
             max-height: 90vh; overflow-y: auto;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease;
         }
         .modal-header { font-weight: bold; font-size: 1.1rem; margin-bottom: 15px; color: #2d3748; border-bottom: 2px solid #ebf8ff; padding-bottom: 10px; }
         
-        /* 行のデザイン修正 */
-        .modal-row { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 12px; 
-            border-bottom: 1px dashed #edf2f7; 
-            padding-bottom: 8px; 
-        }
-        
-        /* ラベル（項目名）の崩れ防止 */
-        .modal-row label { 
-            font-size: 0.95rem; 
-            color: #4a5568; 
-            flex: 1; 
-            white-space: nowrap; /* ★これが重要：文字の折り返しを禁止 */
-            margin-right: 10px;
-        }
-        
-        /* 入力エリアの調整 */
-        .input-group {
-            display: flex;
-            align-items: center;
-            flex-shrink: 0; /* 縮小させない */
-        }
-        .modal-row input { 
-            width: 70px; /* 固定幅 */
-            padding: 8px; 
-            border: 1px solid #bee3f8; 
-            border-radius: 5px; 
-            text-align: right; 
-            margin-right: 5px; 
-            font-size: 16px; /* ★スマホでズームしないサイズ */
-        }
+        .modal-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed #edf2f7; padding-bottom: 8px; }
+        .modal-row label { font-size: 0.95rem; color: #4a5568; flex: 1; white-space: nowrap; margin-right: 10px; }
+        .input-group { display: flex; align-items: center; flex-shrink: 0; }
+        .modal-row input { width: 70px; padding: 8px; border: 1px solid #bee3f8; border-radius: 5px; text-align: right; margin-right: 5px; font-size: 16px; }
         
         .modal-total { margin-top: 15px; padding-top: 15px; border-top: 2px solid #ebf8ff; text-align: right; font-weight: bold; font-size: 1.2rem; color: #2b6cb0; }
         .modal-actions { margin-top: 20px; display: flex; justify-content: space-between; gap: 10px; position: sticky; bottom: 0; background: white; padding-top: 10px; }
@@ -948,12 +914,7 @@
         .btn-confirm { flex: 2; background: #48bb78; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(72,187,120,0.3); }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* 極小画面対応 */
-        @media (max-width: 350px) {
-            .modal-row label { font-size: 0.8rem; }
-            .modal-row input { width: 60px; }
-        }
+        @media (max-width: 350px) { .modal-row label { font-size: 0.8rem; } .modal-row input { width: 60px; } }
         @media (max-width: 768px) { .unit-wrapper input { font-size: 16px !important; padding: 10px !important; } }
     `;
     document.head.appendChild(styleFix);
@@ -996,6 +957,17 @@
             if(iSave) iSave.value = 300; 
         };
         setDefaults();
+        
+        // 老後シミュレーション項目のリアルタイム監視設定
+        const simInputs = ['sim-age', 'sim-cost', 'sim-pension'];
+        simInputs.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) {
+                // 入力があるたびに再計算を実行
+                el.addEventListener('input', calculateRetirementSim);
+            }
+        });
+
         initLivingDetailFeature();
         loadGameData();
         updateRealDefaults(); 
@@ -1010,7 +982,7 @@
         }, 100);
     });
 
-    // ▼▼▼ 生活費詳細モーダル機能（スマホ対応版） ▼▼▼
+    // ▼▼▼ 生活費詳細モーダル機能 ▼▼▼
     function initLivingDetailFeature() {
         const targetInput = document.getElementById('r-living-monthly');
         if(!targetInput) return;
@@ -1029,7 +1001,6 @@
             }
         }
 
-        // 入力欄をdivで囲んで横並びを強化
         const createRow = (label, id) => `
             <div class="modal-row">
                 <label>${label}</label>
@@ -1050,7 +1021,7 @@
                     ${createRow('🚃 交通費', 'm-transport')}
                     ${createRow('🧻 日用品', 'm-daily')}
                     ${createRow('🪑 家具・家電', 'm-furniture')}
-                    ${createRow('👛 お小遣い・交際', 'm-pocket')}
+                    ${createRow('👛 お小遣い', 'm-pocket')}
                     ${createRow('📦 その他', 'm-other')}
                     
                     <div class="modal-total">合計: <span id="m-total-display">0</span> 万円</div>
@@ -1517,4 +1488,3 @@
 </script>
 </body>
 </html>
-
