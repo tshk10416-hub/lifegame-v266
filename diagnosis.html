@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v37.0_PDF_With_Breakdown
+    // バージョン確認用ID: v38.0_PDF_Center_Fix_Layout
     // =========================================================
 
     // ▼▼▼ PDF生成ライブラリの読み込み ▼▼▼
@@ -908,14 +908,33 @@
 
         /* PDF用の一時表示エリアのデザイン */
         #pdf-breakdown-temp {
-            margin: 20px auto; padding: 15px;
+            margin: 20px 0; padding: 15px;
             border: 2px dashed #bee3f8; border-radius: 10px;
-            background-color: #f7fafc; width: 95%; max-width: 600px;
-            page-break-inside: avoid; /* 印刷時に途中で切れないように */
+            background-color: #f7fafc; width: 100%; box-sizing: border-box;
+            page-break-inside: avoid;
         }
         #pdf-breakdown-temp h4 { margin-top: 0; color: #2b6cb0; border-bottom: 1px solid #bee3f8; padding-bottom: 5px; }
         .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 0.9em; }
         .breakdown-item { background: white; padding: 5px 10px; border-radius: 5px; border: 1px solid #e2e8f0; }
+
+        /* ★PDF生成時の強制スタイル（ズレ防止の肝） */
+        body.pdf-printing {
+            width: 800px !important; /* A4比率に固定 */
+            max-width: 800px !important;
+            margin: 0 !important;
+            padding: 20px !important;
+            background: white !important; /* 背景を白に */
+            transform: none !important;
+            box-sizing: border-box !important;
+        }
+        body.pdf-printing .container, 
+        body.pdf-printing #resultArea {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
 
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -929,23 +948,19 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease;
         }
         .modal-header { font-weight: bold; font-size: 1.1rem; margin-bottom: 15px; color: #2d3748; border-bottom: 2px solid #ebf8ff; padding-bottom: 10px; }
-        
         .modal-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed #edf2f7; padding-bottom: 8px; }
         .modal-row label { font-size: 0.95rem; color: #4a5568; flex: 1; white-space: nowrap; margin-right: 10px; }
         .input-group { display: flex; align-items: center; flex-shrink: 0; }
         .modal-row input { width: 70px; padding: 8px; border: 1px solid #bee3f8; border-radius: 5px; text-align: right; margin-right: 5px; font-size: 16px; }
-        
         .modal-total { margin-top: 15px; padding-top: 15px; border-top: 2px solid #ebf8ff; text-align: right; font-weight: bold; font-size: 1.2rem; color: #2b6cb0; }
         .modal-actions { margin-top: 20px; display: flex; justify-content: space-between; gap: 10px; position: sticky; bottom: 0; background: white; padding-top: 10px; }
-        
         .btn-cancel { flex: 1; background: #cbd5e0; color: #4a5568; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .btn-confirm { flex: 2; background: #48bb78; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(72,187,120,0.3); }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @media (max-width: 350px) { .modal-row label { font-size: 0.8rem; } .modal-row input { width: 60px; } }
         @media (max-width: 768px) { 
             .unit-wrapper input { font-size: 16px !important; padding: 10px !important; } 
-            .breakdown-grid { grid-template-columns: 1fr 1fr; } /* スマホPDF用は2列に */
+            .breakdown-grid { grid-template-columns: 1fr 1fr; } 
         }
     `;
     document.head.appendChild(styleFix);
@@ -1011,12 +1026,15 @@
         }, 100);
     });
 
-    // ▼▼▼ PDF保存機能（内訳追加・修正版）▼▼▼
+    // ▼▼▼ PDF保存機能（ズレ修正・完全版）▼▼▼
     function downloadPDF() {
         window.scrollTo(0, 0);
         const element = document.body;
         
-        // 1. 邪魔なボタン類を隠す
+        // 1. PDFモード用のクラスを付与（これで幅や余白を強制固定）
+        element.classList.add('pdf-printing');
+
+        // 2. 邪魔なボタン類を隠す
         const btnPDF = document.querySelector('.pdf-save-btn');
         const btnLINE = document.querySelector('a[href*="line.me"]');
         const btnImport = document.querySelector('button[onclick="loadGameDataFromFirebase()"]');
@@ -1029,7 +1047,7 @@
         if(inputArea) inputArea.style.display = 'none';
         detailBtns.forEach(btn => btn.style.display = 'none');
 
-        // 2. ★新機能：生活費内訳の表示用DOMを作成して挿入
+        // 3. 生活費内訳の表示用DOMを作成して挿入
         const breakdownDiv = document.createElement('div');
         breakdownDiv.id = 'pdf-breakdown-temp';
         breakdownDiv.innerHTML = `
@@ -1047,13 +1065,12 @@
             </div>
         `;
         
-        // 挿入場所：診断結果エリア(resultArea)の直前
         const resultArea = document.getElementById('resultArea');
         if(resultArea && resultArea.parentNode) {
             resultArea.parentNode.insertBefore(breakdownDiv, resultArea);
         }
 
-        // 3. PDF生成
+        // 4. PDF生成設定（幅を800px固定としてキャプチャ）
         const opt = {
             margin:       [5, 5, 5, 5],
             filename:     'LifeRidge_Diagnosis.pdf',
@@ -1062,15 +1079,19 @@
                 scale: 2, 
                 useCORS: true,
                 scrollY: 0,
-                windowWidth: 1024 
+                scrollX: 0,
+                windowWidth: 800,  // ★重要：CSSで指定した幅と合わせる
+                width: 800         // ★重要：キャプチャ幅も固定
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
+        // 5. 生成実行
         html2pdf().set(opt).from(element).save().then(() => {
-            // 4. 完了後の復旧処理
-            if(breakdownDiv) breakdownDiv.remove(); // 内訳表示を削除
+            // 6. 完了後の復旧（クラス削除・ボタン再表示）
+            element.classList.remove('pdf-printing');
+            if(breakdownDiv) breakdownDiv.remove();
             if(btnPDF) btnPDF.style.display = 'inline-block';
             if(btnLINE) btnLINE.style.display = 'inline-block';
             if(btnImport) btnImport.style.display = 'inline-block';
@@ -1078,7 +1099,8 @@
             detailBtns.forEach(btn => btn.style.display = 'block');
         }).catch(err => {
             console.error(err);
-            alert("PDF生成に失敗しました。時間をおいて再度お試しください。");
+            alert("PDF生成に失敗しました。");
+            element.classList.remove('pdf-printing');
             if(breakdownDiv) breakdownDiv.remove();
             if(btnPDF) btnPDF.style.display = 'inline-block';
             if(btnLINE) btnLINE.style.display = 'inline-block';
