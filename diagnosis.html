@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v39.0_PDF_Clone_Strategy_Final
+    // バージョン確認用ID: v40.0_PDF_Overlay_Strategy
     // =========================================================
 
     // ▼▼▼ PDF生成ライブラリの読み込み ▼▼▼
@@ -1005,53 +1005,57 @@
         }, 100);
     });
 
-    // ▼▼▼ PDF保存機能（クローン方式・完全版）▼▼▼
+    // ▼▼▼ PDF保存機能（オーバーレイ・完全版）▼▼▼
     function downloadPDF() {
-        // 1. オリジナルのコンテナを取得
+        // 1. スクロールをトップに戻す
+        window.scrollTo(0, 0);
+
+        // 2. オリジナルのコンテナを取得
         const originalContainer = document.querySelector('.container');
         if (!originalContainer) return;
 
-        // 2. 印刷用クローンを作成
+        // 3. 印刷用クローンを作成
         const clone = originalContainer.cloneNode(true);
 
-        // 3. クローンのスタイルをA4幅に強制固定（ここでズレを完全に防ぐ）
-        clone.style.width = '800px';
+        // 4. クローンのスタイルを「最前面オーバーレイ」に設定（白紙防止の肝）
+        // 画面左上に絶対配置し、既存コンテンツの上に被せる
+        clone.id = 'pdf-print-overlay';
+        clone.style.width = '800px';      // A4幅に固定
         clone.style.maxWidth = '800px';
-        clone.style.margin = '0';
+        clone.style.margin = '0 auto';    // 中央寄せも可だが、左上基準が無難
         clone.style.padding = '20px';
-        clone.style.background = 'white';
-        clone.style.position = 'absolute';
-        clone.style.top = '-9999px'; // 画面外に配置
-        clone.style.left = '0';
-        clone.style.zIndex = '-1';
-
-        // 4. 【重要】Canvas（グラフ）はcloneNodeでコピーされないため、画像化して差し替え
+        clone.style.background = 'white'; // 背景白
+        clone.style.position = 'absolute'; // 絶対配置
+        clone.style.top = '0';            // 画面最上部
+        clone.style.left = '0';           // 画面左端
+        clone.style.zIndex = '99999';     // 最前面
+        
+        // 5. Canvas（グラフ）の画像化・移植
         const originalCanvas = document.getElementById('comparisonChart');
         if (originalCanvas) {
             const img = document.createElement('img');
-            img.src = originalCanvas.toDataURL('image/png'); // グラフを画像化
+            // 高画質で画像化
+            img.src = originalCanvas.toDataURL('image/png', 1.0); 
             img.style.width = '100%';
             img.style.height = 'auto';
             
-            // クローン内のCanvasを探して画像に置き換え
             const cloneCanvas = clone.querySelector('#comparisonChart');
             if (cloneCanvas && cloneCanvas.parentNode) {
                 cloneCanvas.parentNode.replaceChild(img, cloneCanvas);
             }
         }
 
-        // 5. 【重要】入力フォームの値（value）をクローンに反映
-        // cloneNodeだけだとユーザーが入力した数字が消えることがあるため手動同期
+        // 6. 入力フォームの値（value）をクローンに手動同期
         const originalInputs = originalContainer.querySelectorAll('input, select, textarea');
         const cloneInputs = clone.querySelectorAll('input, select, textarea');
         originalInputs.forEach((input, index) => {
             if (cloneInputs[index]) {
                 cloneInputs[index].value = input.value;
-                // 見た目を整えるため、inputをテキスト化しても良いが、今回はvalueセットで対応
+                // 見た目を綺麗にするため、borderを消す等の処理も可能だが今回は値同期のみ
             }
         });
 
-        // 6. 不要なボタンをクローンから削除
+        // 7. 不要な要素の削除
         const removeSelectors = [
             '.pdf-save-btn', 
             'a[href*="line.me"]', 
@@ -1065,7 +1069,7 @@
             els.forEach(el => el.remove());
         });
 
-        // 7. 内訳表をクローン内の適切な位置に挿入
+        // 8. 内訳表の挿入
         const breakdownDiv = document.createElement('div');
         breakdownDiv.className = 'pdf-breakdown-box';
         breakdownDiv.innerHTML = `
@@ -1087,10 +1091,10 @@
             resultArea.parentNode.insertBefore(breakdownDiv, resultArea);
         }
 
-        // 8. クローンを一時的にbodyに追加
+        // 9. クローンをbodyに追加（オーバーレイ表示）
         document.body.appendChild(clone);
 
-        // 9. PDF生成設定
+        // 10. PDF生成設定（幅を800pxとしてキャプチャ）
         const opt = {
             margin:       [5, 5, 5, 5],
             filename:     'LifeRidge_Diagnosis.pdf',
@@ -1098,21 +1102,27 @@
             html2canvas:  { 
                 scale: 2, 
                 useCORS: true, 
-                logging: false,
-                windowWidth: 800, // クローンの幅と合わせる
-                width: 800
+                scrollY: 0,
+                scrollX: 0,
+                windowWidth: 800, // ★重要：ウィンドウ幅を800pxと仮定
+                width: 800        // ★重要：キャプチャ対象幅も800px
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
-        // 10. クローンを対象にPDF化し、終わったら即削除
+        // 11. PDF生成実行
         html2pdf().set(opt).from(clone).save().then(() => {
-            document.body.removeChild(clone); // お掃除
+            // 完了したらオーバーレイを削除
+            if(document.body.contains(clone)) {
+                document.body.removeChild(clone);
+            }
         }).catch(err => {
             console.error(err);
-            if(document.body.contains(clone)) document.body.removeChild(clone);
-            alert("PDF生成エラー");
+            alert("PDF生成に失敗しました。");
+            if(document.body.contains(clone)) {
+                document.body.removeChild(clone);
+            }
         });
     }
     // ▲▲▲ PDF機能ここまで ▲▲▲
