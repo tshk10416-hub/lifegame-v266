@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v41.0_PDF_Swap_Strategy_Fix
+    // バージョン確認用ID: v38.0_PDF_Center_Fix_Layout
     // =========================================================
 
     // ▼▼▼ PDF生成ライブラリの読み込み ▼▼▼
@@ -894,7 +894,7 @@
         }
         .detail-btn:hover { background-color: #2b6cb0; }
 
-        /* PDFボタン */
+        /* PDFボタンのデザイン */
         .pdf-save-btn {
             display: inline-block;
             background: #e53e3e; color: white;
@@ -906,25 +906,34 @@
         }
         .pdf-save-btn:hover { background-color: #c53030; transform: translateY(-2px); }
 
-        /* 内訳表（PDF用） */
-        .pdf-breakdown-box {
+        /* PDF用の一時表示エリアのデザイン */
+        #pdf-breakdown-temp {
             margin: 20px 0; padding: 15px;
             border: 2px dashed #bee3f8; border-radius: 10px;
             background-color: #f7fafc; width: 100%; box-sizing: border-box;
             page-break-inside: avoid;
         }
-        .pdf-breakdown-box h4 { margin-top: 0; color: #2b6cb0; border-bottom: 1px solid #bee3f8; padding-bottom: 5px; }
+        #pdf-breakdown-temp h4 { margin-top: 0; color: #2b6cb0; border-bottom: 1px solid #bee3f8; padding-bottom: 5px; }
         .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 0.9em; }
         .breakdown-item { background: white; padding: 5px 10px; border-radius: 5px; border: 1px solid #e2e8f0; }
 
-        /* ★印刷用コンテナのスタイル（これを確実にPDF化する） */
-        #pdf-print-container {
-            width: 800px !important;
+        /* ★PDF生成時の強制スタイル（ズレ防止の肝） */
+        body.pdf-printing {
+            width: 800px !important; /* A4比率に固定 */
             max-width: 800px !important;
-            margin: 0 auto !important;
+            margin: 0 !important;
             padding: 20px !important;
-            background: white !important;
+            background: white !important; /* 背景を白に */
+            transform: none !important;
             box-sizing: border-box !important;
+        }
+        body.pdf-printing .container, 
+        body.pdf-printing #resultArea {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            padding: 0 !important;
         }
 
         .modal-overlay {
@@ -949,8 +958,10 @@
         .btn-confirm { flex: 2; background: #48bb78; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(72,187,120,0.3); }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @media (max-width: 350px) { .modal-row label { font-size: 0.8rem; } .modal-row input { width: 60px; } }
-        @media (max-width: 768px) { .unit-wrapper input { font-size: 16px !important; padding: 10px !important; } }
+        @media (max-width: 768px) { 
+            .unit-wrapper input { font-size: 16px !important; padding: 10px !important; } 
+            .breakdown-grid { grid-template-columns: 1fr 1fr; } 
+        }
     `;
     document.head.appendChild(styleFix);
 
@@ -1015,61 +1026,30 @@
         }, 100);
     });
 
-    // ▼▼▼ PDF保存機能（スワップ方式・修正完全版）▼▼▼
+    // ▼▼▼ PDF保存機能（ズレ修正・完全版）▼▼▼
     function downloadPDF() {
-        // 1. スクロールをトップに戻す
         window.scrollTo(0, 0);
+        const element = document.body;
+        
+        // 1. PDFモード用のクラスを付与（これで幅や余白を強制固定）
+        element.classList.add('pdf-printing');
 
-        // 2. オリジナルのコンテナを取得
-        const originalContainer = document.querySelector('.container');
-        if (!originalContainer) return;
+        // 2. 邪魔なボタン類を隠す
+        const btnPDF = document.querySelector('.pdf-save-btn');
+        const btnLINE = document.querySelector('a[href*="line.me"]');
+        const btnImport = document.querySelector('button[onclick="loadGameDataFromFirebase()"]');
+        const inputArea = document.getElementById('import-diagnosis-id');
+        const detailBtns = document.querySelectorAll('.detail-btn');
+        
+        if(btnPDF) btnPDF.style.display = 'none';
+        if(btnLINE) btnLINE.style.display = 'none';
+        if(btnImport) btnImport.style.display = 'none';
+        if(inputArea) inputArea.style.display = 'none';
+        detailBtns.forEach(btn => btn.style.display = 'none');
 
-        // 3. 印刷用クローンを作成
-        const clone = originalContainer.cloneNode(true);
-        clone.id = 'pdf-print-container'; // IDを付与してCSSで制御
-
-        // 4. Canvas（グラフ）の画像化・移植
-        const originalCanvas = document.getElementById('comparisonChart');
-        if (originalCanvas) {
-            const img = document.createElement('img');
-            // 高画質で画像化
-            img.src = originalCanvas.toDataURL('image/png', 1.0); 
-            img.style.width = '100%';
-            img.style.height = 'auto';
-            
-            const cloneCanvas = clone.querySelector('#comparisonChart');
-            if (cloneCanvas && cloneCanvas.parentNode) {
-                cloneCanvas.parentNode.replaceChild(img, cloneCanvas);
-            }
-        }
-
-        // 5. 入力フォームの値（value）をクローンに手動同期
-        const originalInputs = originalContainer.querySelectorAll('input, select, textarea');
-        const cloneInputs = clone.querySelectorAll('input, select, textarea');
-        originalInputs.forEach((input, index) => {
-            if (cloneInputs[index]) {
-                cloneInputs[index].value = input.value;
-                // 見た目をよくするためにborderなどをリセットしてもよいが、今回は値を同期
-            }
-        });
-
-        // 6. 不要な要素の削除
-        const removeSelectors = [
-            '.pdf-save-btn', 
-            'a[href*="line.me"]', 
-            '#import-diagnosis-id', 
-            'button[onclick="loadGameDataFromFirebase()"]',
-            '.detail-btn',
-            '#localExplCloseBtn'
-        ];
-        removeSelectors.forEach(sel => {
-            const els = clone.querySelectorAll(sel);
-            els.forEach(el => el.remove());
-        });
-
-        // 7. 内訳表の挿入
+        // 3. 生活費内訳の表示用DOMを作成して挿入
         const breakdownDiv = document.createElement('div');
-        breakdownDiv.className = 'pdf-breakdown-box';
+        breakdownDiv.id = 'pdf-breakdown-temp';
         breakdownDiv.innerHTML = `
             <h4>📊 あなたの生活費内訳メモ (月額)</h4>
             <div class="breakdown-grid">
@@ -1084,45 +1064,49 @@
                 <div class="breakdown-item">📦 その他: <strong>${livingBreakdown.other}</strong>万</div>
             </div>
         `;
-        const resultArea = clone.querySelector('#resultArea');
+        
+        const resultArea = document.getElementById('resultArea');
         if(resultArea && resultArea.parentNode) {
             resultArea.parentNode.insertBefore(breakdownDiv, resultArea);
         }
 
-        // ★★★ スワップ実行（ここが肝） ★★★
-        // オリジナルを隠し、クローンをbody直下に配置
-        originalContainer.style.display = 'none';
-        document.body.appendChild(clone);
-
-        // 8. PDF生成設定
+        // 4. PDF生成設定（幅を800px固定としてキャプチャ）
         const opt = {
-            margin:       [10, 10, 10, 10], // 余白少し広めに
+            margin:       [5, 5, 5, 5],
             filename:     'LifeRidge_Diagnosis.pdf',
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { 
                 scale: 2, 
-                useCORS: true, 
+                useCORS: true,
                 scrollY: 0,
                 scrollX: 0,
-                windowWidth: 800, 
-                width: 800
+                windowWidth: 800,  // ★重要：CSSで指定した幅と合わせる
+                width: 800         // ★重要：キャプチャ幅も固定
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
-        // 9. PDF生成実行
-        html2pdf().set(opt).from(clone).save().then(() => {
-            // 10. 完了後、元に戻す（リストア）
-            document.body.removeChild(clone);
-            originalContainer.style.display = 'block';
-            window.scrollTo(0, document.body.scrollHeight); // 最後に下までスクロール（使い勝手のため）
+        // 5. 生成実行
+        html2pdf().set(opt).from(element).save().then(() => {
+            // 6. 完了後の復旧（クラス削除・ボタン再表示）
+            element.classList.remove('pdf-printing');
+            if(breakdownDiv) breakdownDiv.remove();
+            if(btnPDF) btnPDF.style.display = 'inline-block';
+            if(btnLINE) btnLINE.style.display = 'inline-block';
+            if(btnImport) btnImport.style.display = 'inline-block';
+            if(inputArea) inputArea.style.display = 'inline-block';
+            detailBtns.forEach(btn => btn.style.display = 'block');
         }).catch(err => {
             console.error(err);
             alert("PDF生成に失敗しました。");
-            // エラー時も必ず復旧
-            if(document.body.contains(clone)) document.body.removeChild(clone);
-            originalContainer.style.display = 'block';
+            element.classList.remove('pdf-printing');
+            if(breakdownDiv) breakdownDiv.remove();
+            if(btnPDF) btnPDF.style.display = 'inline-block';
+            if(btnLINE) btnLINE.style.display = 'inline-block';
+            if(btnImport) btnImport.style.display = 'inline-block';
+            if(inputArea) inputArea.style.display = 'inline-block';
+            detailBtns.forEach(btn => btn.style.display = 'block');
         });
     }
     // ▲▲▲ PDF機能ここまで ▲▲▲
