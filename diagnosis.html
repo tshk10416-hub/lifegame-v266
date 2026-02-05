@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v47.0_PDF_Mobile_Preview_Fix
+    // バージョン確認用ID: v48.0_LINE_Detection_Final
     // =========================================================
 
     // ▼▼▼ PDF生成ライブラリの読み込み ▼▼▼
@@ -915,17 +915,17 @@
         .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 0.9em; }
         .breakdown-item { background: white; padding: 5px 10px; border-radius: 5px; border: 1px solid #e2e8f0; }
 
-        /* ★クローン用のスタイル（中央寄せ＆最前面） */
+        /* クローン用のスタイル */
         .pdf-clone-container {
             width: 800px !important;
             max-width: 800px !important;
-            margin: 0 auto !important; /* 中央寄せ */
+            margin: 0 auto !important; 
             padding: 40px !important;
             background: white !important;
             position: absolute !important;
             top: 0 !important;
-            left: 50% !important; /* 中央配置テクニック */
-            transform: translateX(-50%) !important; /* 中央配置テクニック */
+            left: 50% !important; 
+            transform: translateX(-50%) !important; 
             z-index: 99999 !important;
             box-sizing: border-box !important;
         }
@@ -945,7 +945,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @media (max-width: 768px) { 
             .unit-wrapper input { font-size: 16px !important; padding: 10px !important; }
-            /* スマホでの内訳表の見栄え */
             .breakdown-grid { grid-template-columns: 1fr 1fr; }
         }
     `;
@@ -1011,17 +1010,26 @@
         }, 100);
     });
 
-    // ▼▼▼ PDF保存機能（スマホ対応・中央寄せ版）▼▼▼
+    // ▼▼▼ PDF保存機能（LINE対策＆ズレ補正版）▼▼▼
     async function downloadPDF() {
+        // ★★★ 1. LINEアプリ判定＆誘導 ★★★
+        const ua = navigator.userAgent.toLowerCase();
+        const isLine = ua.indexOf('line') > -1;
+
+        if (isLine) {
+            alert("【LINEアプリをお使いの方へ】\n\nLINEのブラウザではセキュリティ制限によりPDFの保存ができません。\n\n画面右上のメニュー(︙または矢印)から\n「ブラウザで開く」\n(iPhoneならSafari、AndroidならChrome)\nを選択して、標準ブラウザで開き直してから再度保存ボタンを押してください。");
+            return; // 処理をここで中断して、エラー画面に行かせない
+        }
+
         window.scrollTo(0, 0);
 
-        // 1. クローン作成
+        // 2. クローン作成
         const originalContainer = document.querySelector('.container');
         if (!originalContainer) return;
         const clone = originalContainer.cloneNode(true);
         clone.classList.add('pdf-clone-container'); // 中央配置スタイル
 
-        // 2. グラフの画像化
+        // 3. グラフの画像化
         const originalCanvas = document.getElementById('comparisonChart');
         if (originalCanvas) {
             const img = document.createElement('img');
@@ -1034,7 +1042,7 @@
             }
         }
 
-        // 3. 入力値の同期
+        // 4. 入力値の同期
         const originalInputs = originalContainer.querySelectorAll('input, select, textarea');
         const cloneInputs = clone.querySelectorAll('input, select, textarea');
         originalInputs.forEach((input, index) => {
@@ -1044,13 +1052,13 @@
             }
         });
 
-        // 4. 不要要素の削除
+        // 5. 不要要素の削除
         const removeSelectors = ['.pdf-save-btn', 'a[href*="line.me"]', '#import-diagnosis-id', 'button[onclick="loadGameDataFromFirebase()"]', '.detail-btn', '#localExplCloseBtn'];
         removeSelectors.forEach(sel => {
             clone.querySelectorAll(sel).forEach(el => el.remove());
         });
 
-        // 5. 内訳表の挿入
+        // 6. 内訳表の挿入
         const breakdownDiv = document.createElement('div');
         breakdownDiv.className = 'pdf-breakdown-box';
         breakdownDiv.innerHTML = `
@@ -1070,11 +1078,8 @@
         const resultArea = clone.querySelector('#resultArea');
         if(resultArea && resultArea.parentNode) resultArea.parentNode.insertBefore(breakdownDiv, resultArea);
 
-        // 6. bodyに追加 (最前面・中央配置)
+        // 7. bodyに追加 (最前面・中央配置)
         document.body.appendChild(clone);
-
-        // 7. スマホ判定
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
         // 8. PDF生成設定
         const opt = {
@@ -1093,17 +1098,17 @@
         };
 
         // 9. 生成実行
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
         html2pdf().set(opt).from(clone).output('blob').then(function(blob) {
             const url = URL.createObjectURL(blob);
             
             if (isMobile) {
-                // ★スマホ（特にLINE）対策：別タブで開く
+                // スマホ：別タブで開いてユーザーに保存させる
                 window.open(url, '_blank');
-                // ※LINEの場合、これでもダメな場合がありますが、JSでできる限界の対応です
-                // 念のため、1秒後にrevoke
-                setTimeout(() => window.URL.revokeObjectURL(url), 60000); // 長めに保持
+                setTimeout(() => window.URL.revokeObjectURL(url), 60000); 
             } else {
-                // PC：通常ダウンロード
+                // PC：直接ダウンロード
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = 'LifeRidge_Diagnosis.pdf';
@@ -1117,7 +1122,7 @@
             if(document.body.contains(clone)) document.body.removeChild(clone);
         }).catch(err => {
             console.error(err);
-            alert("PDF生成エラー: ブラウザを変えてお試しください");
+            alert("PDF生成エラー: 標準ブラウザ(Chrome/Safari)でお試しください");
             if(document.body.contains(clone)) document.body.removeChild(clone);
         });
     }
