@@ -871,17 +871,18 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v48.0_LINE_Detection_Final
+    // バージョン確認用ID: v50.0_Image_Save_With_Details
     // =========================================================
 
-    // ▼▼▼ PDF生成ライブラリの読み込み ▼▼▼
-    const pdfScript = document.createElement('script');
-    pdfScript.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-    document.head.appendChild(pdfScript);
+    // ▼▼▼ 画像生成ライブラリ(html2canvas)の読み込み ▼▼▼
+    const canvasScript = document.createElement('script');
+    canvasScript.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+    document.head.appendChild(canvasScript);
 
     // ▼▼▼ CSS調整 ▼▼▼
     const styleFix = document.createElement('style');
     styleFix.innerHTML = `
+        /* 既存スタイル */
         .unit-wrapper { display: flex !important; align-items: center !important; width: 100% !important; box-sizing: border-box !important; }
         .unit-wrapper input, .unit-wrapper .real-input, .unit-wrapper .mini-input { width: 0 !important; flex-grow: 1 !important; min-width: 0 !important; border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; margin-right: -2px !important; }
         .unit-span { background-color: #edf2f7; border: 2px solid #bee3f8; border-left: none; color: #4a5568; font-weight: bold; font-size: 0.9rem; padding: 0 10px; height: auto; display: flex; align-items: center; justify-content: center; border-top-right-radius: 8px; border-bottom-right-radius: 8px; white-space: nowrap; align-self: stretch; }
@@ -894,29 +895,29 @@
         }
         .detail-btn:hover { background-color: #2b6cb0; }
 
-        .pdf-save-btn {
+        /* 保存ボタンのデザイン */
+        .save-img-btn {
             display: inline-block; background: #e53e3e; color: white;
-            padding: 12px 25px; border-radius: 50px;
-            text-decoration: none; font-weight: bold; font-size: 1.0em;
+            padding: 15px 30px; border-radius: 50px; /* 少し大きく */
+            text-decoration: none; font-weight: bold; font-size: 1.1em;
             box-shadow: 0 4px 10px rgba(229, 62, 62, 0.4);
             transition: transform 0.2s; border: none; cursor: pointer;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
-        .pdf-save-btn:hover { background-color: #c53030; transform: translateY(-2px); }
+        .save-img-btn:hover { background-color: #c53030; transform: translateY(-2px); }
 
-        /* 印刷用内訳表 */
-        .pdf-breakdown-box {
+        /* 画像用・内訳表のデザイン */
+        .img-breakdown-box {
             margin: 20px 0; padding: 15px;
             border: 2px dashed #bee3f8; border-radius: 10px;
             background-color: #f7fafc; width: 100%; box-sizing: border-box;
-            page-break-inside: avoid;
         }
-        .pdf-breakdown-box h4 { margin-top: 0; color: #2b6cb0; border-bottom: 1px solid #bee3f8; padding-bottom: 5px; }
+        .img-breakdown-box h4 { margin-top: 0; color: #2b6cb0; border-bottom: 1px solid #bee3f8; padding-bottom: 5px; }
         .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 0.9em; }
         .breakdown-item { background: white; padding: 5px 10px; border-radius: 5px; border: 1px solid #e2e8f0; }
 
-        /* クローン用のスタイル */
-        .pdf-clone-container {
+        /* 画像生成用のクローンコンテナ（A4幅相当に固定して綺麗に撮る） */
+        .img-clone-container {
             width: 800px !important;
             max-width: 800px !important;
             margin: 0 auto !important; 
@@ -926,8 +927,41 @@
             top: 0 !important;
             left: 50% !important; 
             transform: translateX(-50%) !important; 
-            z-index: 99999 !important;
+            z-index: -9999 !important; /* 画面の裏側で作る */
             box-sizing: border-box !important;
+        }
+
+        /* 画像プレビューモーダル（全画面） */
+        .img-preview-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 999999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        .img-preview-content {
+            background: transparent;
+            width: 90%; max-height: 80%;
+            overflow: auto;
+            text-align: center;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .img-preview-content img {
+            width: 100%; height: auto;
+            display: block;
+        }
+        .img-preview-msg {
+            color: #fff; font-weight: bold; font-size: 1.2em;
+            margin-bottom: 20px; text-align: center;
+            background: #e53e3e; padding: 10px 25px; border-radius: 50px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .img-close-btn {
+            margin-top: 20px;
+            background: white; color: #333; border: none;
+            padding: 12px 40px; border-radius: 30px;
+            font-weight: bold; cursor: pointer; font-size: 1.1em;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; display: none; justify-content: center; align-items: center; }
@@ -1010,30 +1044,38 @@
         }, 100);
     });
 
-    // ▼▼▼ PDF保存機能（LINE対策＆ズレ補正版）▼▼▼
-    async function downloadPDF() {
-        // ★★★ 1. LINEアプリ判定＆誘導 ★★★
-        const ua = navigator.userAgent.toLowerCase();
-        const isLine = ua.indexOf('line') > -1;
+    // ▼▼▼ 画像保存機能（LINE完全対応版）▼▼▼
+    async function saveAsImage() {
+        // 処理中表示への切り替え
+        const btn = document.querySelector('.save-img-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 画像を作成中...';
+        btn.style.opacity = "0.7";
 
-        if (isLine) {
-            alert("【LINEアプリをお使いの方へ】\n\nLINEのブラウザではセキュリティ制限によりPDFの保存ができません。\n\n画面右上のメニュー(︙または矢印)から\n「ブラウザで開く」\n(iPhoneならSafari、AndroidならChrome)\nを選択して、標準ブラウザで開き直してから再度保存ボタンを押してください。");
-            return; // 処理をここで中断して、エラー画面に行かせない
-        }
-
+        // 1. スクロールリセット
         window.scrollTo(0, 0);
 
-        // 2. クローン作成
+        // 2. クローン作成（A4幅固定・高解像度用）
         const originalContainer = document.querySelector('.container');
         if (!originalContainer) return;
+        
         const clone = originalContainer.cloneNode(true);
-        clone.classList.add('pdf-clone-container'); // 中央配置スタイル
+        clone.classList.add('img-clone-container'); // 裏側で800px幅にする
 
-        // 3. グラフの画像化
+        // 3. グラフの画像化（Canvas対策）
         const originalCanvas = document.getElementById('comparisonChart');
         if (originalCanvas) {
             const img = document.createElement('img');
-            img.src = originalCanvas.toDataURL('image/jpeg', 1.0); 
+            // 白背景をつけてJPEG化
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = originalCanvas.width;
+            tempCanvas.height = originalCanvas.height;
+            const ctx = tempCanvas.getContext('2d');
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            ctx.drawImage(originalCanvas, 0, 0);
+            
+            img.src = tempCanvas.toDataURL('image/jpeg', 1.0); 
             img.style.width = '100%';
             img.style.height = 'auto';
             const cloneCanvas = clone.querySelector('#comparisonChart');
@@ -1053,14 +1095,14 @@
         });
 
         // 5. 不要要素の削除
-        const removeSelectors = ['.pdf-save-btn', 'a[href*="line.me"]', '#import-diagnosis-id', 'button[onclick="loadGameDataFromFirebase()"]', '.detail-btn', '#localExplCloseBtn'];
+        const removeSelectors = ['.save-img-btn', 'a[href*="line.me"]', '#import-diagnosis-id', 'button[onclick="loadGameDataFromFirebase()"]', '.detail-btn', '#localExplCloseBtn'];
         removeSelectors.forEach(sel => {
             clone.querySelectorAll(sel).forEach(el => el.remove());
         });
 
-        // 6. 内訳表の挿入
+        // 6. ★生活費内訳表の挿入★
         const breakdownDiv = document.createElement('div');
-        breakdownDiv.className = 'pdf-breakdown-box';
+        breakdownDiv.className = 'img-breakdown-box';
         breakdownDiv.innerHTML = `
             <h4>📊 あなたの生活費内訳メモ (月額)</h4>
             <div class="breakdown-grid">
@@ -1078,55 +1120,53 @@
         const resultArea = clone.querySelector('#resultArea');
         if(resultArea && resultArea.parentNode) resultArea.parentNode.insertBefore(breakdownDiv, resultArea);
 
-        // 7. bodyに追加 (最前面・中央配置)
+        // 7. bodyに追加 (裏側でレンダリング)
         document.body.appendChild(clone);
 
-        // 8. PDF生成設定
-        const opt = {
-            margin: [10, 10, 10, 10],
-            filename: 'LifeRidge_Diagnosis.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { 
-                scale: 2, 
-                useCORS: true, 
-                scrollY: 0,
-                windowWidth: 800, 
-                width: 800 
-            },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-        };
+        // 8. 画像生成 (html2canvas)
+        try {
+            // 少し待ってからキャプチャ（安定性向上）
+            await new Promise(resolve => setTimeout(resolve, 300));
 
-        // 9. 生成実行
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-        html2pdf().set(opt).from(clone).output('blob').then(function(blob) {
-            const url = URL.createObjectURL(blob);
+            const canvas = await html2canvas(clone, {
+                scale: 2, // 高画質
+                useCORS: true,
+                windowWidth: 800, // 仮想ウィンドウ幅
+                width: 800, // キャプチャ幅
+                logging: false,
+                backgroundColor: '#ffffff' // 背景白
+            });
             
-            if (isMobile) {
-                // スマホ：別タブで開いてユーザーに保存させる
-                window.open(url, '_blank');
-                setTimeout(() => window.URL.revokeObjectURL(url), 60000); 
-            } else {
-                // PC：直接ダウンロード
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'LifeRidge_Diagnosis.pdf';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            }
+            const imgData = canvas.toDataURL("image/jpeg", 0.9);
+            
+            // 9. プレビューモーダルを表示
+            showImagePreview(imgData);
 
-            // クローン削除
-            if(document.body.contains(clone)) document.body.removeChild(clone);
-        }).catch(err => {
+        } catch(err) {
             console.error(err);
-            alert("PDF生成エラー: 標準ブラウザ(Chrome/Safari)でお試しください");
+            alert("画像生成に失敗しました。もう一度お試しください。");
+        } finally {
+            // 後片付け
             if(document.body.contains(clone)) document.body.removeChild(clone);
-        });
+            btn.innerHTML = originalText;
+            btn.style.opacity = "1";
+        }
     }
-    // ▲▲▲ PDF機能ここまで ▲▲▲
+
+    function showImagePreview(dataUrl) {
+        // モーダル作成
+        const overlay = document.createElement('div');
+        overlay.className = 'img-preview-overlay';
+        overlay.innerHTML = `
+            <div class="img-preview-msg">👇 画像を長押しして保存してください</div>
+            <div class="img-preview-content">
+                <img src="${dataUrl}" alt="診断結果">
+            </div>
+            <button class="img-close-btn" onclick="this.parentElement.remove()">閉じる</button>
+        `;
+        document.body.appendChild(overlay);
+    }
+    // ▲▲▲ 画像機能ここまで ▲▲▲
 
     function initLivingDetailFeature() {
         const targetInput = document.getElementById('r-living-monthly');
@@ -1591,12 +1631,13 @@
         else if (s.final >= 0) html += `<div style="background:#ebf8ff; border-left:4px solid #2b6cb0; padding:10px;"><strong style="color:#2c5282;">【Aランク】 概ね順調な計画です。</strong><p>今の生活水準であれば、平均的な寿命まで資金ショートすることなく暮らせるでしょう。</p></div>`;
         else html += `<div style="background:#fff5f5; border-left:4px solid #e53e3e; padding:10px;"><strong style="color:#c53030;">【要対策】 見直しを推奨します。</strong><p>老後資金が不足するリスクがあります。iDeCoやNISAでの準備を急ぎましょう。</p></div>`;
         
+        // ▼▼▼ 保存ボタン（画像）とLINEボタンの配置 ▼▼▼
         html += `
             <div style="text-align:center; margin-top:25px; margin-bottom:10px;">
                 <p style="font-size:0.9em; font-weight:bold; color:#2b6cb0; margin-bottom:10px;">▼ あなただけの改善プランを作成 ▼</p>
                 
-                <button class="pdf-save-btn" onclick="downloadPDF()">
-                    <i class="fas fa-file-pdf"></i> 診断結果をPDFで保存する
+                <button class="save-img-btn" onclick="saveAsImage()">
+                    <i class="fas fa-images"></i> 診断結果を画像で保存する
                 </button>
                 <br>
 
