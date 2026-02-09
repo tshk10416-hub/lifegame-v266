@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v50.0_Image_Save_With_Details
+    // バージョン確認用ID: v55.0_Dual_Report_Generation
     // =========================================================
 
     // ▼▼▼ 画像生成ライブラリ(html2canvas)の読み込み ▼▼▼
@@ -895,10 +895,10 @@
         }
         .detail-btn:hover { background-color: #2b6cb0; }
 
-        /* 保存ボタンのデザイン */
+        /* 保存ボタン */
         .save-img-btn {
             display: inline-block; background: #e53e3e; color: white;
-            padding: 15px 30px; border-radius: 50px; /* 少し大きく */
+            padding: 15px 30px; border-radius: 50px;
             text-decoration: none; font-weight: bold; font-size: 1.1em;
             box-shadow: 0 4px 10px rgba(229, 62, 62, 0.4);
             transition: transform 0.2s; border: none; cursor: pointer;
@@ -906,62 +906,70 @@
         }
         .save-img-btn:hover { background-color: #c53030; transform: translateY(-2px); }
 
-        /* 画像用・内訳表のデザイン */
-        .img-breakdown-box {
-            margin: 20px 0; padding: 15px;
-            border: 2px dashed #bee3f8; border-radius: 10px;
-            background-color: #f7fafc; width: 100%; box-sizing: border-box;
+        /* ★★★ レポート生成用共通スタイル ★★★ */
+        .report-container {
+            width: 800px;
+            background: #ffffff;
+            padding: 40px;
+            box-sizing: border-box;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            color: #333;
+            /* 撮影時は最前面に配置（ただしユーザーの邪魔にならないようz-index調整） */
+            position: absolute;
+            top: 0; left: 0;
+            z-index: -1000; /* 裏側に配置 */
         }
-        .img-breakdown-box h4 { margin-top: 0; color: #2b6cb0; border-bottom: 1px solid #bee3f8; padding-bottom: 5px; }
-        .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 0.9em; }
-        .breakdown-item { background: white; padding: 5px 10px; border-radius: 5px; border: 1px solid #e2e8f0; }
-
-        /* 画像生成用のクローンコンテナ（A4幅相当に固定して綺麗に撮る） */
-        .img-clone-container {
-            width: 800px !important;
-            max-width: 800px !important;
-            margin: 0 auto !important; 
-            padding: 40px !important;
-            background: white !important;
-            position: absolute !important;
-            top: 0 !important;
-            left: 50% !important; 
-            transform: translateX(-50%) !important; 
-            z-index: -9999 !important; /* 画面の裏側で作る */
-            box-sizing: border-box !important;
+        .report-header {
+            text-align: center; border-bottom: 3px solid #2b6cb0; padding-bottom: 20px; margin-bottom: 30px;
+            display: flex; justify-content: space-between; align-items: flex-end;
         }
+        .report-title { font-size: 28px; font-weight: bold; color: #2b6cb0; margin: 0; }
+        .report-meta { font-size: 14px; color: #666; text-align: right; }
+        
+        .report-section { margin-bottom: 25px; background: #f7fafc; border-radius: 12px; padding: 15px; border: 1px solid #e2e8f0; }
+        .report-h3 { font-size: 20px; color: #2d3748; border-bottom: 2px solid #bee3f8; padding-bottom: 8px; margin-top: 0; margin-bottom: 12px; }
+        
+        /* グリッドレイアウト */
+        .report-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .report-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        
+        .report-item { background: white; padding: 10px 15px; border-radius: 8px; border: 1px solid #cbd5e0; font-size: 15px; }
+        .report-item-label { font-size: 0.9em; color: #666; display: block; margin-bottom: 3px; }
+        .report-item-val { font-size: 1.2em; font-weight: bold; color: #2d3748; }
+        
+        /* 結果強調 */
+        .report-big-box { text-align: center; padding: 20px; background: #fff; border: 2px solid #2b6cb0; border-radius: 10px; margin-top: 10px; }
+        .report-big-label { font-size: 18px; color: #555; }
+        .report-big-val { font-size: 42px; font-weight: bold; color: #2b6cb0; margin: 5px 0; }
 
-        /* 画像プレビューモーダル（全画面） */
+        /* 画像プレビューモーダル */
         .img-preview-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 999999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.9); z-index: 999999;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            overflow-y: auto; padding-top: 40px; -webkit-overflow-scrolling: touch;
+        }
+        .img-preview-msg {
+            color: #fff; font-weight: bold; font-size: 1.1em;
+            margin-bottom: 20px; text-align: center;
+            background: #e53e3e; padding: 10px 20px; border-radius: 50px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            flex-shrink: 0;
         }
         .img-preview-content {
-            background: transparent;
-            width: 90%; max-height: 80%;
-            overflow: auto;
-            text-align: center;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            width: 90%; max-width: 600px;
+            text-align: center; margin-bottom: 30px;
+            display: flex; flex-direction: column; gap: 20px; /* 画像間の隙間 */
         }
         .img-preview-content img {
             width: 100%; height: auto;
-            display: block;
-        }
-        .img-preview-msg {
-            color: #fff; font-weight: bold; font-size: 1.2em;
-            margin-bottom: 20px; text-align: center;
-            background: #e53e3e; padding: 10px 25px; border-radius: 50px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 4px solid white; border-radius: 4px;
+            pointer-events: auto; -webkit-user-select: none; user-select: none; -webkit-touch-callout: default;
         }
         .img-close-btn {
-            margin-top: 20px;
-            background: white; color: #333; border: none;
-            padding: 12px 40px; border-radius: 30px;
-            font-weight: bold; cursor: pointer; font-size: 1.1em;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            margin-bottom: 40px; background: white; color: #333; border: none;
+            padding: 12px 40px; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 1.1em;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); flex-shrink: 0;
         }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; display: none; justify-content: center; align-items: center; }
@@ -977,10 +985,7 @@
         .btn-confirm { flex: 2; background: #48bb78; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(72,187,120,0.3); }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @media (max-width: 768px) { 
-            .unit-wrapper input { font-size: 16px !important; padding: 10px !important; }
-            .breakdown-grid { grid-template-columns: 1fr 1fr; }
-        }
+        @media (max-width: 768px) { .unit-wrapper input { font-size: 16px !important; padding: 10px !important; } }
     `;
     document.head.appendChild(styleFix);
 
@@ -1044,29 +1049,43 @@
         }, 100);
     });
 
-    // ▼▼▼ 画像保存機能（LINE完全対応版）▼▼▼
+    // ▼▼▼ 画像保存機能（2枚組レポート生成）▼▼▼
     async function saveAsImage() {
-        // 処理中表示への切り替え
         const btn = document.querySelector('.save-img-btn');
         const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 画像を作成中...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 作成中...';
         btn.style.opacity = "0.7";
 
-        // 1. スクロールリセット
-        window.scrollTo(0, 0);
+        // --- データ収集 ---
+        const today = new Date().toLocaleDateString('ja-JP');
+        // 数値取得(整形) helper
+        const getVal = (id) => (parseFloat(document.getElementById(id)?.value) || 0).toLocaleString();
+        const getText = (id) => document.getElementById(id)?.innerText || "";
+        // 各種合計値(datasetから取得)
+        const getTotal = (id) => Math.round(parseFloat(document.getElementById(id)?.dataset?.total) || 0).toLocaleString();
 
-        // 2. クローン作成（A4幅固定・高解像度用）
-        const originalContainer = document.querySelector('.container');
-        if (!originalContainer) return;
+        const vMarriage = getVal('r-marriage');
+        const vChild = getTotal('child-total-preview');
+        const vHouse = getVal('r-house');
+        const vCar = getTotal('car-total-preview');
+        const vIns = getTotal('insurance-total-preview');
+        const vLive = getTotal('living-total-preview');
+        const vOther = getVal('r-others');
+        const vRetire = getVal('r-retirement');
+        const vSave = getVal('currentSavings');
         
-        const clone = originalContainer.cloneNode(true);
-        clone.classList.add('img-clone-container'); // 裏側で800px幅にする
+        // 65歳時点資産
+        const bal65 = currentIncomeBalanceAt65.toLocaleString();
+        const bal65Color = currentIncomeBalanceAt65 >= 0 ? '#48bb78' : '#e53e3e';
 
-        // 3. グラフの画像化（Canvas対策）
+        // 老後シミュレーション
+        const simRes = document.getElementById('sim-final-asset').innerText;
+        const simAge = document.getElementById('sim-age').value || 95;
+
+        // グラフ画像化
         const originalCanvas = document.getElementById('comparisonChart');
-        if (originalCanvas) {
-            const img = document.createElement('img');
-            // 白背景をつけてJPEG化
+        let chartImgSrc = "";
+        if(originalCanvas) {
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = originalCanvas.width;
             tempCanvas.height = originalCanvas.height;
@@ -1074,95 +1093,123 @@
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
             ctx.drawImage(originalCanvas, 0, 0);
-            
-            img.src = tempCanvas.toDataURL('image/jpeg', 1.0); 
-            img.style.width = '100%';
-            img.style.height = 'auto';
-            const cloneCanvas = clone.querySelector('#comparisonChart');
-            if (cloneCanvas && cloneCanvas.parentNode) {
-                cloneCanvas.parentNode.replaceChild(img, cloneCanvas);
-            }
+            chartImgSrc = tempCanvas.toDataURL('image/jpeg', 1.0);
         }
 
-        // 4. 入力値の同期
-        const originalInputs = originalContainer.querySelectorAll('input, select, textarea');
-        const cloneInputs = clone.querySelectorAll('input, select, textarea');
-        originalInputs.forEach((input, index) => {
-            if (cloneInputs[index]) {
-                cloneInputs[index].value = input.value;
-                if(input.tagName === 'SELECT') cloneInputs[index].selectedIndex = input.selectedIndex;
-            }
-        });
+        // --- レポート1枚目作成 ---
+        const report1 = document.createElement('div');
+        report1.className = 'report-container';
+        report1.id = 'report-1';
+        report1.innerHTML = `
+            <div class="report-header">
+                <div class="report-title">ライフリッジ診断 [1/2]</div>
+                <div class="report-meta">${today} 作成</div>
+            </div>
+            
+            <div class="report-section">
+                <h3 class="report-h3">📝 人生の主要支出・収入 (現在〜65歳)</h3>
+                <div class="report-grid-2">
+                    <div class="report-item"><span class="report-item-label">💍 結婚費用</span><span class="report-item-val">${vMarriage} 万円</span></div>
+                    <div class="report-item"><span class="report-item-label">👶 子供・教育費</span><span class="report-item-val">${vChild} 万円</span></div>
+                    <div class="report-item"><span class="report-item-label">🏠 住宅購入</span><span class="report-item-val">${vHouse} 万円</span></div>
+                    <div class="report-item"><span class="report-item-label">🚗 車両・維持費</span><span class="report-item-val">${vCar} 万円</span></div>
+                    <div class="report-item"><span class="report-item-label">🏥 保険総額</span><span class="report-item-val">${vIns} 万円</span></div>
+                    <div class="report-item"><span class="report-item-label">🍱 生活費総額</span><span class="report-item-val">${vLive} 万円</span></div>
+                    <div class="report-item"><span class="report-item-label">📦 その他</span><span class="report-item-val">${vOther} 万円</span></div>
+                    <div class="report-item"><span class="report-item-label">💰 現在の貯蓄</span><span class="report-item-val">${vSave} 万円</span></div>
+                    <div class="report-item" style="grid-column: span 2; background:#ebf8ff; border-color:#bee3f8;">
+                        <span class="report-item-label">👴 退職金見込み</span><span class="report-item-val">${vRetire} 万円</span>
+                    </div>
+                </div>
+            </div>
 
-        // 5. 不要要素の削除
-        const removeSelectors = ['.save-img-btn', 'a[href*="line.me"]', '#import-diagnosis-id', 'button[onclick="loadGameDataFromFirebase()"]', '.detail-btn', '#localExplCloseBtn'];
-        removeSelectors.forEach(sel => {
-            clone.querySelectorAll(sel).forEach(el => el.remove());
-        });
-
-        // 6. ★生活費内訳表の挿入★
-        const breakdownDiv = document.createElement('div');
-        breakdownDiv.className = 'img-breakdown-box';
-        breakdownDiv.innerHTML = `
-            <h4>📊 あなたの生活費内訳メモ (月額)</h4>
-            <div class="breakdown-grid">
-                <div class="breakdown-item">🍱 食費: <strong>${livingBreakdown.food}</strong>万</div>
-                <div class="breakdown-item">💡 光熱費: <strong>${livingBreakdown.utility}</strong>万</div>
-                <div class="breakdown-item">📱 通信費: <strong>${livingBreakdown.comm}</strong>万</div>
-                <div class="breakdown-item">🏥 医療費: <strong>${livingBreakdown.medical}</strong>万</div>
-                <div class="breakdown-item">🚃 交通費: <strong>${livingBreakdown.transport}</strong>万</div>
-                <div class="breakdown-item">🧻 日用品: <strong>${livingBreakdown.daily}</strong>万</div>
-                <div class="breakdown-item">🪑 家具等: <strong>${livingBreakdown.furniture}</strong>万</div>
-                <div class="breakdown-item">👛 お小遣い: <strong>${livingBreakdown.pocket}</strong>万</div>
-                <div class="breakdown-item">📦 その他: <strong>${livingBreakdown.other}</strong>万</div>
+            <div class="report-section">
+                <h3 class="report-h3">📊 65歳時点の資産総額予測</h3>
+                <div class="report-big-box" style="border-color:${bal65Color}">
+                    <div class="report-big-label">あなたの資産残高</div>
+                    <div class="report-big-val" style="color:${bal65Color}">${bal65} 万円</div>
+                    <div style="font-size:14px; color:#666;">(※現役引退時の想定資産)</div>
+                </div>
             </div>
         `;
-        const resultArea = clone.querySelector('#resultArea');
-        if(resultArea && resultArea.parentNode) resultArea.parentNode.insertBefore(breakdownDiv, resultArea);
+        document.body.appendChild(report1);
 
-        // 7. bodyに追加 (裏側でレンダリング)
-        document.body.appendChild(clone);
+        // --- レポート2枚目作成 ---
+        const report2 = document.createElement('div');
+        report2.className = 'report-container';
+        report2.id = 'report-2';
+        report2.innerHTML = `
+            <div class="report-header">
+                <div class="report-title">ライフリッジ診断 [2/2]</div>
+                <div class="report-meta">${today} 作成</div>
+            </div>
 
-        // 8. 画像生成 (html2canvas)
+            <div class="report-section">
+                <h3 class="report-h3">👴 老後資金シミュレーション</h3>
+                <div class="report-big-box">
+                    <div class="report-big-label">想定寿命(${simAge}歳)時点の残高</div>
+                    <div class="report-big-val">${simRes}</div>
+                </div>
+            </div>
+
+            <div class="report-section">
+                <h3 class="report-h3">📉 収支バランス比較</h3>
+                <img src="${chartImgSrc}" style="width:100%; height:auto; border-radius:8px;">
+            </div>
+
+            <div class="report-section">
+                <h3 class="report-h3">👛 生活費の内訳 (月額)</h3>
+                <div class="report-grid-3">
+                    <div class="report-item"><span class="report-item-label">🍱 食費</span><span class="report-item-val">${livingBreakdown.food}万</span></div>
+                    <div class="report-item"><span class="report-item-label">💡 光熱費</span><span class="report-item-val">${livingBreakdown.utility}万</span></div>
+                    <div class="report-item"><span class="report-item-label">📱 通信費</span><span class="report-item-val">${livingBreakdown.comm}万</span></div>
+                    <div class="report-item"><span class="report-item-label">🏥 医療費</span><span class="report-item-val">${livingBreakdown.medical}万</span></div>
+                    <div class="report-item"><span class="report-item-label">👛 小遣い</span><span class="report-item-val">${livingBreakdown.pocket}万</span></div>
+                    <div class="report-item"><span class="report-item-label">📦 その他</span><span class="report-item-val">${livingBreakdown.other}万</span></div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(report2);
+
+        // --- 撮影 & 表示 ---
         try {
-            // 少し待ってからキャプチャ（安定性向上）
-            await new Promise(resolve => setTimeout(resolve, 300));
+            await new Promise(resolve => setTimeout(resolve, 500)); // 描画待ち
 
-            const canvas = await html2canvas(clone, {
-                scale: 2, // 高画質
-                useCORS: true,
-                windowWidth: 800, // 仮想ウィンドウ幅
-                width: 800, // キャプチャ幅
-                logging: false,
-                backgroundColor: '#ffffff' // 背景白
-            });
+            const opt = { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' };
             
-            const imgData = canvas.toDataURL("image/jpeg", 0.9);
-            
-            // 9. プレビューモーダルを表示
-            showImagePreview(imgData);
+            const canvas1 = await html2canvas(report1, opt);
+            const imgData1 = canvas1.toDataURL("image/jpeg", 0.9);
+
+            const canvas2 = await html2canvas(report2, opt);
+            const imgData2 = canvas2.toDataURL("image/jpeg", 0.9);
+
+            showDualImagePreview(imgData1, imgData2);
 
         } catch(err) {
             console.error(err);
-            alert("画像生成に失敗しました。もう一度お試しください。");
+            alert("画像作成に失敗しました");
         } finally {
-            // 後片付け
-            if(document.body.contains(clone)) document.body.removeChild(clone);
+            if(document.body.contains(report1)) document.body.removeChild(report1);
+            if(document.body.contains(report2)) document.body.removeChild(report2);
             btn.innerHTML = originalText;
             btn.style.opacity = "1";
         }
     }
 
-    function showImagePreview(dataUrl) {
-        // モーダル作成
+    function showDualImagePreview(src1, src2) {
+        // 既存モーダル削除
+        const existing = document.querySelector('.img-preview-overlay');
+        if(existing) existing.remove();
+
         const overlay = document.createElement('div');
         overlay.className = 'img-preview-overlay';
         overlay.innerHTML = `
-            <div class="img-preview-msg">👇 画像を長押しして保存してください</div>
+            <div class="img-preview-msg">👇 2枚の画像をそれぞれ長押しして保存</div>
             <div class="img-preview-content">
-                <img src="${dataUrl}" alt="診断結果">
+                <img src="${src1}" alt="レポート1">
+                <img src="${src2}" alt="レポート2">
+                <button class="img-close-btn" onclick="this.closest('.img-preview-overlay').remove()">閉じる</button>
             </div>
-            <button class="img-close-btn" onclick="this.parentElement.remove()">閉じる</button>
         `;
         document.body.appendChild(overlay);
     }
