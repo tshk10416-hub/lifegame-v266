@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v65.0_White_Image_Fix_Visible_Layer
+    // バージョン確認用ID: v66.0_Touch_Event_Unlock
     // =========================================================
 
     // ▼▼▼ 画像生成ライブラリ(html2canvas)の読み込み ▼▼▼
@@ -906,7 +906,7 @@
         }
         .save-img-btn:hover { background-color: #c53030; transform: translateY(-2px); }
 
-        /* ★★★ レポート生成用スタイル（撮影用） ★★★ */
+        /* レポート生成用スタイル（撮影用） */
         .report-container {
             width: 800px;
             background: #ffffff;
@@ -914,30 +914,21 @@
             box-sizing: border-box;
             font-family: sans-serif;
             color: #333;
-            
-            /* ★重要修正：透明にせず、z-indexでカーテンの下に配置する */
+            /* 撮影時は最前面に配置（白紙防止） */
             position: absolute;
             top: 0; left: 0;
-            z-index: 10000; /* 元画面より上 */
-            opacity: 1;     /* 透明にしない！ */
+            z-index: 10000;
             visibility: visible;
         }
         .report-header {
-            text-align: center; border-bottom: 3px solid #2b6cb0; padding-bottom: 20px; margin-bottom: 30px;
+            text-align: center; border-bottom: 3px solid #2b6cb0; padding-bottom: 15px; margin-bottom: 20px;
             display: flex; justify-content: space-between; align-items: flex-end;
         }
-        .report-title { font-size: 28px; font-weight: bold; color: #2b6cb0; margin: 0; }
+        .report-title { font-size: 26px; font-weight: bold; color: #2b6cb0; margin: 0; }
         .report-meta { font-size: 14px; color: #666; text-align: right; }
         
-        .report-section { margin-bottom: 25px; background: #f7fafc; border-radius: 12px; padding: 15px; border: 1px solid #e2e8f0; }
-        .report-h3 { font-size: 20px; color: #2d3748; border-bottom: 2px solid #bee3f8; padding-bottom: 8px; margin-top: 0; margin-bottom: 12px; }
-        
-        .report-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .report-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        
-        .report-item { background: white; padding: 10px 15px; border-radius: 8px; border: 1px solid #cbd5e0; font-size: 15px; }
-        .report-item-label { font-size: 0.9em; color: #666; display: block; margin-bottom: 3px; }
-        .report-item-val { font-size: 1.2em; font-weight: bold; color: #2d3748; }
+        .report-section { margin-bottom: 20px; background: #f7fafc; border-radius: 12px; padding: 15px; border: 1px solid #e2e8f0; }
+        .report-h3 { font-size: 18px; color: #2d3748; border-bottom: 2px solid #bee3f8; padding-bottom: 5px; margin-top: 0; margin-bottom: 10px; }
         
         .report-profile-box { display: flex; justify-content: space-between; background: #ebf8ff; padding: 15px; border-radius: 8px; border: 1px solid #bee3f8; margin-bottom: 20px; }
         .profile-item { text-align: center; flex: 1; border-right: 1px solid #cbd5e0; }
@@ -946,15 +937,21 @@
         .profile-val { font-size: 18px; font-weight: bold; color: #2b6cb0; }
         .profile-sub { font-size: 11px; color: #666; }
 
-        .report-big-box { text-align: center; padding: 20px; background: #fff; border: 2px solid #2b6cb0; border-radius: 10px; margin-top: 10px; }
-        .report-big-label { font-size: 18px; color: #555; }
-        .report-big-val { font-size: 42px; font-weight: bold; color: #2b6cb0; margin: 5px 0; }
+        .report-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .report-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        
+        .report-item { background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 14px; }
+        .report-item-label { font-size: 0.85em; color: #666; display: block; margin-bottom: 2px; }
+        .report-item-val { font-size: 1.1em; font-weight: bold; color: #2d3748; }
+        
+        .report-big-box { text-align: center; padding: 15px; background: #fff; border: 2px solid #2b6cb0; border-radius: 10px; margin-top: 5px; }
+        .report-big-label { font-size: 16px; color: #555; }
+        .report-big-val { font-size: 36px; font-weight: bold; color: #2b6cb0; margin: 5px 0; }
 
         /* 作業中の目隠しカーテン */
         #loading-curtain {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #ffffff; /* 完全な白 */
-            z-index: 20000; /* レポート(10000)より上 */
+            background: #ffffff; z-index: 20000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: #2b6cb0;
         }
@@ -963,33 +960,39 @@
         /* 画像プレビューモーダル */
         .img-preview-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 2147483647; /* 最前面 */
+            background: rgba(0,0,0,0.92); z-index: 2147483647;
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
             overflow-y: auto; padding-top: 20px; padding-bottom: 40px;
             -webkit-overflow-scrolling: touch;
         }
-        .img-preview-header {
-            width: 100%; text-align: center; margin-bottom: 15px; flex-shrink: 0;
-        }
         .img-preview-msg {
-            color: #fff; font-weight: bold; font-size: 1.0em;
-            background: #e53e3e; padding: 8px 20px; border-radius: 50px;
-            display: inline-block;
+            color: #fff; font-weight: bold; font-size: 1.1em;
+            margin-bottom: 20px; text-align: center;
+            background: #e53e3e; padding: 12px 25px; border-radius: 50px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            flex-shrink: 0;
         }
         .img-preview-content {
             width: 95%; max-width: 600px;
-            text-align: center; margin-bottom: 20px; flex-shrink: 0;
+            text-align: center; margin-bottom: 20px;
+            display: flex; flex-direction: column; gap: 20px;
         }
         
-        /* 長押し対応CSS */
+        /* ★★★ 長押し完全許可CSS ★★★ */
         .img-preview-content img {
             width: 100%; height: auto;
             border: 2px solid white; border-radius: 4px;
+            
+            /* タッチイベントをOSに委ねる */
             pointer-events: auto !important; 
-            touch-action: pan-y !important;
-            -webkit-user-select: none !important;
-            -webkit-touch-callout: default !important; 
-            user-select: none !important;
+            
+            /* 長押しメニューを許可 */
+            -webkit-touch-callout: default !important;
+            
+            /* 選択は禁止だが画像としての操作は許可 */
+            -webkit-user-select: none;
+            user-select: none;
+            
             display: block;
         }
         
@@ -1076,14 +1079,14 @@
         }, 100);
     });
 
-    // ▼▼▼ 画像保存機能（白紙対策・完全版）▼▼▼
+    // ▼▼▼ 画像保存機能（カーテン方式・長押し完全対応）▼▼▼
     async function saveAsImage() {
         const btn = document.querySelector('.save-img-btn');
         const originalText = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 作成中...';
         btn.style.opacity = "0.7";
 
-        // 1. カーテン表示（Z-index: 20000）
+        // 1. カーテン表示
         const curtain = document.createElement('div');
         curtain.id = 'loading-curtain';
         curtain.innerHTML = '<i class="fas fa-camera fa-3x fa-spin"></i><div>画像を生成しています...</div>';
@@ -1132,13 +1135,13 @@
             chartImgSrc = tempCanvas.toDataURL('image/jpeg', 1.0);
         }
 
-        // --- 統合レポート作成（Z-index: 10000） ---
-        // カーテンの下、元画面の上に配置して「見えている」状態にする
-        const report = document.createElement('div');
-        report.className = 'report-container';
-        report.innerHTML = `
+        // --- レポート1枚目 ---
+        const report1 = document.createElement('div');
+        report1.className = 'report-container';
+        report1.id = 'report-1';
+        report1.innerHTML = `
             <div class="report-header">
-                <div class="report-title">ライフリッジ診断結果</div>
+                <div class="report-title">ライフリッジ診断 [1/2]</div>
                 <div class="report-meta">${today} 作成</div>
             </div>
             
@@ -1196,6 +1199,19 @@
                     <div class="report-big-val" style="color:${bal65Color}">${bal65} 万円</div>
                 </div>
             </div>
+        `;
+        document.body.appendChild(report1);
+
+        // --- レポート2枚目 ---
+        const report2 = document.createElement('div');
+        report2.className = 'report-container';
+        report2.id = 'report-2';
+        report2.style.top = (report1.offsetHeight + 50) + 'px'; 
+        report2.innerHTML = `
+            <div class="report-header">
+                <div class="report-title">ライフリッジ診断 [2/2]</div>
+                <div class="report-meta">${today} 作成</div>
+            </div>
 
             <div class="report-section">
                 <h3 class="report-h3">👴 老後資金シミュレーション</h3>
@@ -1220,61 +1236,61 @@
                 Produced by LifeRidge
             </div>
         `;
-        document.body.appendChild(report);
+        document.body.appendChild(report2);
 
-        // --- 撮影 & 自動保存 or 表示 ---
+        // --- 撮影 & 表示 ---
         try {
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            const canvas = await html2canvas(report, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
+            const opt = { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' };
             
-            const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+            const canvas1 = await html2canvas(report1, opt);
+            const dataUrl1 = canvas1.toDataURL("image/jpeg", 0.95);
 
-            // 1. 自動ダウンロード試行
-            const link = document.createElement('a');
-            link.href = dataUrl;
-            link.download = 'LifeRidge_Diagnosis.jpg';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const canvas2 = await html2canvas(report2, opt);
+            const dataUrl2 = canvas2.toDataURL("image/jpeg", 0.95);
 
-            // 2. カーテン消去 & プレビュー表示
             if(document.body.contains(curtain)) document.body.removeChild(curtain);
-            showImagePreview(dataUrl);
+            
+            // スクロールを禁止してモーダルに集中させる
+            document.body.style.overflow = 'hidden';
+            showDualImagePreview(dataUrl1, dataUrl2);
 
         } catch(err) {
             console.error(err);
             if(document.body.contains(curtain)) document.body.removeChild(curtain);
             alert("画像作成に失敗しました。\nもう一度お試しください。");
         } finally {
-            if(document.body.contains(report)) document.body.removeChild(report);
+            if(document.body.contains(report1)) document.body.removeChild(report1);
+            if(document.body.contains(report2)) document.body.removeChild(report2);
             btn.innerHTML = originalText;
             btn.style.opacity = "1";
         }
     }
 
-    function showImagePreview(dataUrl) {
+    function showDualImagePreview(src1, src2) {
         const existing = document.querySelector('.img-preview-overlay');
         if(existing) existing.remove();
 
         const overlay = document.createElement('div');
         overlay.className = 'img-preview-overlay';
         
-        // イベント遮断設定（長押し許可）
-        overlay.addEventListener('touchstart', function(e){ e.stopPropagation(); }, {passive: false});
-        overlay.addEventListener('touchend', function(e){ e.stopPropagation(); }, {passive: false});
-        overlay.addEventListener('contextmenu', function(e){ e.stopPropagation(); }, false); 
-
+        // シンプルなクリックリスナーのみ（バブリングを許容することで長押しを通す）
         overlay.innerHTML = `
-            <div class="img-preview-header">
-                <div class="img-preview-msg">👇 画像を長押しして保存</div>
-            </div>
+            <div class="img-preview-msg">👇 2枚の画像をそれぞれ長押しして保存</div>
             <div class="img-preview-content">
-                <img src="${dataUrl}" alt="診断レポート" oncontextmenu="event.stopPropagation(); return true;">
+                <img src="${src1}" alt="レポート1">
+                <img src="${src2}" alt="レポート2">
+                <button class="img-close-btn" onclick="closeImagePreview()">閉じる</button>
             </div>
-            <button class="img-close-btn" onclick="this.closest('.img-preview-overlay').remove()">閉じる</button>
         `;
         document.body.appendChild(overlay);
+    }
+
+    function closeImagePreview() {
+        const overlay = document.querySelector('.img-preview-overlay');
+        if(overlay) overlay.remove();
+        document.body.style.overflow = ''; // スクロール復帰
     }
     // ▲▲▲ 画像機能ここまで ▲▲▲
 
