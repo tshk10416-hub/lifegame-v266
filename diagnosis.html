@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v58.0_Image_Save_Curtain_Fix
+    // バージョン確認用ID: v63.0_Long_Press_Final_Clean
     // =========================================================
 
     // ▼▼▼ 画像生成ライブラリ(html2canvas)の読み込み ▼▼▼
@@ -906,52 +906,60 @@
         }
         .save-img-btn:hover { background-color: #c53030; transform: translateY(-2px); }
 
-        /* ★★★ レポート生成用スタイル（撮影用） ★★★ */
+        /* レポート生成用スタイル（撮影用） */
         .report-container {
-            width: 800px; /* A4幅固定 */
+            width: 800px;
             background: #ffffff;
             padding: 40px;
             box-sizing: border-box;
-            font-family: sans-serif; /* 文字化け防止のため標準フォント */
+            font-family: sans-serif;
             color: #333;
-            /* 重要：z-indexをプラスにして描画させるが、カーテンの下に隠す */
             position: absolute;
             top: 0; left: 0;
-            z-index: 100; 
+            z-index: 10000; /* カーテンより手前 */
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
         .report-header {
-            text-align: center; border-bottom: 3px solid #2b6cb0; padding-bottom: 20px; margin-bottom: 30px;
+            text-align: center; border-bottom: 3px solid #2b6cb0; padding-bottom: 15px; margin-bottom: 20px;
             display: flex; justify-content: space-between; align-items: flex-end;
         }
-        .report-title { font-size: 28px; font-weight: bold; color: #2b6cb0; margin: 0; }
+        .report-title { font-size: 26px; font-weight: bold; color: #2b6cb0; margin: 0; }
         .report-meta { font-size: 14px; color: #666; text-align: right; }
         
-        .report-section { margin-bottom: 25px; background: #f7fafc; border-radius: 12px; padding: 15px; border: 1px solid #e2e8f0; }
-        .report-h3 { font-size: 20px; color: #2d3748; border-bottom: 2px solid #bee3f8; padding-bottom: 8px; margin-top: 0; margin-bottom: 12px; }
+        .report-section { margin-bottom: 20px; background: #f7fafc; border-radius: 12px; padding: 15px; border: 1px solid #e2e8f0; }
+        .report-h3 { font-size: 18px; color: #2d3748; border-bottom: 2px solid #bee3f8; padding-bottom: 5px; margin-top: 0; margin-bottom: 10px; }
         
-        .report-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .report-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .report-profile-box { display: flex; justify-content: space-between; background: #ebf8ff; padding: 15px; border-radius: 8px; border: 1px solid #bee3f8; margin-bottom: 20px; }
+        .profile-item { text-align: center; flex: 1; border-right: 1px solid #cbd5e0; }
+        .profile-item:last-child { border-right: none; }
+        .profile-label { font-size: 12px; color: #555; display: block; margin-bottom: 5px; }
+        .profile-val { font-size: 18px; font-weight: bold; color: #2b6cb0; }
+        .profile-sub { font-size: 11px; color: #666; }
+
+        .report-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .report-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         
-        .report-item { background: white; padding: 10px 15px; border-radius: 8px; border: 1px solid #cbd5e0; font-size: 15px; }
-        .report-item-label { font-size: 0.9em; color: #666; display: block; margin-bottom: 3px; }
-        .report-item-val { font-size: 1.2em; font-weight: bold; color: #2d3748; }
+        .report-item { background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 14px; }
+        .report-item-label { font-size: 0.85em; color: #666; display: block; margin-bottom: 2px; }
+        .report-item-val { font-size: 1.1em; font-weight: bold; color: #2d3748; }
         
-        .report-big-box { text-align: center; padding: 20px; background: #fff; border: 2px solid #2b6cb0; border-radius: 10px; margin-top: 10px; }
-        .report-big-label { font-size: 18px; color: #555; }
-        .report-big-val { font-size: 42px; font-weight: bold; color: #2b6cb0; margin: 5px 0; }
+        .report-big-box { text-align: center; padding: 15px; background: #fff; border: 2px solid #2b6cb0; border-radius: 10px; margin-top: 5px; }
+        .report-big-label { font-size: 16px; color: #555; }
+        .report-big-val { font-size: 36px; font-weight: bold; color: #2b6cb0; margin: 5px 0; }
 
         /* 作業中の目隠しカーテン */
         #loading-curtain {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; z-index: 9999; /* レポートより手前 */
+            background: #f7fafc; z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #2b6cb0;
         }
-        #loading-curtain div { margin-top: 15px; font-weight: bold; color: #666; }
+        #loading-curtain div { margin-top: 15px; font-weight: bold; font-size: 1.2em; }
 
         /* 画像プレビューモーダル */
         .img-preview-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 10000; /* カーテンより手前 */
+            background: rgba(0,0,0,0.92); z-index: 2147483647;
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
             overflow-y: auto; padding-top: 40px; -webkit-overflow-scrolling: touch;
         }
@@ -961,23 +969,35 @@
             background: #e53e3e; padding: 12px 25px; border-radius: 50px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             flex-shrink: 0;
+            pointer-events: none; /* メッセージは触れない */
         }
         .img-preview-content {
             width: 90%; max-width: 600px;
             text-align: center; margin-bottom: 30px;
             display: flex; flex-direction: column; gap: 20px;
         }
-        /* ★長押しを確実にするためのCSS設定★ */
+        
+        /* ★★★ 長押し完全対応（シンプル設定） ★★★ */
         .img-preview-content img {
             width: 100%; height: auto;
             border: 4px solid white; border-radius: 4px;
-            /* ユーザー操作を許可 */
+            
+            /* タッチイベントを自然に許可 */
             pointer-events: auto !important; 
-            touch-action: manipulation !important;
-            -webkit-user-select: none; /* 文字選択はしない */
-            -webkit-touch-callout: default !important; /* 長押しメニューは出す */
+            
+            /* 長押しメニューを許可（これが最重要） */
+            -webkit-touch-callout: default !important;
+            
+            /* 画像選択を防止しつつメニューは出す */
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            
+            /* ドラッグ防止 */
+            -webkit-user-drag: none !important;
+            
             display: block;
         }
+        
         .img-close-btn {
             margin-bottom: 60px; background: white; color: #333; border: none;
             padding: 12px 40px; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 1.1em;
@@ -1061,18 +1081,17 @@
         }, 100);
     });
 
-    // ▼▼▼ 画像保存機能（カーテン＋Base64＋長押し対応版）▼▼▼
+    // ▼▼▼ 画像保存機能 ▼▼▼
     async function saveAsImage() {
         const btn = document.querySelector('.save-img-btn');
         const originalText = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 作成中...';
         btn.style.opacity = "0.7";
 
-        // 1. カーテン（目隠し）を表示
-        // これで裏側の作業を隠しつつ、要素は「visible」のままにする
+        // 1. カーテン表示
         const curtain = document.createElement('div');
         curtain.id = 'loading-curtain';
-        curtain.innerHTML = '<i class="fas fa-camera fa-3x" style="color:#2b6cb0;"></i><div>画像を生成中...<br>そのままお待ちください</div>';
+        curtain.innerHTML = '<i class="fas fa-camera fa-3x fa-spin"></i><div>画像を生成しています...</div>';
         document.body.appendChild(curtain);
 
         // 2. スクロールリセット
@@ -1083,6 +1102,11 @@
         const getVal = (id) => (parseFloat(document.getElementById(id)?.value) || 0).toLocaleString();
         const getTotal = (id) => Math.round(parseFloat(document.getElementById(id)?.dataset?.total) || 0).toLocaleString();
 
+        const ageVal = document.getElementById('currentAge')?.value || 30;
+        const incSelfVal = getVal('incomeSelf');
+        const incPartnerVal = getVal('incomePartner');
+        const curSavingsVal = getVal('currentSavings');
+
         const vMarriage = getVal('r-marriage');
         const vChild = getTotal('child-total-preview');
         const vHouse = getVal('r-house');
@@ -1091,13 +1115,14 @@
         const vLive = getTotal('living-total-preview');
         const vOther = getVal('r-others');
         const vRetire = getVal('r-retirement');
-        const vSave = getVal('currentSavings');
         
         const bal65 = currentIncomeBalanceAt65.toLocaleString();
         const bal65Color = currentIncomeBalanceAt65 >= 0 ? '#48bb78' : '#e53e3e';
 
         const simRes = document.getElementById('sim-final-asset').innerText;
-        const simAge = document.getElementById('sim-age').value || 95;
+        const simAge = document.getElementById('sim-age')?.value || 95;
+        const simCost = document.getElementById('sim-cost')?.value || 36;
+        const simPension = document.getElementById('sim-pension')?.value || 22;
 
         // グラフ画像化
         const originalCanvas = document.getElementById('comparisonChart');
@@ -1116,11 +1141,29 @@
         // --- レポート1枚目 ---
         const report1 = document.createElement('div');
         report1.className = 'report-container';
+        report1.id = 'report-1';
         report1.innerHTML = `
             <div class="report-header">
                 <div class="report-title">ライフリッジ診断 [1/2]</div>
                 <div class="report-meta">${today} 作成</div>
             </div>
+            
+            <div class="report-profile-box">
+                <div class="profile-item">
+                    <span class="profile-label">現在の年齢</span>
+                    <span class="profile-val">${ageVal}歳</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">世帯年収 (額面)</span>
+                    <span class="profile-val">${(parseFloat(incSelfVal.replace(/,/g,'')) + parseFloat(incPartnerVal.replace(/,/g,''))).toLocaleString()}万円</span>
+                    <div class="profile-sub">(あなた:${incSelfVal} / 相手:${incPartnerVal})</div>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">現在の貯蓄</span>
+                    <span class="profile-val">${curSavingsVal}万円</span>
+                </div>
+            </div>
+
             <div class="report-section">
                 <h3 class="report-h3">📝 人生の主要支出・収入 (現在〜65歳)</h3>
                 <div class="report-grid-2">
@@ -1131,85 +1174,92 @@
                     <div class="report-item"><span class="report-item-label">🏥 保険総額</span><span class="report-item-val">${vIns} 万円</span></div>
                     <div class="report-item"><span class="report-item-label">🍱 生活費総額</span><span class="report-item-val">${vLive} 万円</span></div>
                     <div class="report-item"><span class="report-item-label">📦 その他</span><span class="report-item-val">${vOther} 万円</span></div>
-                    <div class="report-item"><span class="report-item-label">💰 現在の貯蓄</span><span class="report-item-val">${vSave} 万円</span></div>
-                    <div class="report-item" style="grid-column: span 2; background:#ebf8ff; border-color:#bee3f8;">
+                    <div class="report-item" style="background:#ebf8ff; border-color:#bee3f8;">
                         <span class="report-item-label">👴 退職金見込み</span><span class="report-item-val">${vRetire} 万円</span>
                     </div>
                 </div>
             </div>
-            <div class="report-section">
-                <h3 class="report-h3">📊 65歳時点の資産総額予測</h3>
-                <div class="report-big-box" style="border-color:${bal65Color}">
-                    <div class="report-big-label">あなたの資産残高</div>
-                    <div class="report-big-val" style="color:${bal65Color}">${bal65} 万円</div>
-                    <div style="font-size:14px; color:#666;">(※現役引退時の想定資産)</div>
-                </div>
-            </div>
-        `;
-        // カーテンの下（z-100）に配置
-        document.body.appendChild(report1);
 
-        // --- レポート2枚目 ---
-        const report2 = document.createElement('div');
-        report2.className = 'report-container';
-        // 1枚目と重ならないように下にずらす
-        report2.style.top = '1200px'; 
-        report2.innerHTML = `
-            <div class="report-header">
-                <div class="report-title">ライフリッジ診断 [2/2]</div>
-                <div class="report-meta">${today} 作成</div>
-            </div>
             <div class="report-section">
-                <h3 class="report-h3">👴 老後資金シミュレーション</h3>
-                <div class="report-big-box">
-                    <div class="report-big-label">想定寿命(${simAge}歳)時点の残高</div>
-                    <div class="report-big-val">${simRes}</div>
-                </div>
-            </div>
-            <div class="report-section">
-                <h3 class="report-h3">📉 収支バランス比較</h3>
-                <img src="${chartImgSrc}" style="width:100%; height:auto; border-radius:8px;">
-            </div>
-            <div class="report-section">
-                <h3 class="report-h3">👛 生活費の内訳 (月額)</h3>
+                <h3 class="report-h3">👛 毎月の生活費内訳 (現在)</h3>
                 <div class="report-grid-3">
                     <div class="report-item"><span class="report-item-label">🍱 食費</span><span class="report-item-val">${livingBreakdown.food}万</span></div>
                     <div class="report-item"><span class="report-item-label">💡 光熱費</span><span class="report-item-val">${livingBreakdown.utility}万</span></div>
                     <div class="report-item"><span class="report-item-label">📱 通信費</span><span class="report-item-val">${livingBreakdown.comm}万</span></div>
                     <div class="report-item"><span class="report-item-label">🏥 医療費</span><span class="report-item-val">${livingBreakdown.medical}万</span></div>
-                    <div class="report-item"><span class="report-item-label">👛 小遣い</span><span class="report-item-val">${livingBreakdown.pocket}万</span></div>
+                    <div class="report-item"><span class="report-item-label">🚃 交通費</span><span class="report-item-val">${livingBreakdown.transport}万</span></div>
+                    <div class="report-item"><span class="report-item-label">🧻 日用品</span><span class="report-item-val">${livingBreakdown.daily}万</span></div>
+                    <div class="report-item"><span class="report-item-label">🪑 家具等</span><span class="report-item-val">${livingBreakdown.furniture}万</span></div>
+                    <div class="report-item"><span class="report-item-label">👛 小遣い・交際費</span><span class="report-item-val">${livingBreakdown.pocket}万</span></div>
                     <div class="report-item"><span class="report-item-label">📦 その他</span><span class="report-item-val">${livingBreakdown.other}万</span></div>
                 </div>
+            </div>
+
+            <div class="report-section">
+                <h3 class="report-h3">📊 65歳時点の資産総額予測</h3>
+                <div class="report-big-box" style="border-color:${bal65Color}">
+                    <div class="report-big-label">現役引退時の想定資産残高</div>
+                    <div class="report-big-val" style="color:${bal65Color}">${bal65} 万円</div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(report1);
+
+        // --- レポート2枚目 ---
+        const report2 = document.createElement('div');
+        report2.className = 'report-container';
+        report2.id = 'report-2';
+        report2.style.top = (report1.offsetHeight + 50) + 'px'; 
+        report2.innerHTML = `
+            <div class="report-header">
+                <div class="report-title">ライフリッジ診断 [2/2]</div>
+                <div class="report-meta">${today} 作成</div>
+            </div>
+
+            <div class="report-section">
+                <h3 class="report-h3">👴 老後資金シミュレーション</h3>
+                <div class="report-grid-3" style="margin-bottom:15px;">
+                    <div class="report-item"><span class="report-item-label">想定寿命</span><span class="report-item-val">${simAge} 歳</span></div>
+                    <div class="report-item"><span class="report-item-label">老後生活費</span><span class="report-item-val">月 ${simCost} 万</span></div>
+                    <div class="report-item"><span class="report-item-label">年金受給額</span><span class="report-item-val">月 ${simPension} 万</span></div>
+                </div>
+                
+                <div class="report-big-box">
+                    <div class="report-big-label">人生終了時(${simAge}歳)の資産残高</div>
+                    <div class="report-big-val">${simRes}</div>
+                </div>
+            </div>
+
+            <div class="report-section">
+                <h3 class="report-h3">📉 収支バランス比較グラフ</h3>
+                <img src="${chartImgSrc}" style="width:100%; height:auto; border-radius:8px;">
+            </div>
+            
+            <div style="text-align:center; margin-top:30px; color:#999; font-size:12px;">
+                Produced by LifeRidge
             </div>
         `;
         document.body.appendChild(report2);
 
         // --- 撮影 & 表示 ---
         try {
-            // 描画が安定するまで少し待つ（白紙防止）
-            await new Promise(resolve => setTimeout(resolve, 800));
+            await new Promise(resolve => setTimeout(resolve, 1200));
 
-            const opt = { 
-                scale: 2, 
-                useCORS: true, 
-                logging: false, 
-                backgroundColor: '#ffffff'
-            };
+            const opt = { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' };
             
             const canvas1 = await html2canvas(report1, opt);
-            const dataUrl1 = canvas1.toDataURL("image/jpeg", 0.9);
+            const dataUrl1 = canvas1.toDataURL("image/jpeg", 0.95);
 
             const canvas2 = await html2canvas(report2, opt);
-            const dataUrl2 = canvas2.toDataURL("image/jpeg", 0.9);
+            const dataUrl2 = canvas2.toDataURL("image/jpeg", 0.95);
 
-            // カーテンを消して結果を表示
-            document.body.removeChild(curtain);
+            if(document.body.contains(curtain)) document.body.removeChild(curtain);
             showDualImagePreview(dataUrl1, dataUrl2);
 
         } catch(err) {
             console.error(err);
             if(document.body.contains(curtain)) document.body.removeChild(curtain);
-            alert("画像作成に失敗しました");
+            alert("画像作成に失敗しました。\nもう一度お試しください。");
         } finally {
             if(document.body.contains(report1)) document.body.removeChild(report1);
             if(document.body.contains(report2)) document.body.removeChild(report2);
@@ -1274,7 +1324,7 @@
                     ${createRow('🚃 交通費', 'm-transport')}
                     ${createRow('🧻 日用品', 'm-daily')}
                     ${createRow('🪑 家具・家電', 'm-furniture')}
-                    ${createRow('👛 お小遣い', 'm-pocket')}
+                    ${createRow('👛 お小遣い・交際費', 'm-pocket')}
                     ${createRow('📦 その他', 'm-other')}
                     
                     <div class="modal-total">合計: <span id="m-total-display">0</span> 万円</div>
