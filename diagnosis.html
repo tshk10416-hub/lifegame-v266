@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v68.0_Image_Save_Visible_Behind_Curtain
+    // バージョン確認用ID: v69.0_Button_Download_Fix
     // =========================================================
 
     // ▼▼▼ 画像生成ライブラリ(html2canvas)の読み込み ▼▼▼
@@ -895,19 +895,20 @@
         }
         .detail-btn:hover { background-color: #2b6cb0; }
 
-        /* 保存ボタン */
+        /* メインの保存ボタン（ここを強化） */
         .save-img-btn {
             display: inline-block; background: #e53e3e; color: white;
             padding: 15px 30px; border-radius: 50px;
-            text-decoration: none; font-weight: bold; font-size: 1.1em;
+            text-decoration: none; font-weight: bold; font-size: 1.2em; /* 文字大きく */
             box-shadow: 0 4px 10px rgba(229, 62, 62, 0.4);
             transition: transform 0.2s; border: none; cursor: pointer;
-            margin-bottom: 20px;
+            margin-bottom: 30px; /* 下に余白 */
+            width: 90%; max-width: 350px; /* スマホで押しやすく */
+            text-align: center;
         }
         .save-img-btn:hover { background-color: #c53030; transform: translateY(-2px); }
 
-        /* ★★★ レポート生成用スタイル（撮影用） ★★★ */
-        /* 重要：ここは「透明」にせず、z-indexでカーテンの下に配置する */
+        /* レポート生成用スタイル（撮影用・隠し） */
         .report-container {
             width: 800px;
             background: #ffffff;
@@ -917,8 +918,7 @@
             color: #333;
             position: absolute;
             top: 0; left: 0;
-            z-index: 10000; /* 元の画面より上 */
-            opacity: 1;     /* 透明にしない（白紙防止） */
+            z-index: 10000; /* カーテンの下 */
             visibility: visible;
         }
         .report-header {
@@ -949,46 +949,48 @@
         .report-big-label { font-size: 18px; color: #555; }
         .report-big-val { font-size: 42px; font-weight: bold; color: #2b6cb0; margin: 5px 0; }
 
-        /* 作業中の目隠しカーテン（最前面） */
+        /* 作業中の目隠しカーテン */
         #loading-curtain {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #ffffff; /* 完全な白で隠す */
-            z-index: 20000; /* レポート(10000)よりさらに上 */
+            background: #ffffff; z-index: 20000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: #2b6cb0;
         }
         #loading-curtain div { margin-top: 15px; font-weight: bold; font-size: 1.2em; }
 
-        /* 画像表示専用モード（全画面） */
-        #image-view-mode {
+        /* ダウンロードモーダル（全画面） */
+        #download-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #2d3748; z-index: 100000; /* カーテンよりさらに上 */
-            overflow-y: auto; -webkit-overflow-scrolling: touch;
+            background: #f7fafc; z-index: 30000; /* 最前面 */
             display: flex; flex-direction: column; align-items: center;
-            padding: 20px 0;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+            padding-top: 40px; padding-bottom: 60px;
         }
-        .view-mode-msg {
-            color: white; background: #e53e3e; padding: 10px 20px; border-radius: 30px;
-            font-weight: bold; margin-bottom: 20px; text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3); flex-shrink: 0;
+        .dl-header {
+            text-align: center; margin-bottom: 20px; flex-shrink: 0;
         }
-        .view-mode-img {
-            width: 95%; max-width: 600px; height: auto;
-            border: 4px solid white; border-radius: 4px;
-            margin-bottom: 30px;
-            
-            /* 長押しを確実にする設定 */
-            pointer-events: auto !important;
-            touch-action: pan-y !important;
-            -webkit-user-select: none;
-            -webkit-touch-callout: default !important;
-            user-select: none;
+        .dl-title {
+            font-size: 1.2em; font-weight: bold; color: #2d3748; margin-bottom: 10px;
         }
-        .view-mode-close {
-            background: white; color: #333; border: none;
-            padding: 15px 50px; border-radius: 50px;
+        /* ダウンロード実行ボタン */
+        .dl-exec-btn {
+            background: #06c755; color: white; border: none;
+            padding: 15px 40px; border-radius: 50px;
             font-weight: bold; font-size: 1.2em; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5); margin-bottom: 50px; flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(6, 199, 85, 0.4);
+            margin-bottom: 20px; display: inline-block;
+            text-decoration: none;
+        }
+        .dl-exec-btn:active { transform: translateY(2px); }
+        
+        .dl-preview-img {
+            width: 90%; max-width: 500px; height: auto;
+            border: 2px solid #cbd5e0; border-radius: 8px;
+            margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .dl-close-btn {
+            background: #cbd5e0; color: #4a5568; border: none;
+            padding: 12px 30px; border-radius: 30px; font-weight: bold; cursor: pointer;
         }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; display: none; justify-content: center; align-items: center; }
@@ -1004,6 +1006,8 @@
         .btn-confirm { flex: 2; background: #48bb78; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(72,187,120,0.3); }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* 余白確保（ボタンが見切れないように） */
+        body { padding-bottom: 150px; }
         @media (max-width: 768px) { .unit-wrapper input { font-size: 16px !important; padding: 10px !important; } }
     `;
     document.head.appendChild(styleFix);
@@ -1068,11 +1072,11 @@
         }, 100);
     });
 
-    // ▼▼▼ 画像保存機能（カーテン＋手前描画＋結合版）▼▼▼
+    // ▼▼▼ 画像保存機能（ボタン式ダウンロードモーダル）▼▼▼
     async function saveAsImage() {
         const btn = document.querySelector('.save-img-btn');
         const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 作成中...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 画像作成中...';
         btn.style.opacity = "0.7";
 
         // 1. カーテン表示（Z-index: 20000）
@@ -1081,7 +1085,6 @@
         curtain.innerHTML = '<i class="fas fa-camera fa-3x fa-spin"></i><div>画像を生成しています...</div>';
         document.body.appendChild(curtain);
 
-        // 2. スクロールリセット（描画位置合わせのため重要）
         window.scrollTo(0, 0);
 
         // --- データ収集 ---
@@ -1125,7 +1128,7 @@
             chartImgSrc = tempCanvas.toDataURL('image/jpeg', 1.0);
         }
 
-        // --- 統合レポート作成（Z-index: 10000, 不透明） ---
+        // --- 統合レポート作成 ---
         const report = document.createElement('div');
         report.className = 'report-container';
         report.innerHTML = `
@@ -1214,26 +1217,17 @@
         `;
         document.body.appendChild(report);
 
-        // --- 撮影 & 表示 ---
+        // --- 撮影 & ダウンロードモーダル表示 ---
         try {
-            await new Promise(resolve => setTimeout(resolve, 1200));
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
             const canvas = await html2canvas(report, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
             const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
 
-            // カーテン消去
             if(document.body.contains(curtain)) document.body.removeChild(curtain);
             
-            // 自動ダウンロード試行（PC/Android用）
-            const link = document.createElement('a');
-            link.href = dataUrl;
-            link.download = 'LifeRidge_Diagnosis.jpg';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            // ビューワ表示（LINE/iOS用）
-            openImageViewMode(dataUrl);
+            // ★ダウンロード用モーダルを開く
+            openDownloadModal(dataUrl);
 
         } catch(err) {
             console.error(err);
@@ -1246,27 +1240,40 @@
         }
     }
 
-    function openImageViewMode(dataUrl) {
-        // 既存ビューワ削除
-        const existing = document.getElementById('image-view-mode');
+    function openDownloadModal(dataUrl) {
+        // 既存モーダル削除
+        const existing = document.getElementById('download-modal');
         if(existing) existing.remove();
 
-        const viewMode = document.createElement('div');
-        viewMode.id = 'image-view-mode';
+        const modal = document.createElement('div');
+        modal.id = 'download-modal';
         
-        viewMode.innerHTML = `
-            <div class="view-mode-msg">👇 画像を長押しして「写真に保存」</div>
-            <img src="${dataUrl}" class="view-mode-img" alt="診断レポート">
-            <button class="view-mode-close" onclick="closeImageViewMode()">閉じる</button>
+        modal.innerHTML = `
+            <div class="dl-header">
+                <div class="dl-title">🎉 診断結果が完成しました</div>
+                <div style="font-size:0.9em; color:#666;">下のボタンを押して画像を保存してください</div>
+            </div>
+            
+            <a href="${dataUrl}" download="LifeRidge_Result.jpg" class="dl-exec-btn">
+                <i class="fas fa-download"></i> 画像を保存する
+            </a>
+            
+            <div style="font-size:0.8em; color:#999; margin-bottom:15px;">
+                ※ボタンで保存できない場合は<br>下の画像を長押ししてください
+            </div>
+
+            <img src="${dataUrl}" class="dl-preview-img" alt="診断レポート">
+            
+            <button class="dl-close-btn" onclick="closeDownloadModal()">閉じる</button>
         `;
         
-        document.body.appendChild(viewMode);
-        document.body.style.overflow = 'hidden'; // 背景固定
+        document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden'; // 背景スクロール固定
     }
 
-    function closeImageViewMode() {
-        const viewMode = document.getElementById('image-view-mode');
-        if(viewMode) viewMode.remove();
+    function closeDownloadModal() {
+        const modal = document.getElementById('download-modal');
+        if(modal) modal.remove();
         document.body.style.overflow = '';
     }
     // ▲▲▲ 画像機能ここまで ▲▲▲
