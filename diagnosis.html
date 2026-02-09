@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v55.0_Dual_Report_Generation
+    // バージョン確認用ID: v56.0_Image_Save_Blob_Touch_Fix
     // =========================================================
 
     // ▼▼▼ 画像生成ライブラリ(html2canvas)の読み込み ▼▼▼
@@ -906,7 +906,7 @@
         }
         .save-img-btn:hover { background-color: #c53030; transform: translateY(-2px); }
 
-        /* ★★★ レポート生成用共通スタイル ★★★ */
+        /* レポート生成用スタイル（撮影時のみ使用） */
         .report-container {
             width: 800px;
             background: #ffffff;
@@ -914,10 +914,11 @@
             box-sizing: border-box;
             font-family: 'M PLUS Rounded 1c', sans-serif;
             color: #333;
-            /* 撮影時は最前面に配置（ただしユーザーの邪魔にならないようz-index調整） */
+            /* 画面外ではなく、最背面に配置（描画漏れ防止） */
             position: absolute;
             top: 0; left: 0;
-            z-index: -1000; /* 裏側に配置 */
+            z-index: -1000; 
+            visibility: visible; /* hiddenにすると撮れないことがあるためvisible */
         }
         .report-header {
             text-align: center; border-bottom: 3px solid #2b6cb0; padding-bottom: 20px; margin-bottom: 30px;
@@ -929,7 +930,6 @@
         .report-section { margin-bottom: 25px; background: #f7fafc; border-radius: 12px; padding: 15px; border: 1px solid #e2e8f0; }
         .report-h3 { font-size: 20px; color: #2d3748; border-bottom: 2px solid #bee3f8; padding-bottom: 8px; margin-top: 0; margin-bottom: 12px; }
         
-        /* グリッドレイアウト */
         .report-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .report-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         
@@ -937,7 +937,6 @@
         .report-item-label { font-size: 0.9em; color: #666; display: block; margin-bottom: 3px; }
         .report-item-val { font-size: 1.2em; font-weight: bold; color: #2d3748; }
         
-        /* 結果強調 */
         .report-big-box { text-align: center; padding: 20px; background: #fff; border: 2px solid #2b6cb0; border-radius: 10px; margin-top: 10px; }
         .report-big-label { font-size: 18px; color: #555; }
         .report-big-val { font-size: 42px; font-weight: bold; color: #2b6cb0; margin: 5px 0; }
@@ -955,16 +954,28 @@
             background: #e53e3e; padding: 10px 20px; border-radius: 50px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             flex-shrink: 0;
+            pointer-events: none; /* メッセージは触れないように */
         }
         .img-preview-content {
             width: 90%; max-width: 600px;
             text-align: center; margin-bottom: 30px;
-            display: flex; flex-direction: column; gap: 20px; /* 画像間の隙間 */
+            display: flex; flex-direction: column; gap: 20px;
         }
+        /* ★長押しを可能にするための重要設定★ */
         .img-preview-content img {
             width: 100%; height: auto;
             border: 4px solid white; border-radius: 4px;
-            pointer-events: auto; -webkit-user-select: none; user-select: none; -webkit-touch-callout: default;
+            
+            /* タッチイベントを有効化 */
+            pointer-events: auto !important; 
+            
+            /* 選択・長押しメニューを許可 */
+            -webkit-user-select: auto !important;
+            user-select: auto !important;
+            -webkit-touch-callout: default !important; /* iOSでの長押しメニュー許可 */
+            
+            /* 画像としての挙動を強調 */
+            display: block;
         }
         .img-close-btn {
             margin-bottom: 40px; background: white; color: #333; border: none;
@@ -1049,7 +1060,7 @@
         }, 100);
     });
 
-    // ▼▼▼ 画像保存機能（2枚組レポート生成）▼▼▼
+    // ▼▼▼ 画像保存機能（長押し完全対応・Blob版）▼▼▼
     async function saveAsImage() {
         const btn = document.querySelector('.save-img-btn');
         const originalText = btn.innerHTML;
@@ -1058,10 +1069,7 @@
 
         // --- データ収集 ---
         const today = new Date().toLocaleDateString('ja-JP');
-        // 数値取得(整形) helper
         const getVal = (id) => (parseFloat(document.getElementById(id)?.value) || 0).toLocaleString();
-        const getText = (id) => document.getElementById(id)?.innerText || "";
-        // 各種合計値(datasetから取得)
         const getTotal = (id) => Math.round(parseFloat(document.getElementById(id)?.dataset?.total) || 0).toLocaleString();
 
         const vMarriage = getVal('r-marriage');
@@ -1074,15 +1082,13 @@
         const vRetire = getVal('r-retirement');
         const vSave = getVal('currentSavings');
         
-        // 65歳時点資産
         const bal65 = currentIncomeBalanceAt65.toLocaleString();
         const bal65Color = currentIncomeBalanceAt65 >= 0 ? '#48bb78' : '#e53e3e';
 
-        // 老後シミュレーション
         const simRes = document.getElementById('sim-final-asset').innerText;
         const simAge = document.getElementById('sim-age').value || 95;
 
-        // グラフ画像化
+        // グラフ画像化（背景白）
         const originalCanvas = document.getElementById('comparisonChart');
         let chartImgSrc = "";
         if(originalCanvas) {
@@ -1096,16 +1102,14 @@
             chartImgSrc = tempCanvas.toDataURL('image/jpeg', 1.0);
         }
 
-        // --- レポート1枚目作成 ---
+        // --- レポート1枚目 ---
         const report1 = document.createElement('div');
         report1.className = 'report-container';
-        report1.id = 'report-1';
         report1.innerHTML = `
             <div class="report-header">
                 <div class="report-title">ライフリッジ診断 [1/2]</div>
                 <div class="report-meta">${today} 作成</div>
             </div>
-            
             <div class="report-section">
                 <h3 class="report-h3">📝 人生の主要支出・収入 (現在〜65歳)</h3>
                 <div class="report-grid-2">
@@ -1122,7 +1126,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="report-section">
                 <h3 class="report-h3">📊 65歳時点の資産総額予測</h3>
                 <div class="report-big-box" style="border-color:${bal65Color}">
@@ -1134,16 +1137,16 @@
         `;
         document.body.appendChild(report1);
 
-        // --- レポート2枚目作成 ---
+        // --- レポート2枚目 ---
         const report2 = document.createElement('div');
         report2.className = 'report-container';
-        report2.id = 'report-2';
+        // 2枚目は1枚目の下に配置して重ならないようにする（描画安定のため）
+        report2.style.top = '1200px'; 
         report2.innerHTML = `
             <div class="report-header">
                 <div class="report-title">ライフリッジ診断 [2/2]</div>
                 <div class="report-meta">${today} 作成</div>
             </div>
-
             <div class="report-section">
                 <h3 class="report-h3">👴 老後資金シミュレーション</h3>
                 <div class="report-big-box">
@@ -1151,12 +1154,10 @@
                     <div class="report-big-val">${simRes}</div>
                 </div>
             </div>
-
             <div class="report-section">
                 <h3 class="report-h3">📉 収支バランス比較</h3>
                 <img src="${chartImgSrc}" style="width:100%; height:auto; border-radius:8px;">
             </div>
-
             <div class="report-section">
                 <h3 class="report-h3">👛 生活費の内訳 (月額)</h3>
                 <div class="report-grid-3">
@@ -1173,22 +1174,32 @@
 
         // --- 撮影 & 表示 ---
         try {
-            await new Promise(resolve => setTimeout(resolve, 500)); // 描画待ち
+            await new Promise(resolve => setTimeout(resolve, 800)); // 描画待機
 
             const opt = { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' };
             
+            // Blobとして生成（これが重要！）
             const canvas1 = await html2canvas(report1, opt);
-            const imgData1 = canvas1.toDataURL("image/jpeg", 0.9);
-
-            const canvas2 = await html2canvas(report2, opt);
-            const imgData2 = canvas2.toDataURL("image/jpeg", 0.9);
-
-            showDualImagePreview(imgData1, imgData2);
+            canvas1.toBlob(function(blob1) {
+                const url1 = URL.createObjectURL(blob1);
+                
+                html2canvas(report2, opt).then(function(canvas2) {
+                    canvas2.toBlob(function(blob2) {
+                        const url2 = URL.createObjectURL(blob2);
+                        showDualImagePreview(url1, url2);
+                        
+                        // 後片付け
+                        if(document.body.contains(report1)) document.body.removeChild(report1);
+                        if(document.body.contains(report2)) document.body.removeChild(report2);
+                        btn.innerHTML = originalText;
+                        btn.style.opacity = "1";
+                    }, 'image/jpeg', 0.9);
+                });
+            }, 'image/jpeg', 0.9);
 
         } catch(err) {
             console.error(err);
             alert("画像作成に失敗しました");
-        } finally {
             if(document.body.contains(report1)) document.body.removeChild(report1);
             if(document.body.contains(report2)) document.body.removeChild(report2);
             btn.innerHTML = originalText;
@@ -1197,7 +1208,6 @@
     }
 
     function showDualImagePreview(src1, src2) {
-        // 既存モーダル削除
         const existing = document.querySelector('.img-preview-overlay');
         if(existing) existing.remove();
 
