@@ -871,7 +871,7 @@
 
 <script>
     // =========================================================
-    // バージョン確認用ID: v72.0_Button_Size_Adjustment
+    // バージョン確認用ID: v73.0_Button_Style_Match_Fix
     // =========================================================
 
     // ▼▼▼ LINEブラウザ自動脱出ロジック ▼▼▼
@@ -907,20 +907,28 @@
         }
         .detail-btn:hover { background-color: #2b6cb0; }
 
-        /* 保存ボタン（LINEボタンとサイズ統一） */
+        /* 保存ボタン（LINEボタンと完全に合わせる設定） */
         .save-img-btn {
-            display: inline-block; background: #e53e3e; color: white;
-            padding: 15px 20px; /* LINEボタンと同じ */
+            display: inline-block; 
+            background: #e53e3e; 
+            color: white;
+            padding: 15px 20px; /* LINEボタンと同じ余白 */
             border-radius: 50px;
-            text-decoration: none; font-weight: bold; 
-            font-size: 1.1em; /* LINEボタンと同じ */
+            text-decoration: none; 
+            font-weight: bold; 
+            font-size: 16px; /* LINEボタン(1.1em)に近い固定サイズ */
             box-shadow: 0 4px 10px rgba(229, 62, 62, 0.4);
-            transition: transform 0.2s; border: none; cursor: pointer;
-            margin-bottom: 15px; 
+            transition: transform 0.2s; 
+            border: none; 
+            cursor: pointer;
+            margin-bottom: 20px; 
             text-align: center;
-            position: relative; z-index: 50;
+            position: relative; 
+            z-index: 50;
+            line-height: 1.2; /* 行間調整 */
         }
         .save-img-btn:hover { background-color: #c53030; transform: translateY(-2px); }
+        .save-img-btn i { margin-right: 5px; }
 
         /* LINE警告画面 */
         #line-blocker {
@@ -935,11 +943,11 @@
             box-shadow: 0 4px 10px rgba(6, 199, 85, 0.3); display: inline-block; margin-top: 20px;
         }
 
-        /* レポート生成用スタイル */
+        /* レポート生成用 */
         .report-container {
             width: 800px; background: #ffffff; padding: 40px; box-sizing: border-box;
             font-family: sans-serif; color: #333;
-            position: absolute; top: 0; left: 0; z-index: 5000;
+            position: absolute; top: 0; left: 0; z-index: 10000;
             visibility: visible;
         }
         .report-header { text-align: center; border-bottom: 3px solid #2b6cb0; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
@@ -1012,7 +1020,16 @@
         .btn-confirm { flex: 2; background: #48bb78; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(72,187,120,0.3); }
         
         body { padding-bottom: 150px; }
-        @media (max-width: 768px) { .unit-wrapper input { font-size: 16px !important; padding: 10px !important; } }
+        
+        /* スマホ用最適化（ボタンサイズ調整） */
+        @media (max-width: 768px) { 
+            .unit-wrapper input { font-size: 16px !important; padding: 10px !important; }
+            .save-img-btn {
+                padding: 12px 20px; /* 少し小さめに */
+                font-size: 15px;
+                width: auto;
+            }
+        }
     `;
     document.head.appendChild(styleFix);
 
@@ -1243,7 +1260,7 @@
 
             if(document.body.contains(curtain)) document.body.removeChild(curtain);
             
-            // ★自動ダウンロード
+            // 自動ダウンロード
             const link = document.createElement('a');
             link.href = dataUrl;
             link.download = 'LifeRidge_Diagnosis.jpg';
@@ -1251,7 +1268,7 @@
             link.click();
             document.body.removeChild(link);
 
-            // ★画像プレビュー表示
+            // プレビュー表示
             openImageViewMode(dataUrl);
 
         } catch(err) {
