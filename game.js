@@ -28,6 +28,46 @@ try {
     console.error("Firebase Init Error:", e);
 }
 
+// ▼▼▼ Firebase 接続ステータスをタイトル画面に表示 ▼▼▼
+function updateFirebaseStatusUI(state, message) {
+    const el = document.getElementById('firebaseStatus');
+    if (!el) return;
+    if (state === 'connected') {
+        el.style.background = '#c6f6d5';
+        el.style.color = '#22543d';
+        el.innerHTML = '<i class="fas fa-check-circle"></i> サーバー接続OK (ルーム共有可能)';
+    } else if (state === 'disconnected') {
+        el.style.background = '#fed7d7';
+        el.style.color = '#742a2a';
+        el.innerHTML = '<i class="fas fa-exclamation-triangle"></i> サーバー未接続 (ソロプレイのみ可)';
+    } else {
+        el.style.background = '#edf2f7';
+        el.style.color = '#4a5568';
+        el.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> ' + (message || 'サーバー接続を確認中...');
+    }
+}
+
+// ページ読み込み時に Firebase の接続状態を監視
+document.addEventListener('DOMContentLoaded', () => {
+    if (!database) {
+        updateFirebaseStatusUI('disconnected');
+        return;
+    }
+    try {
+        const connRef = database.ref('.info/connected');
+        connRef.on('value', (snap) => {
+            if (snap.val() === true) {
+                updateFirebaseStatusUI('connected');
+            } else {
+                updateFirebaseStatusUI('disconnected');
+            }
+        });
+    } catch (e) {
+        console.warn("Firebase status watch failed:", e);
+        updateFirebaseStatusUI('disconnected');
+    }
+});
+
 let currentRoomId = null;
 
 // ==========================================================
@@ -191,6 +231,18 @@ const CARD_DATA = {
     "L014": { title: "推しの「卒業」発表", type: "life_event_asset_change", costsByIncome: { low: 20, mid: 50, high: 100 }, life_point: 50, explanation: "悔いを残さないための全力投資。" },
     "L015": { title: "飼い猫の動画がバズった", type: "life_event", effect: "臨時収入: 30万円", life_point: 10, explanation: "承認欲求とお財布が同時に満たされる、最高の瞬間。" },
     "L016": { title: "サブスクの亡霊", type: "life_event", effect: "固定費削減: 年間-5万円", life_point: 5, explanation: "使っていないジムと動画サイトを解約！" },
+   "L017": { 
+        title: "ペットのお迎え🐾", 
+        type: "life_event_asset_change", 
+        costsByIncome: { low: 150, mid: 200, high: 250 }, 
+        life_point: 40, 
+        explanation: `<h3>ペットとの暮らし</h3>
+<p><strong>【概要】</strong><br>
+新しい家族としてペットを迎え入れます。日々の大きな癒やしや生きがいを与えてくれますが、食費や医療費などが継続的にかかります。</p>
+<p><strong>【1ターン(10年)の費用目安】</strong><br>
+犬や猫のお迎え費用（生体代や初期設備）と、10年間の飼育費（フード、ワクチン、保険、トリミング等）のトータル額です。世帯の収入（生活水準）に合わせて、ペットにかける費用も変動する設定になっています。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～ペット保険各社の生涯飼育費用調査より参照</p>` 
+    },
     "S001": { title: "好景気発生", type: "social_event", effect: "現ターン中、世帯収入の2割収入アップ", life_point: 5, explanation: "世の中が明るく、気分も上々。" },
     "S002": { title: "不景気発生", type: "social_event", effect: "現ターン中、世帯収入の2割収入ダウン", life_point: 0, explanation: "我慢の時期。" },
     "S003": { title: "インフレ発生", type: "social_event", effect: "一時収入 50万円、一時支出 50万円", life_point: 0, explanation: "物価上昇で生活が変化。" },
@@ -679,40 +731,306 @@ function getCostRank(gross) {
     return 'high';
 }
 
-// 【修正版】startFamilyMake 関数
+// ==========================================================
+// 【修正版】ゲーム開始フロー
+//   startFamilyMake()
+//     -> showPreGameConsentModal()       (要望1: 同意モーダル)
+//     -> onPreGameConsentApprove()       (要望1: カメラ事前許可)
+//     -> runFirebasePreflight()          (要望2: 通信テスト)
+//     -> proceedToFamilyMake()           (画面遷移とリスナー設定)
+// ==========================================================
+
+// 一時保管用（同意モーダル～画面遷移までの間に保持する値）
+let _pendingRoomId = "";
+
 function startFamilyMake() {
-    const roomId = document.getElementById('roomIdInput').value;
-    if (database && !roomId) { alert("ルームIDを入力すると他プレイヤーとイベント共有ができます"); }
-    
+    // ▼ ルームID入力の正規化（全角空白・前後空白・全角数字対策）
+    let roomIdRaw = (document.getElementById('roomIdInput').value || "");
+    roomIdRaw = roomIdRaw.replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0));
+    const roomId = roomIdRaw.replace(/[\s　]/g, '').trim();
+    const roomInputEl = document.getElementById('roomIdInput');
+    if (roomInputEl) roomInputEl.value = roomId;
+
+    _pendingRoomId = roomId;
+
+    // ▼ Firebase 未初期化（オフライン）時はソロプレイ通知のみで進行
+    if (!database) {
+        alert(
+            "【オフラインモードで開始します】\n\n" +
+            "Firebase(共有サーバー)に接続できていないため、\n" +
+            "ソーシャルイベントの共有機能は無効になります。\n\n" +
+            "・ネット接続をご確認ください。\n" +
+            "・ブラウザの拡張機能や広告ブロックが Firebase をブロックしている場合があります。"
+        );
+    } else if (!roomId) {
+        alert(
+            "【ソロプレイで開始します】\n\n" +
+            "ルームIDが未入力のため、他プレイヤーとのイベント共有は行いません。\n" +
+            "共有プレイをしたい場合は同じルームIDを全員が入力してください。"
+        );
+    }
+
+    // ▼ 同意モーダルを表示（要望1）
+    showPreGameConsentModal();
+}
+
+// ==========================================================
+// 要望1: 事前同意モーダル
+// ==========================================================
+function showPreGameConsentModal() {
+    const modal = document.getElementById('preGameConsentModal');
+    const statusEl = document.getElementById('preGameConsentStatus');
+    const consentBtn = document.getElementById('preGameConsentBtn');
+    const cancelBtn = document.getElementById('preGameCancelBtn');
+
+    if (statusEl) {
+        statusEl.style.color = '#4a5568';
+        statusEl.textContent = '';
+    }
+    if (consentBtn) {
+        consentBtn.disabled = false;
+        consentBtn.innerHTML = '<i class="fas fa-check"></i> 同意して進む（カメラを許可する）';
+        consentBtn.onclick = onPreGameConsentApprove;
+    }
+    if (cancelBtn) {
+        cancelBtn.onclick = () => {
+            if (modal) modal.style.display = 'none';
+        };
+    }
+    if (modal) modal.style.display = 'flex';
+}
+
+// 「同意して進む」ボタン押下時 → カメラ権限を事前取得
+function onPreGameConsentApprove() {
+    const statusEl = document.getElementById('preGameConsentStatus');
+    const consentBtn = document.getElementById('preGameConsentBtn');
+
+    if (consentBtn) {
+        consentBtn.disabled = true;
+        consentBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> カメラ確認中...';
+    }
+    if (statusEl) {
+        statusEl.style.color = '#4a5568';
+        statusEl.textContent = 'ブラウザの「カメラを許可しますか？」ダイアログが表示されたら「許可」を選んでください。';
+    }
+
+    // mediaDevices 未対応（古いブラウザ・アプリ内ブラウザ等）
+    if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+        if (statusEl) {
+            statusEl.style.color = '#e53e3e';
+            statusEl.textContent = '✗ このブラウザはカメラに対応していません。Safari/Chromeの最新版をご利用ください。';
+        }
+        if (consentBtn) {
+            consentBtn.disabled = false;
+            consentBtn.innerHTML = '<i class="fas fa-redo"></i> もう一度試す';
+        }
+        return;
+    }
+
+    // OS の権限ダイアログを表示させるためにストリーム取得を試みる
+    navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false
+    })
+        .then(stream => {
+            // ✓ 許可された → ストリームは即座に停止（バッテリー節約のため）
+            stream.getTracks().forEach(t => t.stop());
+
+            if (statusEl) {
+                statusEl.style.color = '#22543d';
+                statusEl.textContent = '✓ カメラ許可OK / 続いて通信テストを実施します...';
+            }
+
+            // 次へ: Firebase プレフライト（要望2）
+            runFirebasePreflight();
+        })
+        .catch(err => {
+            console.error('カメラ事前許可エラー:', err);
+            const name = err && err.name ? err.name : '';
+
+            let msg = '✗ カメラの許可が得られませんでした。';
+            if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+                msg = '✗ カメラの許可がブロックされています。ブラウザ設定から「許可」に変更後、再度お試しください。';
+            } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+                msg = '✗ カメラデバイスが見つかりませんでした。';
+            } else if (name === 'NotReadableError') {
+                msg = '✗ カメラが他のアプリで使用中です。他のカメラアプリを終了してください。';
+            } else if (name === 'SecurityError') {
+                msg = '✗ セキュリティ制限でカメラを起動できません。https:// で始まるURLからアクセスしてください。';
+            }
+
+            if (statusEl) {
+                statusEl.style.color = '#e53e3e';
+                statusEl.textContent = msg;
+            }
+            if (consentBtn) {
+                consentBtn.disabled = false;
+                consentBtn.innerHTML = '<i class="fas fa-redo"></i> もう一度試す';
+            }
+        });
+}
+
+// ==========================================================
+// 要望2: Firebase プレフライト（通信テスト）
+// ==========================================================
+function runFirebasePreflight() {
+    const statusEl = document.getElementById('preGameConsentStatus');
+    const consentBtn = document.getElementById('preGameConsentBtn');
+    const roomId = _pendingRoomId;
+
+    // ▼ ルームIDが空欄: ソロプレイ扱いでテスト不要（要望2-5）
+    if (!roomId) {
+        if (statusEl) {
+            statusEl.style.color = '#22543d';
+            statusEl.textContent = '✓ ソロプレイで開始します...';
+        }
+        setTimeout(() => proceedToFamilyMake(), 400);
+        return;
+    }
+
+    // ▼ Firebase 未初期化（database が null）: テスト不可だが先へ進む
+    if (!database) {
+        if (statusEl) {
+            statusEl.style.color = '#dd6b20';
+            statusEl.textContent = '! Firebase 未初期化のため、テストを省略してオフラインで進みます...';
+        }
+        setTimeout(() => proceedToFamilyMake(), 400);
+        return;
+    }
+
+    if (statusEl) {
+        statusEl.style.color = '#4a5568';
+        statusEl.textContent = '通信テスト中... (最大8秒)';
+    }
+
+    let completed = false;
+    const TIMEOUT_MS = 8000;
+
+    const timer = setTimeout(() => {
+        if (completed) return;
+        completed = true;
+        handlePreflightFailure("タイムアウト (8秒以内に応答がありませんでした)");
+    }, TIMEOUT_MS);
+
+    try {
+        const testPath = 'rooms/' + roomId + '/testConnection/' + (gameState.myPlayerId || ('anon_' + Date.now()));
+        const testRef = database.ref(testPath);
+
+        // ▼ 実テスト書き込み
+        testRef.set({ ok: true, ts: Date.now() })
+            .then(() => {
+                if (completed) return;
+                completed = true;
+                clearTimeout(timer);
+
+                // テストデータの削除はベストエフォート（失敗してもゲームは続行）
+                testRef.remove().catch(e => console.warn('testConnection cleanup failed:', e));
+
+                if (statusEl) {
+                    statusEl.style.color = '#22543d';
+                    statusEl.textContent = '✓ 通信テスト成功 / ゲームを開始します...';
+                }
+                setTimeout(() => proceedToFamilyMake(), 500);
+            })
+            .catch(err => {
+                if (completed) return;
+                completed = true;
+                clearTimeout(timer);
+                handlePreflightFailure(err && err.message ? err.message : String(err));
+            });
+    } catch (e) {
+        if (!completed) {
+            completed = true;
+            clearTimeout(timer);
+            handlePreflightFailure(e && e.message ? e.message : String(e));
+        }
+    }
+}
+
+function handlePreflightFailure(detail) {
+    const statusEl = document.getElementById('preGameConsentStatus');
+    const consentBtn = document.getElementById('preGameConsentBtn');
+
+    if (statusEl) {
+        statusEl.style.color = '#e53e3e';
+        statusEl.textContent = '✗ 通信テスト失敗';
+    }
+    alert(
+        "【通信エラー】他プレイヤーとの通信に失敗しました。\n" +
+        "イベントを共有するために以下の設定をご確認ください。\n\n" +
+        "① プライベートブラウズ（シークレットモード）をオフにする\n" +
+        "② 広告ブロックアプリを一時的に無効にする\n" +
+        "③ 通信環境の良い場所で再度試す\n\n" +
+        "詳細: " + detail
+    );
+    if (consentBtn) {
+        consentBtn.disabled = false;
+        consentBtn.innerHTML = '<i class="fas fa-redo"></i> もう一度試す';
+    }
+    // 画面遷移は行わない（要望2-4）
+}
+
+// ==========================================================
+// 画面遷移 + Firebase イベントリスナー設定
+// （旧 startFamilyMake の後半部分を切り出し）
+// ==========================================================
+function proceedToFamilyMake() {
+    // 同意モーダルを閉じる
+    const modal = document.getElementById('preGameConsentModal');
+    if (modal) modal.style.display = 'none';
+
+    const roomId = _pendingRoomId;
     currentRoomId = roomId;
-    
+
     if (database && currentRoomId) {
         // ★重要修正: ルーム接続時に「現在時刻」をセットし、これより古い過去イベントを即座に無視する
         gameState.lastProcessedEventTimestamp = Date.now();
 
         const eventRef = database.ref('rooms/' + currentRoomId + '/globalEvent');
+
+        // 既存リスナーが残っていれば解除して、二重発火を防ぐ
+        try { eventRef.off('value'); } catch (e) { /* noop */ }
+
+        // presence（在席）書き込み
+        const presenceRef = database.ref('rooms/' + currentRoomId + '/presence/' + gameState.myPlayerId);
+        presenceRef.set({
+            joinedAt: Date.now()
+        }).then(() => {
+            console.log("Firebase: ルーム接続成功 [" + currentRoomId + "]");
+        }).catch(err => {
+            console.warn("presence set 失敗（致命的ではありません）:", err);
+        });
+
         eventRef.on('value', (snapshot) => {
             const eventData = snapshot.val();
             if (eventData) {
                 // 基準時刻より古い（過去の）イベントなら無視
-                if (eventData.timestamp <= (gameState.lastProcessedEventTimestamp || 0)) return; 
+                if (eventData.timestamp <= (gameState.lastProcessedEventTimestamp || 0)) return;
                 if (eventData.senderId === gameState.myPlayerId) return;
-                
+
                 const card = CARD_DATA[eventData.cardId];
                 if (card) {
-                    // 受信したイベントの時刻で基準を更新
                     gameState.lastProcessedEventTimestamp = eventData.timestamp;
                     alert(`【社会情勢イベント受信】\n他のプレイヤーが「${card.title}」を発生させました！\nあなたの家計にも影響が発生します。`);
                     applyCardEffect(eventData.cardId, true);
                 }
             }
+        }, (errorObj) => {
+            console.error("Firebase 受信エラー:", errorObj);
+            alert(
+                "【ルーム受信エラー】\n\n" +
+                "イベントの受信中にエラーが発生しました。\n" +
+                "Firebase のセキュリティルールが「読み取り拒否」になっている可能性があります。\n\n" +
+                "詳細: " + (errorObj && errorObj.message ? errorObj.message : errorObj)
+            );
         });
     }
-    
+
+    // ▼ 画面遷移
     const ts = document.getElementById('titleScreen');
     const fs = document.getElementById('familyMakeScreen');
-    if(ts) ts.style.display = 'none';
-    if(fs) fs.style.display = 'block';
+    if (ts) ts.style.display = 'none';
+    if (fs) fs.style.display = 'block';
     familyMakeState.step = 0;
     renderMakeStep();
 }
@@ -1508,8 +1826,22 @@ function animateAssetChange(startVal, endVal) {
 function nextTurn() {
     if (gameState.isCareerChallengeActive) { alert("キャリアチャレンジを完了してください"); return; }
     if (gameState.currentGuidance) { alert("指示に従ってください"); return; }
-    
-    gameState.turnEventCompleted = false; 
+
+    // ▼▼▼ 誤操作防止：次のターン移行前の確認ダイアログ ▼▼▼
+    const ageLabel = (gameState.currentAge === 60) ? "60-64歳" : `${gameState.currentAge}代`;
+    const nextAgeLabel = (gameState.currentAge + 10 >= 70) ? "65歳～（リタイア）" : `${gameState.currentAge + 10}代`;
+    const confirmMsg =
+        `【次のターンへ進みますか？】\n\n` +
+        `現在： ${ageLabel}\n` +
+        `次へ： ${nextAgeLabel}\n\n` +
+        `※この操作は取り消せません。\n` +
+        `スキャンや確認の漏れがないかチェックしてください。`;
+    if (!confirm(confirmMsg)) {
+        return;
+    }
+    // ▲▲▲ 確認ダイアログここまで ▲▲▲
+
+    gameState.turnEventCompleted = false;
     gameState.car.cardScanned = false;
     
     recalculateAnnualExpense();
@@ -1897,29 +2229,105 @@ let scanStartTime = 0; // 読み取り開始時間を管理する変数
 function openCamera() {
     const modal = document.getElementById('cameraModal');
     if (modal) modal.style.display = 'flex';
-    
+
     const statusEl = document.getElementById('scanStatus');
-    // メッセージを「準備中」にする
     if (statusEl) statusEl.textContent = 'カメラ起動中... (準備中)';
 
     // ★重要: 今から「1500ミリ秒(1.5秒)」後まで読み取りを禁止する設定
-    scanStartTime = Date.now() + 1500; 
+    scanStartTime = Date.now() + 1500;
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+    // ▼▼▼ ブラウザの対応状況チェック（HTTPSや古い端末対応） ▼▼▼
+    const isSecure = (window.isSecureContext === true) || (location.protocol === 'https:') || (location.hostname === 'localhost') || (location.hostname === '127.0.0.1');
+    if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+        if (statusEl) statusEl.textContent = 'このブラウザはカメラに対応していません';
+        const detail =
+            "【カメラを起動できませんでした】\n\n" +
+            (!isSecure ? "・このページは安全な接続(HTTPS)ではありません。\n  → 必ず「https://」で始まるURLからアクセスしてください。\n" : "") +
+            "・iPhoneの場合は Safari でアクセスしてください（LINE/Instagram などのアプリ内ブラウザでは動作しません）。\n" +
+            "・古いブラウザの場合は、最新版へアップデートしてください。\n\n" +
+            "※どうしてもカメラが使えない場合は、PC側で qr_generator.html を表示し、" +
+            "カメラを使わずにカードIDを管理者が直接適用する運用も可能です。";
+        alert(detail);
+        return;
+    }
+    if (!isSecure) {
+        if (statusEl) statusEl.textContent = '【警告】HTTPSではないためカメラが起動しない可能性があります';
+    }
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false })
         .then(stream => {
             cameraStream = stream;
             const video = document.getElementById('cameraVideo');
             video.srcObject = stream;
             // iOSなどで動画が再生されない問題を防ぐおまじない
-            video.setAttribute("playsinline", true); 
-            video.play();
-            
+            video.setAttribute("playsinline", true);
+            video.muted = true;
+            const playPromise = video.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch(e => console.warn('video.play() failed:', e));
+            }
+
             scanning = true;
             scanQR();
         })
         .catch(err => {
             console.error('カメラエラー:', err);
-            if (statusEl) statusEl.textContent = 'カメラを起動できませんでした';
+
+            // ▼▼▼ エラー種別ごとの詳細メッセージ ▼▼▼
+            let userMsg = "カメラを起動できませんでした";
+            let detail = "";
+            const name = err && err.name ? err.name : '';
+
+            if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+                userMsg = "カメラの使用が許可されていません";
+                detail =
+                    "【カメラの権限がブロックされています】\n\n" +
+                    "■ iPhone (Safari) の場合：\n" +
+                    "  設定 > Safari > カメラ > 「許可」または「確認」に変更\n\n" +
+                    "■ Android (Chrome) の場合：\n" +
+                    "  アドレスバー左の鍵マーク > 権限 > カメラ > 許可\n\n" +
+                    "設定変更後、このページを再読み込みしてください。";
+            } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+                userMsg = "カメラが見つかりませんでした";
+                detail = "この端末にはカメラが接続されていない、または認識できませんでした。";
+            } else if (name === 'NotReadableError' || name === 'TrackStartError') {
+                userMsg = "カメラが他のアプリで使用中です";
+                detail = "別のカメラアプリやビデオ通話アプリを終了してから、再度お試しください。";
+            } else if (name === 'OverconstrainedError' || name === 'ConstraintNotSatisfiedError') {
+                // 背面カメラ(environment)指定が通らない端末向けに、制約なしで再挑戦
+                navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                    .then(stream => {
+                        cameraStream = stream;
+                        const video = document.getElementById('cameraVideo');
+                        video.srcObject = stream;
+                        video.setAttribute("playsinline", true);
+                        video.muted = true;
+                        video.play().catch(e => console.warn(e));
+                        scanning = true;
+                        scanQR();
+                    })
+                    .catch(err2 => {
+                        if (statusEl) statusEl.textContent = "カメラを起動できませんでした";
+                        alert("背面カメラが利用できませんでした。\n端末の設定をご確認ください。\n\n詳細: " + (err2 && err2.name));
+                    });
+                return;
+            } else if (name === 'SecurityError' || !isSecure) {
+                userMsg = "セキュリティ制限でカメラが使えません";
+                detail =
+                    "このページが HTTPS でない可能性があります。\n" +
+                    "アドレスバーが「https://」で始まっているか確認してください。\n" +
+                    "※http:// や file:// では多くのスマホでカメラが動作しません。";
+            } else {
+                detail = "予期しないエラーが発生しました。\n" +
+                    "・ブラウザを再起動する\n" +
+                    "・別のブラウザ(Safari/Chrome)で試す\n" +
+                    "・端末を再起動する\n" +
+                    "などをお試しください。\n\n詳細: " + name;
+            }
+
+            if (statusEl) statusEl.textContent = userMsg;
+            alert(userMsg + "\n\n" + detail);
+            // ▲▲▲ エラー処理ここまで ▲▲▲
         });
 }
     
@@ -2005,15 +2413,31 @@ function stopScan() {
     if (m) m.style.display = 'none';
 }
 
+// ▼▼▼ 誤操作防止：ユーザーが「中止」ボタンを押したときに確認 ▼▼▼
+function confirmStopScan() {
+    if (!confirm("【確認】\nカードスキャンを中止しますか？\n\n※「OK」を押すとスキャン画面が閉じます。\n　誤って押した場合は「キャンセル」してください。")) {
+        return;
+    }
+    stopScan();
+}
+
 function closeCameraAndReturn() {
     stopScan();
     const previousContext = gameState.guidanceContextForApply;
     if (previousContext) {
-        gameState.guidanceContextForApply = null; 
+        gameState.guidanceContextForApply = null;
         showGuidanceModal(previousContext);
     } else {
         determineNextGuidance();
     }
+}
+
+// ▼▼▼ 誤操作防止：ユーザーが「戻る」ボタンを押したときに確認 ▼▼▼
+function confirmCloseCameraAndReturn() {
+    if (!confirm("【確認】\nスキャンを中断して前の画面に戻りますか？\n\n※読み取り中のカードがある場合は再スキャンが必要になります。")) {
+        return;
+    }
+    closeCameraAndReturn();
 }
 
 function goBackGuidance() {
@@ -2806,6 +3230,129 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+// ==========================================================
+// ▼▼▼ 戻るボタン誤操作対策 (ブラウザバック・スワイプバック吸収) ▼▼▼
+// ==========================================================
+(function setupBackButtonTrap() {
+    // 罠用の履歴エントリを追加するヘルパー
+    function pushSentinel() {
+        try {
+            history.pushState({ liferidgeSentinel: true, ts: Date.now() }, "", location.href);
+        } catch (e) {
+            console.warn("pushState failed:", e);
+        }
+    }
+
+    // 現在開いている .modal を取得（display:none 以外）
+    function getOpenModals() {
+        return Array.from(document.querySelectorAll('.modal')).filter(m => {
+            // インラインスタイルと computedStyle 両方でチェック
+            if (m.style.display === 'none') return false;
+            const style = window.getComputedStyle(m);
+            return style.display !== 'none' && style.visibility !== 'hidden';
+        });
+    }
+
+    // 罠の初期セット（ページ読み込み完了後）
+    window.addEventListener('load', () => {
+        pushSentinel();
+    });
+
+    // 戻るボタンが押されたら発火
+    window.addEventListener('popstate', (event) => {
+        // ▼ 開いているモーダルがあれば、それを閉じることを優先
+        const openModals = getOpenModals();
+        if (openModals.length > 0) {
+            const topModal = openModals[openModals.length - 1];
+
+            // カメラスキャン中は専用処理
+            if (topModal.id === 'cameraModal') {
+                const ok = confirm("【確認】\nカメラスキャンを中断しますか？");
+                if (ok) {
+                    if (typeof stopScan === 'function') stopScan();
+                    // ガイダンス文脈があれば復帰
+                    if (gameState && gameState.guidanceContextForApply) {
+                        const ctx = gameState.guidanceContextForApply;
+                        gameState.guidanceContextForApply = null;
+                        if (typeof showGuidanceModal === 'function') showGuidanceModal(ctx);
+                    }
+                }
+            }
+            // ガイダンスモーダルは閉じても問題ない（再度ボタンで開ける）
+            else if (topModal.id === 'guidanceModal') {
+                topModal.style.display = 'none';
+            }
+            // ターン開始モーダル・最終結果系は誤って閉じないよう確認
+            else if (['turnStartModal', 'finalResultModal', 'lifePlanKarteModal',
+                      'investmentResultModal', 'investmentRateModal',
+                      'retirementBonusModal', 'careerChallengeModal'].includes(topModal.id)) {
+                alert("【お知らせ】\nこの画面はゲーム進行に必要なため、戻るボタンでは閉じられません。\n画面内のボタンで操作してください。");
+            }
+            // それ以外（情報系・解説系）は閉じてOK
+            else {
+                topModal.style.display = 'none';
+            }
+
+            // 履歴を再プッシュして現状を維持
+            pushSentinel();
+            return;
+        }
+
+        // ▼ モーダルが開いていない場合
+        const mainGame = document.getElementById('mainGameContainer');
+        const familyMake = document.getElementById('familyMakeScreen');
+        const inGame = mainGame && mainGame.style.display !== 'none';
+        const inFamilyMake = familyMake && familyMake.style.display !== 'none';
+
+        if (inGame) {
+            // ゲーム本編中：誤操作の可能性が高いので確認
+            const ok = confirm(
+                "【確認】\n本当にゲームを終了して前のページに戻りますか？\n\n" +
+                "※「キャンセル」を押すと、今のゲームに留まります。\n" +
+                "　ゲームの進行状態は自動保存されています。"
+            );
+            if (ok) {
+                // ユーザーが本当に戻りたい → 実際に履歴を戻す
+                history.back();
+            } else {
+                // 留まる → 罠を再セット
+                pushSentinel();
+            }
+        } else if (inFamilyMake) {
+            // ファミリーメイク中：作成途中なので確認
+            const ok = confirm(
+                "【確認】\nファミリーメイクを中止してタイトルに戻りますか？\n\n" +
+                "※入力した内容は破棄されます。"
+            );
+            if (ok) {
+                // タイトル画面に戻す（履歴ではなく画面表示で対応）
+                if (familyMake) familyMake.style.display = 'none';
+                const ts = document.getElementById('titleScreen');
+                if (ts) ts.style.display = 'flex';
+                pushSentinel();
+            } else {
+                pushSentinel();
+            }
+        } else {
+            // タイトル画面など → 通常通り戻る
+            // sentinel を再プッシュしないことで、もう一度押されたら離脱できる
+        }
+    });
+
+    // ▼ タブを閉じる/リロード時の警告（誤操作対策）
+    window.addEventListener('beforeunload', (e) => {
+        const mainGame = document.getElementById('mainGameContainer');
+        const inGame = mainGame && mainGame.style.display !== 'none';
+        if (inGame && gameState && gameState.currentAge && gameState.currentAge < 70) {
+            // 標準的なブラウザ確認ダイアログを出すための定型
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
+        }
+    });
+})();
+// ▲▲▲ 戻るボタン誤操作対策ここまで ▲▲▲
 // ==========================================
 // ▼▼▼ 新ルーレットシステム (10分割対応) ▼▼▼
 // ==========================================
