@@ -26,9 +26,13 @@
             <p class="subtitle">～Life & Marriage～ </p>
             
             <div style="margin: 20px 0;">
-                <input type="text" id="roomIdInput" placeholder="ルームID (例: 1234)" 
+                <input type="text" id="roomIdInput" placeholder="ルームID (例: 1234)"
+                       inputmode="numeric" autocomplete="off"
                        style="padding: 10px; font-size: 1.2em; width: 200px; text-align: center; border-radius: 5px; border: 1px solid #ccc;">
                 <p style="font-size:0.8em; color:#666; margin-top:5px;">※同じIDの人とイベントを共有します</p>
+                <p id="firebaseStatus" style="font-size:0.85em; margin-top:8px; padding:6px 10px; border-radius:5px; display:inline-block; background:#edf2f7; color:#4a5568;">
+                    <i class="fas fa-circle-notch fa-spin"></i> サーバー接続を確認中...
+                </p>
             </div>
             <button onclick="startFamilyMake()" class="start-btn">スタート</button>
             <button onclick="showHallOfFame()" class="start-btn btn-secondary" style="margin-top: 10px;">セーブデータ</button>
@@ -209,10 +213,10 @@
             <div id="scanStatsPanel"></div>
 
             <div style="display:flex; justify-content:center; gap:15px; margin-top:15px;">
-                <button onclick="closeCameraAndReturn()" class="btn-secondary" style="width: auto; padding: 10px 20px;">
+                <button onclick="confirmCloseCameraAndReturn()" class="btn-secondary" style="width: auto; padding: 10px 20px;">
                     <i class="fas fa-undo"></i> 戻る
                 </button>
-                <button onclick="stopScan()" class="btn-danger" style="width: auto; padding: 10px 20px;">
+                <button onclick="confirmStopScan()" class="btn-danger" style="width: auto; padding: 10px 20px;">
                     <i class="fas fa-times"></i> 中止
                 </button>
             </div>
@@ -365,6 +369,36 @@
         </div>
     </div>
     <div id="hallOfFameModal" class="modal"><div class="modal-content-xlarge"><h2>セーブデータ</h2><div id="hallOfFameContainer" style="max-height:450px;overflow-y:auto;padding:5px;"></div><button onclick="closeHallOfFameModal()" class="btn-primary" style="margin-top:20px;">閉じる</button></div></div>
+
+    <!-- ▼▼▼ ゲーム開始前の事前同意モーダル ▼▼▼ -->
+    <div id="preGameConsentModal" class="modal">
+        <div class="modal-content" style="text-align:center; max-width:520px;">
+            <h2 style="color:#FF7F50; margin-bottom:15px;">
+                <i class="fas fa-shield-alt"></i> ゲーム開始前の確認
+            </h2>
+
+            <div style="text-align:left; padding:18px; background:#FFFDF8; border:2px solid #FFE4B5; border-radius:10px; margin-bottom:18px; line-height:1.7;">
+                <p style="margin-bottom:10px;">ゲームをスムーズに進行するため、以下の機能を使用します。</p>
+                <ul style="padding-left:22px; margin-bottom:12px;">
+                    <li>QRコード読み取りのための<strong>【カメラ】</strong>アクセス</li>
+                    <li>診断結果等を受け取るための<strong>【LINE】</strong>アプリの起動</li>
+                </ul>
+                <p style="font-size:0.85em; color:#666; margin:0;">
+                    ※ゲーム終了後にカメラ権限をリセットしたい場合は、ブラウザの設定から手動で行ってください。
+                </p>
+            </div>
+
+            <p id="preGameConsentStatus" style="margin-bottom:15px; font-size:0.95em; min-height:1.3em; color:#4a5568;"></p>
+
+            <button id="preGameConsentBtn" class="btn-primary" style="width:100%; padding:15px; font-size:1.05em;">
+                <i class="fas fa-check"></i> 同意して進む(カメラを許可する)
+            </button>
+            <button id="preGameCancelBtn" class="btn-secondary" style="width:100%; padding:10px; margin-top:10px;">
+                <i class="fas fa-times"></i> キャンセル
+            </button>
+        </div>
+    </div>
+    <!-- ▲▲▲ 事前同意モーダルここまで ▲▲▲ -->
 
     <script src="game.js"></script>
 </body>
