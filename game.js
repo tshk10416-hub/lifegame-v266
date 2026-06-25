@@ -1532,6 +1532,38 @@ function finalizeFamilyMake() {
     initGameFromMake();
 }
 
+// ▼▼▼ 出産による母親(プレイヤー2)の年収減少ペナルティ ▼▼▼
+// 仕様: ファミリーメイクで子どもがいる場合、最初の10年間(30代)のみ
+//       「プレイヤー2(母親側)」の額面年収(grossIncome)と手取り年収(income)を減少させる。
+//       子ども1人 : 20%減 (×0.8)
+//       子ども2人 : 25%減 (×0.75)
+//       子ども3人 : 30%減 (×0.7)
+// ※ 40代以降は updateStateForNewTurn() で給与が満額で再計算されるため、
+//   このペナルティは30代のみ自動的に有効となる。
+function applyMaternityPenaltyIfNeeded() {
+    // 適用は「最初の10年間(30代)」のみ
+    if (gameState.currentAge !== 30) return;
+
+    const count = gameState.children.count || 0;
+    if (count <= 0) return; // 子どもがいなければ適用なし
+
+    let rate = 0;
+    if (count === 1) rate = 0.20;
+    else if (count === 2) rate = 0.25;
+    else rate = 0.30; // 3人以上
+
+    const multiplier = 1 - rate; // 0.8 / 0.75 / 0.7
+    const p2 = gameState.players.player2;
+
+    if (!p2) return;
+
+    p2.grossIncome = Math.round(p2.grossIncome * multiplier);
+    p2.income = Math.round(p2.income * multiplier);
+
+    addEvent(`出産による年収減少（${Math.round(rate * 100)}%減）が${p2.name || 'プレイヤー2'}に適用されました。`);
+}
+// ▲▲▲ 出産ペナルティここまで ▲▲▲
+
 function initGameFromMake() {
     gameState = {
         myPlayerId: gameState.myPlayerId || (Date.now().toString(36) + Math.random().toString(36).substr(2)),
@@ -1637,7 +1669,13 @@ function initGameFromMake() {
     updateChildrenCost();
     updateHouseCost();
     recalculateAnnualExpense();
-    
+
+    // ▼▼▼ 出産による母親(プレイヤー2)の30代年収減少ペナルティを適用 ▼▼▼
+    // ※ 費用ブラケット(住宅/教育/生活費)はファミリーメイクで選択した内容のまま維持し、
+    //   30代の収入(income)のみを減少させてから、下の10年分収支計算へ反映する。
+    applyMaternityPenaltyIfNeeded();
+    // ▲▲▲ ペナルティ適用ここまで ▲▲▲
+
     // ★★★ 30代の10年分の収支を先取りして資産に反映 (ログ詳細化) ★★★
     startTurnIncomeAndExpense(30);
 
@@ -2753,7 +2791,13 @@ function updateStateForNewTurn() {
             p.income = getNetIncomeDetails(p.grossIncome).net;
         }
     });
-    recalculateAnnualExpense(); 
+    recalculateAnnualExpense();
+
+    // ▼▼▼ 出産による年収減少ペナルティ（30代のみ適用。40代以降は内部ガードで何もしない） ▼▼▼
+    // ※ 通常フローでは本関数は40代以降に呼ばれるため実質 no-op だが、
+    //   仕様(ヒント3)に従い給与再計算処理にも組み込み、30代で再計算された場合の整合性を保つ。
+    applyMaternityPenaltyIfNeeded();
+    // ▲▲▲ ペナルティ適用ここまで ▲▲▲
 }
 
 // UI更新
