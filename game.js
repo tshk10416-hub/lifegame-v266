@@ -1140,75 +1140,16 @@ function proceedToFamilyMake() {
     currentRoomId = roomId;
 
     if (database && currentRoomId) {
-        // ★重要修正: ルーム接続時に「現在時刻」をセットし、これより古い過去イベントを即座に無視する
-        gameState.lastProcessedEventTimestamp = Date.now();
-
-        const eventRef = database.ref('rooms/' + currentRoomId + '/globalEvent');
-
-        // 既存リスナーが残っていれば解除して、二重発火を防ぐ
-        try { eventRef.off('value'); } catch (e) { /* noop */ }
-
-        // presence（在席）書き込み
-        const presenceRef = database.ref('rooms/' + currentRoomId + '/presence/' + gameState.myPlayerId);
-        presenceRef.set({
-            joinedAt: Date.now()
-        }).then(() => {
-            console.log("Firebase: ルーム接続成功 [" + currentRoomId + "]");
-        }).catch(err => {
-            console.warn("presence set 失敗（致命的ではありません）:", err);
-        });
-
-        eventRef.on('value', (snapshot) => {
-            const eventData = snapshot.val();
-            if (eventData) {
-                // 基準時刻より古い（過去の）イベントなら無視
-                if (eventData.timestamp <= (gameState.lastProcessedEventTimestamp || 0)) return;
-                if (eventData.senderId === gameState.myPlayerId) return;
-
-                const card = CARD_DATA[eventData.cardId];
-                if (card) {
-                    gameState.lastProcessedEventTimestamp = eventData.timestamp;
-                    // 受信側でも効果を適用。適用後に applyCardEffect 内の要件5ブロックが
-                    // 「自世帯の個別リザルトモーダル」を自動表示するため、旧来の alert は不要。
-                    applyCardEffect(eventData.cardId, true);
-                }
-            }
-        }, (errorObj) => {
-            console.error("Firebase 受信エラー:", errorObj);
-            alert(
-                "【ルーム受信エラー】\n\n" +
-                "イベントの受信中にエラーが発生しました。\n" +
-                "Firebase のセキュリティルールが「読み取り拒否」になっている可能性があります。\n\n" +
-                "詳細: " + (errorObj && errorObj.message ? errorObj.message : errorObj)
-            );
-        });
-
-        // ▼▼▼ 【要件5】ソーシャルイベント詳細リザルトの全端末リアルタイム同期リスナー ▼▼▼
-        // 発生元が currentSocialEvent を更新すると、参加中の全端末がこれを検知。
-        // 各端末は「自分の世帯のパラメータ」で損益を再計算し、個別リザルトモーダルを強制表示する。
-        gameState.lastProcessedSocialTs = Date.now();
-        const socialRef = database.ref('rooms/' + currentRoomId + '/currentSocialEvent');
-        try { socialRef.off('value'); } catch (e) { /* noop */ }
-
-        socialRef.on('value', (snap) => {
-            const data = snap.val();
-            if (!data) return;
-            // 過去データ・自分が発生させたイベントは無視（発生元は適用時に表示済み）
-            if (data.timestamp <= (gameState.lastProcessedSocialTs || 0)) return;
-            if (data.senderId === gameState.myPlayerId) return;
-
-            const card = CARD_DATA[data.cardId];
-            if (!card) return;
-
-            gameState.lastProcessedSocialTs = data.timestamp;
-
-            // 受信側は自世帯に効果を適用し、自世帯の個別リザルトモーダルを表示
-            // （applyCardEffect 内の要件5ブロックが showSocialEventModal を実行する）
-            applyCardEffect(data.cardId, true);
-        }, (errorObj) => {
-            console.error("Firebase ソーシャルイベント受信エラー:", errorObj);
-        });
-        // ▲▲▲ 要件5 リスナーここまで ▲▲▲
+        // ▼▼▼ ルーム同期は RoomSync (liferidge_ext.js) に一本化 ▼▼▼
+        // 旧実装（globalEvent / currentSocialEvent の単一ノードを 'value' 監視）は
+        //  ・リロード後にリスナーとルームIDが復元されない
+        //  ・切断中の複数イベントが上書きで失われる
+        //  ・端末時計(Date.now)の比較でイベントを誤って破棄する
+        // という問題があったため、追記型ログ(eventLog) + 自動再接続方式に置き換え。
+        RoomSync.connect(currentRoomId);
+    } else {
+        // ソロプレイ: 前回ゲームのルーム情報が残っていると再読み込み時に誤って復帰するため破棄
+        RoomSync.disconnect();
     }
 
     // ▼ 画面遷移
@@ -1712,12 +1653,78 @@ function getJobName(jobId) {
     return '無職/その他';
 }
 
-// 個別損益(ec)を画面表示用テキストに整形（ec>0=支出, ec<0=収入, 0=影響なし）
+// 個別損益(ec)を画面表示用テキストに整形（ec>0=支出, ec<0=収入, 0=増減なし）
 function formatSocialImpact(ec) {
     if (ec < 0) return `+${Math.abs(ec)}万円`;
     if (ec > 0) return `-${ec}万円`;
-    return '影響なし';
+    return '0万円';
 }
+
+// ▼▼▼ 保険で自己負担0円になるカードの対応表（表示用の理由テキストに使用） ▼▼▼
+const INSURANCE_COVERAGE = {
+    L004: 'auto', L054: 'auto',
+    L005: 'life', L006: 'life', L039: 'life', L065: 'life', L090: 'life',
+    L007: 'fire', L036: 'fire', L040: 'fire', L048: 'fire', L056: 'fire', L086: 'fire'
+};
+const INSURANCE_LABELS = { auto: '自動車保険', life: '生命保険', fire: '火災保険' };
+
+// 現在の加入状況で、このカードの支出が保険でカバーされるか
+function getActiveInsuranceCover(cardId, card) {
+    const kind = INSURANCE_COVERAGE[cardId] || (card && card.insuranceCheck);
+    if (!kind || !gameState.insurance || gameState.insurance[kind] !== true) return null;
+    return { kind: kind, label: INSURANCE_LABELS[kind] || '保険' };
+}
+
+const SOCIAL_FLAG_LABELS = {
+    childMarried: '子どもが結婚している',
+    grandchildBorn: '孫がいる',
+    hasPet: 'ペットを飼っている',
+    hasInvestment: '投資をしている',
+    hasHome: 'マイホームを持っている',
+    hasCampGear: 'キャンプ道具を持っている',
+    autoInsurance: '自動車を持っている',
+    fireInsurance: '火災保険に加入している',
+    lifeInsurance: '生命保険に加入している'
+};
+
+// ソーシャルイベントで個別損益が0になった理由（simulateSocialEventEc と同じ判定順）
+function explainSocialEventZero(card, targetId, playerKey) {
+    const player = gameState.players[playerKey];
+    const jobId = player ? player.jobId : null;
+    const gHouse = (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
+    let base = 0;
+    if (card.costsByIncome) {
+        base = (gHouse < 600) ? card.costsByIncome.low : (gHouse < 1000 ? card.costsByIncome.mid : card.costsByIncome.high);
+    }
+
+    if (targetId === 'S038') {
+        const benefit = ["J001", "J005"].includes(jobId);
+        const penalty = ["J008", "J009"].includes(jobId);
+        if (benefit && penalty) return { reason: '収入と支出が同額のため', detail: `収入 +${base}万円 / 支出 -${base}万円` };
+        return { reason: '職業がAI革命の影響を受けない対象のため', detail: '' };
+    }
+    if (targetId === 'S059') return { reason: '持ち家がないため（賃貸・未購入）', detail: '' };
+    if (targetId === 'S032') return { reason: '投資をしていないため', detail: '' };
+
+    if (card.insuranceCheck === 'fire' && gameState.insurance && gameState.insurance.fire === true) {
+        let gross = base;
+        if (card.conditionPenalty) gross = resolveSocialFlag(card.conditionPenalty.flag) ? card.conditionPenalty.amount : 0;
+        return {
+            reason: '火災保険適用のため',
+            detail: gross > 0 ? `本来の支出 -${gross}万円 → 補償 +${gross}万円` : ''
+        };
+    }
+    if (targetId === 'S025') return { reason: '自動車を所有していないため', detail: '' };
+    if (card.conditionBonus && !resolveSocialFlag(card.conditionBonus.flag)) {
+        return { reason: `対象条件（${SOCIAL_FLAG_LABELS[card.conditionBonus.flag] || '特定の条件'}）に該当しないため`, detail: '' };
+    }
+    if (card.conditionPenalty && !resolveSocialFlag(card.conditionPenalty.flag)) {
+        return { reason: `対象条件（${SOCIAL_FLAG_LABELS[card.conditionPenalty.flag] || '特定の条件'}）に該当しないため`, detail: '' };
+    }
+    if (card.life_point || card.lifePointRequireFlag) return { reason: 'お金の増減はないイベントのため（ライフポイントのみ変化）', detail: '' };
+    return { reason: 'このイベントによるお金の増減はありません', detail: '' };
+}
+// ▲▲▲ ここまで ▲▲▲
 
 // 1プレイヤー個別の最終損益(ec)をシミュレート計算（要件4のロジックを個別パラメータで再現）
 // 戻り値: 正=支出(損), 負=収入(得), 0=影響なし
@@ -1794,7 +1801,8 @@ function simulateSocialEventEc(card, targetId, playerKey) {
 }
 
 // 全プレイヤーの個別リザルトを表示する通知モーダル（index.htmlを編集せず動的生成）
-function showSocialEventModal(card, p1Ec, p2Ec) {
+// p1Why / p2Why: 個別損益が0のときの理由 { reason, detail }（省略可）
+function showSocialEventModal(card, p1Ec, p2Ec, p1Why, p2Why) {
     let modal = document.getElementById('socialEventModal');
     if (!modal) {
         modal = document.createElement('div');
@@ -1810,8 +1818,13 @@ function showSocialEventModal(card, p1Ec, p2Ec) {
     const p2Name = p2.name || 'プレイヤー2';
     const p1Job = getJobName(p1.jobId);
     const p2Job = getJobName(p2.jobId);
-    const impactColor = (ec) => (ec < 0 ? '#22543d' : (ec > 0 ? '#e53e3e' : '#718096'));
     const expl = (card.explanation || '').replace(/\n/g, '<br>');
+    // ec(正=支出/負=収入) を資産の増減値(正=増/負=減)に変換して、最終増減値を強調表示
+    const impactHtml = (ec, why) => {
+        const diff = -(Number(ec) || 0);
+        const w = (diff === 0 && why) ? why : { reason: '', detail: '' };
+        return LRNet.renderHtml({ diff: diff, reason: w.reason, detail: w.detail }, { compact: true });
+    };
 
     modal.innerHTML = `
         <div class="modal-content" style="text-align:center; max-width:520px; border-top:6px solid #FF7F50;">
@@ -1823,12 +1836,12 @@ function showSocialEventModal(card, p1Ec, p2Ec) {
                 <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:15px;">
                     <div style="font-weight:bold; color:#333;">${p1Name}</div>
                     <div style="font-size:0.8em; color:#718096; margin-bottom:6px;">(${p1Job})</div>
-                    <div style="font-size:1.5em; font-weight:bold; color:${impactColor(p1Ec)};">${formatSocialImpact(p1Ec)}</div>
+                    ${impactHtml(p1Ec, p1Why)}
                 </div>
                 <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:15px;">
                     <div style="font-weight:bold; color:#333;">${p2Name}</div>
                     <div style="font-size:0.8em; color:#718096; margin-bottom:6px;">(${p2Job})</div>
-                    <div style="font-size:1.5em; font-weight:bold; color:${impactColor(p2Ec)};">${formatSocialImpact(p2Ec)}</div>
+                    ${impactHtml(p2Ec, p2Why)}
                 </div>
             </div>
             <button onclick="document.getElementById('socialEventModal').style.display='none';" class="btn-primary" style="width:100%; padding:14px;">確認しました</button>
@@ -1844,6 +1857,9 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
     const c = CARD_DATA[targetId];
     if (!c) return;
 
+    // 収支表示用: 最終増減値と理由（保険適用・相殺など）の記録を開始
+    LRNet.begin(targetId, c);
+
     // 履歴に追加
     if (!gameState.scannedCards) gameState.scannedCards = [];
     gameState.scannedCards.push(targetId);
@@ -1853,11 +1869,8 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
     //   新ソーシャルイベント(S013-S062 / social_event_asset_change)は
     //   【要件5】の currentSocialEvent 経由でリザルト付き同期するため、ここでは送らない。
     if (!fromRemote && c.type === 'social_event' && database && currentRoomId) {
-        database.ref('rooms/' + currentRoomId + '/globalEvent').set({
-            cardId: targetId,
-            timestamp: Date.now(),
-            senderId: gameState.myPlayerId
-        });
+        // 追記型ログ + 送信キュー経由で共有（切断中でも再接続後に自動再送）
+        RoomSync.publish(targetId, 'social_event');
     }
 
     // --- 退職金トリガーの特殊処理 ---
@@ -1891,7 +1904,8 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
         }
         if (grantLifePoint) {
             gameState.happiness += c.life_point;
-            addEvent(`${logPrefix}ライフポイントアップ！ (+${c.life_point}pt)`);
+            // 負のライフポイントで「+-5pt」「アップ！」と表示されていたのを修正
+            addEvent(`${logPrefix}ライフポイント${c.life_point > 0 ? 'アップ！' : 'ダウン…'} (${LRNet.formatSigned(c.life_point)}pt)`);
         } else {
             addEvent(`${logPrefix}${c.title}：条件未達のためライフポイントの変化はありませんでした。`);
         }
@@ -1996,6 +2010,10 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             if (targetId === 'L004' && gameState.insurance.auto) cost = 0;
             if ((targetId === 'L005' || targetId === 'L006') && gameState.insurance.life) cost = 0;
             if (targetId === 'L007' && gameState.insurance.fire) cost = 0;
+            if (cost === 0 && val > 0) {
+                const coverLE = getActiveInsuranceCover(targetId, c);
+                LRNet.offset(val, (coverLE ? coverLE.label : '保険') + '適用のため');
+            }
             
             if (cost > 0) { 
                 gameState.totalAssets -= cost; 
@@ -2013,6 +2031,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                 const g = gameState.players.player1.grossIncome + gameState.players.player2.grossIncome;
                 ec = (g < 600) ? c.costsByIncome.low : (g < 1000 ? c.costsByIncome.mid : c.costsByIncome.high);
             }
+            const ecBeforeInsurance = ec; // 保険適用前の本来の支出（理由表示用）
 
             // ==========================================
             // ▼▼▼ 保険適用特例（ライフイベント別） ▼▼▼
@@ -2027,6 +2046,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                 }
                 gameState.happiness += 5; // +5pt に上書き
                 addEvent(`${logPrefix}${c.title} 火災保険適用で自己負担0円！(+5pt)`);
+                LRNet.offset(ecBeforeInsurance, '火災保険適用のため');
                 updated = true;
                 break;
             }
@@ -2035,6 +2055,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             if (targetId === 'L039' && gameState.insurance && gameState.insurance.life === true) {
                 ec = 0;
                 addEvent(`${logPrefix}${c.title} 生命保険適用で自己負担0円！`);
+                LRNet.offset(ecBeforeInsurance, '生命保険適用のため');
                 if (c.setFlag) {
                     gameState[c.setFlag] = true;
                     addEvent(`${logPrefix}状態フラグ「${c.setFlag}」をONにしました。`);
@@ -2048,6 +2069,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                 gameState.insurance && gameState.insurance.fire === true) {
                 ec = 0;
                 addEvent(`${logPrefix}${c.title} 火災保険適用で自己負担0円！`);
+                LRNet.offset(ecBeforeInsurance, '火災保険適用のため');
                 updated = true;
                 break;
             }
@@ -2056,6 +2078,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             if (targetId === 'L054' && gameState.insurance && gameState.insurance.auto === true) {
                 ec = 0;
                 addEvent(`${logPrefix}${c.title} 自動車保険適用で自己負担0円！`);
+                LRNet.offset(ecBeforeInsurance, '自動車保険適用のため');
                 // setFlag 処理を行うため break せず後段へ
             }
 
@@ -2063,6 +2086,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             if (targetId === 'L065' && gameState.insurance && gameState.insurance.life === true) {
                 ec = 0;
                 addEvent(`${logPrefix}${c.title} 生命保険適用で自己負担0円！`);
+                LRNet.offset(ecBeforeInsurance, '生命保険適用のため');
                 if (c.setFlag) {
                     gameState[c.setFlag] = true;
                     addEvent(`${logPrefix}状態フラグ「${c.setFlag}」をONにしました。`);
@@ -2075,6 +2099,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             if (targetId === 'L086' && gameState.insurance && gameState.insurance.fire === true) {
                 ec = 0;
                 addEvent(`${logPrefix}${c.title} 火災保険（風災）適用で自己負担0円！`);
+                LRNet.offset(ecBeforeInsurance, '火災保険（風災）適用のため');
                 if (c.setFlag) {
                     gameState[c.setFlag] = true;
                     addEvent(`${logPrefix}状態フラグ「${c.setFlag}」をONにしました。`);
@@ -2087,6 +2112,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             if (targetId === 'L090' && gameState.insurance && gameState.insurance.life === true) {
                 ec = 0;
                 addEvent(`${logPrefix}${c.title} 生命保険適用で自己負担0円！`);
+                LRNet.offset(ecBeforeInsurance, '生命保険適用のため');
                 if (c.setFlag) {
                     gameState[c.setFlag] = true;
                     addEvent(`${logPrefix}状態フラグ「${c.setFlag}」をONにしました。`);
@@ -2138,6 +2164,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                 gameState.totalAssets -= totalTax;
                 
                 addEvent(`${logPrefix}増税: 年間${taxIncrease.toFixed(1)}万 × ${duration}年 = -${totalTax.toFixed(1)}万円`);
+                LRNet.note('給付金と増税の差し引き', `給付金 +10万円 / 増税 -${totalTax.toFixed(1)}万円`, false);
             }
             else if (targetId === 'S001') { // 好景気
                 const g = Math.round(hi * 0.2); 
@@ -2220,6 +2247,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                     let netGain = investGain - livingCost;
                     ec = -netGain;
                     addEvent(`${logPrefixS}円安ショック！生活費増(-${livingCost}万円)を投資益(+${investGain}万円)が上回り、トータル+${netGain}万円の臨時収入！`);
+                    LRNet.note('生活費の増加と投資益の差し引き', `生活費 -${livingCost}万円 / 投資益 +${investGain}万円`, false);
                 } else {
                     addEvent(`${logPrefixS}円安ショック！輸入品高騰により生活費増：-${livingCost}万円の打撃…`);
                 }
@@ -2236,6 +2264,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                     let netLoss = investLoss - livingSave;
                     ec = netLoss;
                     addEvent(`${logPrefixS}円高バブル！生活費節約(+${livingSave}万円)を投資の目減り(-${investLoss}万円)が上回り、トータル-${netLoss}万円の打撃…`);
+                    LRNet.note('生活費の節約と投資の目減りの差し引き', `生活費 +${livingSave}万円 / 投資 -${investLoss}万円`, false);
                 } else {
                     ec = -livingSave;
                     addEvent(`${logPrefixS}円高バブル！輸入品が安くなり生活費節約：+${livingSave}万円の恩恵！`);
@@ -2291,6 +2320,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                 if (hasBenefit && hasPenalty) {
                     ec = 0;
                     addEvent(`${logPrefixS}AI革命到来！世帯内でAIの恩恵と打撃が相殺され、プラマイゼロに。`);
+                    LRNet.note('収入と支出が同額のため', `収入 +${aiCost}万円 / 支出 -${aiCost}万円`);
                 } else if (hasBenefit) {
                     ec = -aiCost;
                     addEvent(`${logPrefixS}AI革命到来！AIを活用して業務効率が爆上がりし、+${aiCost}万円の臨時収入！`);
@@ -2300,6 +2330,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                 } else {
                     ec = 0;
                     addEvent(`${logPrefixS}AI革命到来！あなたの職業（対人・手作業メイン等）には直接的な影響はありませんでした。`);
+                    LRNet.note('職業がAI革命の影響を受けない対象のため');
                 }
                 gameState.totalAssets -= ec;
                 gameState.turnExpenses.social_event += ec;
@@ -2314,6 +2345,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                 } else {
                     ec = 0;
                     addEvent(`${logPrefixS}災害リスク上昇！あなたは賃貸（または家を未購入）のため、持ち家の緊急対策費は発生しませんでした。`);
+                    LRNet.note('持ち家がないため（賃貸・未購入）');
                 }
                 gameState.totalAssets -= ec;
                 gameState.turnExpenses.social_event += ec;
@@ -2336,6 +2368,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                 } else {
                     ec = 0; // 投資していない人は無傷
                     addEvent(`${logPrefixS}株価乱高下！市場は混乱していますが、あなたは投資をしていないため影響はありませんでした。`);
+                    LRNet.note('投資をしていないため');
                 }
                 gameState.totalAssets -= ec;
                 gameState.turnExpenses.social_event += ec;
@@ -2347,17 +2380,20 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                 ec = c.conditionBonus.amount;
             } else if (c.conditionBonus) {
                 ec = 0;
+                LRNet.note(`対象条件（${SOCIAL_FLAG_LABELS[c.conditionBonus.flag] || '特定の条件'}）に該当しないため`);
             }
 
             if (c.conditionPenalty && resolveFlagS(c.conditionPenalty.flag)) {
                 ec = c.conditionPenalty.amount;
             } else if (c.conditionPenalty) {
                 ec = 0;
+                LRNet.note(`対象条件（${SOCIAL_FLAG_LABELS[c.conditionPenalty.flag] || '特定の条件'}）に該当しないため`);
             }
 
             // S025: 自動車保険(=車所有)が無ければガソリン高騰の影響なし
             if (targetId === 'S025' && !(gameState.insurance && gameState.insurance.auto === true)) {
                 ec = 0;
+                LRNet.note('自動車を所有していないため');
             }
 
             // 特定職業への追加ペナルティ
@@ -2376,6 +2412,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
 
             // 9. 保険適用の特例（火災保険で0円）
             if (c.insuranceCheck === "fire" && gameState.insurance && gameState.insurance.fire === true) {
+                LRNet.offset(ec, '火災保険適用のため');
                 ec = 0;
             }
 
@@ -2403,6 +2440,9 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
         }
     }
 
+    // 最終的な資産増減値と理由（保険適用・相殺など）を確定
+    const netResult = LRNet.finish(oldAssets, gameState.totalAssets);
+
     // ▼▼▼ 【要件5】ソーシャルイベントの全プレイヤー個別リザルト通知 & Firebase同期 ▼▼▼
     if (c.type === 'social_event_asset_change') {
         // player1 / player2 それぞれの個別最終損益を並列計算（カード定義のロジックで再現）
@@ -2411,25 +2451,17 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
         const p1Ec = simulateSocialEventEc(c, targetId, 'player1');
         const p2Ec = simulateSocialEventEc(c, targetId, 'player2');
 
-        // 自端末（同一世帯の全プレイヤー）へ詳細リザルトモーダルを強制表示
-        showSocialEventModal(c, p1Ec, p2Ec);
+        // 個別損益が0のプレイヤーには、その理由（保険適用・条件外など）を併記
+        const p1Why = (p1Ec === 0) ? explainSocialEventZero(c, targetId, 'player1') : null;
+        const p2Why = (p2Ec === 0) ? explainSocialEventZero(c, targetId, 'player2') : null;
 
-        // 発生元(スキャンした本人)のみ Firebase へ同期保存
-        // → 他世帯の端末は currentSocialEvent リスナーが受信し、各自の世帯で再計算・表示する
+        // 自端末（同一世帯の全プレイヤー）へ詳細リザルトモーダルを強制表示
+        showSocialEventModal(c, p1Ec, p2Ec, p1Why, p2Why);
+
+        // 発生元(スキャンした本人)のみルームへ共有
+        // → 他世帯の端末は RoomSync の eventLog リスナーが受信し、各自の世帯で再計算・表示する
         if (!fromRemote && database && currentRoomId) {
-            try {
-                database.ref('rooms/' + currentRoomId + '/currentSocialEvent').set({
-                    cardId: targetId,
-                    title: c.title,
-                    explanation: c.explanation || '',
-                    senderId: gameState.myPlayerId,
-                    timestamp: Date.now(),
-                    p1: { name: sp1.name || 'プレイヤー1', jobName: getJobName(sp1.jobId), ec: p1Ec },
-                    p2: { name: sp2.name || 'プレイヤー2', jobName: getJobName(sp2.jobId), ec: p2Ec }
-                });
-            } catch (e) {
-                console.warn('currentSocialEvent 書き込み失敗:', e);
-            }
+            RoomSync.publish(targetId, 'social_event_asset_change');
         }
     }
     else if (c.type === 'social_event') {
@@ -2455,10 +2487,10 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
         const p2EcOld = Math.round(-householdDelta * share2);
 
         // 自端末（同一世帯の全プレイヤー）へ詳細リザルトモーダルを強制表示
-        showSocialEventModal(c, p1EcOld, p2EcOld);
+        const oldWhy = (householdDelta === 0) ? { reason: netResult.reason, detail: netResult.detail } : null;
+        showSocialEventModal(c, p1EcOld, p2EcOld, oldWhy, oldWhy);
 
-        // 旧イベントの他端末への共有・適用は従来どおり globalEvent 経由で行われるため、
-        // ここでは currentSocialEvent への書き込みは行わない（二重適用防止）。
+        // 旧イベントの他端末への共有は関数冒頭の RoomSync.publish で実施済み（二重送信防止）。
     }
     // ▲▲▲ 要件5 ここまで ▲▲▲
 
@@ -2467,10 +2499,16 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
         closeCardInfoModal();
     }
     
-    if (updated) { 
-        recalculateAnnualExpense(); 
-        updateDisplay(); 
-        saveGameState(); 
+    if (updated) {
+        recalculateAnnualExpense();
+        updateDisplay();
+        saveGameState();
+
+        // イベントカード適用時の演出（プラス/マイナス/ゼロで効果音・パーティクル・アイコンを出し分け）
+        // ※ 他プレイヤーから共有されたソーシャルイベント受信時も同様に演出する
+        if (LRFx.isEventCard(c)) {
+            LRFx.play(netResult.sign, netResult.diff);
+        }
 
         if (!fromRemote) {
             // 修正: 処理完了後はカメラを確実に停止し、ガイダンス画面へ戻ってアニメーションを表示
@@ -2481,8 +2519,9 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             showGuidanceModal(used); 
             
             // ガイダンス画面で資産変動アニメーションを実行
-            animateAssetChange(oldAssets, gameState.totalAssets);
-            
+            // （増減0の場合も「0」と理由を表示）
+            animateAssetChange(oldAssets, gameState.totalAssets, netResult);
+
             gameState.guidanceContextForApply = null;
         }
     }
@@ -2501,7 +2540,7 @@ function createGuidanceStats(assetValue) {
                     <span class="guidance-asset-value" id="guidanceAssetValue">${Math.round(assetValue).toLocaleString()}</span>
                     <span style="font-size:0.6em; color:white;">万円</span>
                 </div>
-                <div id="guidanceAssetDiff" style="height:30px; font-weight:bold; font-size:1.5em; margin-top:5px; opacity:0;"></div>
+                <div id="guidanceAssetDiff" style="min-height:30px; font-weight:bold; font-size:1.5em; margin-top:5px; opacity:0; transition:opacity 0.4s;"></div>
             </div>
         `;
     }
@@ -2563,29 +2602,38 @@ function animateValue(id, start, end, duration) {
 }
 
 // 資産変動アニメーション（ラッパー）
-function animateAssetChange(startVal, endVal) {
-    const diff = endVal - startVal;
-    if (diff === 0) return;
-    
+// netResult: LRNet.finish() の戻り値（省略可）。指定時は増減0でも「0」と理由を表示する。
+function animateAssetChange(startVal, endVal, netResult) {
+    const diff = LRNet.round1(endVal - startVal);
+    if (diff === 0 && !netResult) return;
+
+    const result = netResult || { diff: diff, sign: LRNet.signOf(diff), reason: '', detail: '' };
+    // 理由・内訳つき（保険適用・相殺・増減0など）の場合は、読み終わるまで消さずに表示を残す
+    const keepVisible = result.sign === 'zero' || !!result.reason;
+
     // 1. ガイダンス画面のパネル更新
     const guideDiff = document.getElementById('guidanceAssetDiff');
     // ガイダンスモーダルが表示されているか、あるいはこれから表示される想定
     if (guideDiff) {
-        guideDiff.textContent = (diff > 0 ? "+" : "") + diff.toLocaleString() + "万円";
-        guideDiff.style.color = diff > 0 ? "#48bb78" : "#f56565"; 
+        guideDiff.style.color = '';
+        guideDiff.innerHTML = LRNet.renderHtml(result, { dark: true });
         guideDiff.style.opacity = '1';
-        setTimeout(() => { if(guideDiff) guideDiff.style.opacity = '0'; }, 3000);
-        animateValue("guidanceAssetValue", startVal, endVal, 1500);
+        clearTimeout(animateAssetChange._guideTimer);
+        if (!keepVisible) {
+            animateAssetChange._guideTimer = setTimeout(() => { if(guideDiff) guideDiff.style.opacity = '0'; }, 3000);
+        }
+        if (diff !== 0) animateValue("guidanceAssetValue", startVal, endVal, 1500);
     }
 
     // 2. カメラ画面のパネル更新 (念のため)
     const scanDiff = document.getElementById('scanAssetDiff');
     if (scanDiff && document.getElementById('cameraModal').style.display !== 'none') {
-        scanDiff.textContent = (diff > 0 ? "+" : "") + diff.toLocaleString() + "万円";
-        scanDiff.style.color = diff > 0 ? "#48bb78" : "#f56565"; 
+        scanDiff.style.color = '';
+        scanDiff.innerHTML = LRNet.renderHtml(result, { dark: true, compact: true });
         scanDiff.style.opacity = '1';
-        setTimeout(() => { if(scanDiff) scanDiff.style.opacity = '0'; }, 3000);
-        animateValue("scanAssetValue", startVal, endVal, 1500);
+        clearTimeout(animateAssetChange._scanTimer);
+        animateAssetChange._scanTimer = setTimeout(() => { if(scanDiff) scanDiff.style.opacity = '0'; }, keepVisible ? 5000 : 3000);
+        if (diff !== 0) animateValue("scanAssetValue", startVal, endVal, 1500);
     }
 }
 // ==========================================================
@@ -3350,8 +3398,33 @@ function showCardInfo(id) {
         let unit = (c.type === 'car') ? '万円 (一括)' : (['house','children'].includes(c.type)) ? '万円/年' : '万円 (一括)';
         dEffect = `${cost}${unit} (世帯年収連動)`;
     }
-    
-    if (c.life_point) dEffect += `<br><span style="color:#e53e3e; font-weight:bold;">❤️ ライフポイント: +${c.life_point}pt</span>`;
+
+    // ▼▼▼ 保険で自己負担0円になる場合は、最終増減値「0」を強調し、理由と内訳を下に補足 ▼▼▼
+    if (['life_event', 'life_event_asset_change', 'social_event_asset_change'].includes(c.type)) {
+        const cover = getActiveInsuranceCover(id, c);
+        let grossCost = 0;
+        if (c.costsByIncome) {
+            const gI = (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
+            grossCost = (gI < 600) ? c.costsByIncome.low : (gI < 1000 ? c.costsByIncome.mid : c.costsByIncome.high);
+            if (c.conditionPenalty) grossCost = resolveSocialFlag(c.conditionPenalty.flag) ? c.conditionPenalty.amount : 0;
+        } else {
+            grossCost = parseNumber(c.effect);
+        }
+        if (cover && grossCost > 0) {
+            dEffect = LRNet.renderHtml({
+                diff: 0,
+                reason: `${cover.label}に加入済みのため`,
+                detail: `本来の支出 -${grossCost}万円 → ${cover.label}で全額補償 +${grossCost}万円`
+            });
+        }
+    }
+    // ▲▲▲ ここまで ▲▲▲
+
+    if (c.life_point) {
+        // L036 は火災保険加入時にライフポイントが +5pt へ上書きされる（applyCardEffect と同じ仕様）
+        const lpShown = (id === 'L036' && gameState.insurance && gameState.insurance.fire === true) ? 5 : c.life_point;
+        dEffect += `<br><span style="color:#e53e3e; font-weight:bold;">❤️ ライフポイント: ${LRNet.formatSigned(lpShown)}pt</span>`;
+    }
 
     titleEl.textContent = dTitle;
     idEl.textContent = `ID: ${id}`;
@@ -3922,7 +3995,7 @@ function showNetIncomeModal(p,g,d) { document.getElementById('net-income-player-
 function showDeductionDetailsModal() { const d = gameState.tempDeductions; if(!d)return; document.getElementById('deduction-health').textContent = `-${d.health}万円`; document.getElementById('deduction-pension').textContent = `-${d.pension}万円`; document.getElementById('deduction-employment').textContent = `-${d.employment}万円`; document.getElementById('deduction-income-tax').textContent = `-${d.incomeTax}万円`; document.getElementById('deduction-resident-tax').textContent = `-${d.residentTax}万円`; document.getElementById('deduction-total').textContent = `-${d.total}万円`; document.getElementById('deductionDetailsModal').style.display='flex'; }
 function closeDeductionDetailsModal() { document.getElementById('deductionDetailsModal').style.display='none'; }
 function resetGame() { if(confirm("リセットしますか？\n現在の進行状況は失われます。")) { localStorage.clear(); location.reload(); } }
-function saveAndExitGame() { saveToHallOfFame(); localStorage.removeItem('gameStarted'); localStorage.removeItem(BALANCE_HISTORY_KEY); localStorage.removeItem(GAME_STATE_KEY); alert("保存しました。タイトルに戻ります。"); location.reload(); }
+function saveAndExitGame() { saveToHallOfFame(); RoomSync.disconnect(); localStorage.removeItem('gameStarted'); localStorage.removeItem(BALANCE_HISTORY_KEY); localStorage.removeItem(GAME_STATE_KEY); alert("保存しました。タイトルに戻ります。"); location.reload(); }
 function saveToHallOfFame() { if(!gameState.finalInvestmentResult) return; const e = { id: new Date().toISOString(), timestamp: new Date().toLocaleString('ja-JP'), finalAssets: gameState.totalAssets, happiness: gameState.happiness, player1Name: gameState.players.player1.name, player2Name: gameState.players.player2.name, marriage: gameState.marriage.type, children: gameState.children.count, house: gameState.house.type, balanceHistory: gameState.balanceHistory, finalInvestmentResult: gameState.finalInvestmentResult }; try { const d = localStorage.getItem(HALL_OF_FAME_KEY); let l = d ? JSON.parse(d) : []; l.push(e); l.sort((a,b)=>b.finalAssets-a.finalAssets); localStorage.setItem(HALL_OF_FAME_KEY, JSON.stringify(l.slice(0,10))); } catch(e){} }
 function showHallOfFame() { const m = document.getElementById('hallOfFameModal'); const c = document.getElementById('hallOfFameContainer'); c.innerHTML = ''; try { const d = localStorage.getItem(HALL_OF_FAME_KEY); const l = d ? JSON.parse(d) : []; if(l.length===0) c.innerHTML = '<p style="text-align:center">データなし</p>'; l.forEach(e => { c.innerHTML += `<div class="hof-entry"><div class="assets">${Math.round(e.finalAssets)}<span>万円</span><br><small style="color:#e53e3e">❤️${e.happiness||0}</small></div><div class="details"><p>${e.timestamp}</p><p>${e.player1Name}, ${e.player2Name}</p></div><div class="hof-controls"><button class="btn-secondary btn-small" onclick="showSavedBalanceDetails('${e.id}')">詳細</button><button class="btn-danger btn-small" onclick="deleteSavedEntry('${e.id}')">削除</button></div></div>`; }); } catch(e){} m.style.display = 'flex'; }
 function deleteSavedEntry(id) { if(!confirm("削除しますか？")) return; const l = JSON.parse(localStorage.getItem(HALL_OF_FAME_KEY)||'[]').filter(e=>e.id!==id); localStorage.setItem(HALL_OF_FAME_KEY, JSON.stringify(l)); showHallOfFame(); }
@@ -4082,6 +4155,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('titleScreen').style.display = 'none';
         document.getElementById('mainGameContainer').style.display = 'block';
         updateDisplay();
+        // ▼ スマホOSによるタブ破棄→自動再読み込み後も、保存済みのルームへ自動で再接続・再リスンする
+        //   （旧実装ではここで currentRoomId が null のままになり、送受信が両方止まっていた）
+        RoomSync.resume();
         if(gameState.currentAge >= 70) {
             if (!gameState.finalInvestmentResult) showRetirementBonusModal();
             else showLifePlanKarte();
