@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="男性・30代のアバター">
+<title>男性・30代</title>
+<defs><clipPath id="c"><circle cx="60" cy="60" r="60"/></clipPath></defs>
+<g clip-path="url(#c)">
+<rect width="120" height="120" fill="#DCEBFA"/>
+
+<path d="M18 124 Q20 92 60 90 Q100 92 102 124 Z" fill="#5B9BD5"/>
+<path d="M52 92 L60 102 L68 92" fill="#FFFFFF" opacity="0.85"/>
+<rect x="53" y="78" width="14" height="14" rx="4" fill="#E9B894"/>
+<circle cx="34" cy="60" r="5" fill="#F6D2B5"/><circle cx="86" cy="60" r="5" fill="#F6D2B5"/>
+<ellipse cx="60" cy="58" rx="26" ry="28" fill="#F6D2B5"/>
+<path d="M33 56 Q32 26 60 26 Q88 26 87 56 L84 48 Q78 36 66 40 Q58 34 48 40 Q38 42 36 50 Z" fill="#3B2A20"/>
+<circle cx="50" cy="58" r="2.6" fill="#3A2E2A"/><circle cx="70" cy="58" r="2.6" fill="#3A2E2A"/><path d="M45 51 Q50 48 55 51" stroke="#3B2A20" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M65 51 Q70 48 75 51" stroke="#3B2A20" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="44" cy="66" r="4" fill="#F4A6A6" opacity="0.45"/><circle cx="76" cy="66" r="4" fill="#F4A6A6" opacity="0.45"/><path d="M52 69 Q60 75 68 69" stroke="#9A4B3C" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+</g>
+</svg>
