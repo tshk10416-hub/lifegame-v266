@@ -225,8 +225,8 @@ const CARD_DATA = {
     "L008": { title: "装飾品の購入", type: "life_event_asset_change", effect: "購入費用: 50万円 (一括支出)", life_point: 15, explanation: "心がときめく素敵な買い物。" },
     "L009": { title: "自分磨き", type: "life_event_asset_change", costsByIncome: { low: 50, mid: 150, high: 300 }, life_point: 20, explanation: "自分の成長への自己投資。" },
     "L010": { title: "趣味に夢中", type: "life_event_asset_change", costsByIncome: { low: 100, mid: 150, high: 350 }, life_point: 25, explanation: "人生を豊かにする最高の没頭。" },
-    "L011": { title: "子どもの結婚", type: "life_event", effect: "援助資金: 100万円 (一括支出)", life_point: 20, explanation: "子どもの門出を祝う親心。" },
-    "L012": { title: "子育て世帯特別給付金", type: "social_event", effect: "子どもの人数×10万円を支給", life_point: 5, explanation: "家計に嬉しい臨時収入。" },
+    "L011": { title: "子どもの結婚", type: "life_event_asset_change", effect: "援助資金: 100万円 (一括支出)", excludeFlag: "childMarried", setFlag: "childMarried", life_point: 20, explanation: "子どもの門出を祝う親心。" },
+    "L012": { title: "子育て世帯特別給付金", type: "life_event", effect: "子どもの人数×10万円を支給", life_point: 5, explanation: "家計に嬉しい臨時収入。" },
     "L013": { title: "深夜2時の「ポチり」事故", type: "life_event", effect: "散財: 30万円", life_point: 5, explanation: "謎の万能感で不要な物を爆買い。" },
     "L014": { title: "推しの「卒業」発表", type: "life_event_asset_change", costsByIncome: { low: 20, mid: 50, high: 100 }, life_point: 50, explanation: "悔いを残さないための全力投資。" },
     "L015": { title: "飼い猫の動画がバズった", type: "life_event", effect: "臨時収入: 30万円", life_point: 10, explanation: "承認欲求とお財布が同時に満たされる、最高の瞬間。" },
@@ -235,6 +235,7 @@ const CARD_DATA = {
         title: "ペットのお迎え🐾",
         type: "life_event_asset_change",
         costsByIncome: { low: 150, mid: 200, high: 250 },
+        setFlag: "hasPet",
         life_point: 40,
         explanation: `<h3>ペットとの暮らし</h3>
 <p><strong>【概要】</strong><br>
@@ -252,7 +253,7 @@ const CARD_DATA = {
     "L023": { title: "子どもの「初めての言葉」", type: "life_event_asset_change", costsByIncome: { low: 3, mid: 5, high: 10 }, life_point: 20, explanation: "我が子が初めて言葉を発した感動のあまり、絶対に遊ばないであろう超高額な海外製「知育玩具セット」を即買いする。" },
     "L024": { title: "初めてのお遊戯会で大号泣", type: "life_event_asset_change", costsByIncome: { low: 5, mid: 15, high: 30 }, life_point: 25, explanation: "ステージで棒立ちの我が子を見て涙腺崩壊。この姿を最高画質で残すため、最新の4Kビデオカメラと望遠レンズを購入する。" },
     "L025": { title: "ファミリーキャンプデビュー", type: "life_event_asset_change", costsByIncome: { low: 10, mid: 25, high: 60 }, life_point: 10, setFlag: "hasCampGear", explanation: "形から入るタイプ。有名ブランドの高級テントや焚き火台を一式揃えるが、設営で夫婦喧嘩になり一回で挫折しそうになる。" },
-    "L026": { title: "マイホームブルーの反動", type: "life_event_asset_change", costsByIncome: { low: 15, mid: 30, high: 80 }, life_point: -5, explanation: "家づくりの打ち合わせやローン審査のストレスを発散するため、予算外の高級ソファや大型テレビを勢いで買ってしまう。" },
+    "L026": { title: "マイホームブルーの反動", type: "life_event_asset_change", costsByIncome: { low: 15, mid: 30, high: 80 }, requireFlag: "hasHome", life_point: -5, explanation: "家づくりの打ち合わせやローン審査のストレスを発散するため、予算外の高級ソファや大型テレビを勢いで買ってしまう。" },
     "L027": { title: "キャリアのドロ沼激務期", type: "life_event_asset_change", costsByIncome: { low: -20, mid: -50, high: -100 }, life_point: -20, explanation: "大きなプロジェクトを任され、残業代や特別手当で臨時収入は跳ね上がるが、過労で家族との時間が消滅する。" },
     "L028": { title: "ふるさと納税の罠", type: "life_event_asset_change", costsByIncome: { low: 3, mid: 5, high: 10 }, life_point: 5, explanation: "限度額ギリギリまで寄付したら、大量の冷凍カニが届き冷凍庫がパンク。急遽、専用のセカンド冷凍庫を購入する羽目に。" },
     "L029": { title: "30代の過信「ぎっくり腰」", type: "life_event_asset_change", costsByIncome: { low: 3, mid: 5, high: 10 }, life_point: -15, explanation: "子どもを抱き上げた瞬間に腰が爆発。「まだ若いから」という過信が砕け、保険適用外の高額な整体や鍼灸院に通い詰める。" },
@@ -279,18 +280,18 @@ const CARD_DATA = {
     "L047": { title: "「大人の趣味」沼への没入", type: "life_event_asset_change", costsByIncome: { low: 5, mid: 20, high: 60 }, life_point: 15, setFlag: "hasCampGear", explanation: "家族が土日に付き合ってくれなくなり、ソロキャンプやカメラなど、ハイエンドな機材を集める趣味に大金をつぎ込む。" },
     "L048": { title: "洗濯機の水漏れ大パニック", type: "life_event_asset_change", costsByIncome: { low: 30, mid: 50, high: 100 }, life_point: -20, explanation: "洗濯機のホースが外れ、床や階下を水浸しにしてしまう。高額な修繕費や賠償金に青ざめるが、火災保険（水濡れ・個人賠償）で全額カバーできると学ぶ。" },
     "L049": { title: "老眼鏡（シニアグラス）デビュー", type: "life_event_asset_change", costsByIncome: { low: 1, mid: 3, high: 10 }, life_point: -5, explanation: "スマホの文字が見えなくなり、有名ブランドの数万円するオシャレな老眼鏡を家・職場・車用に複数買いする。" },
-    "L050": { title: "ペットのシニア期・医療費", type: "life_event_asset_change", costsByIncome: { low: 10, mid: 20, high: 50 }, life_point: -10, explanation: "愛犬・愛猫が体調を崩し手術へ。人間の保険が効かないため、お会計の金額に目玉が飛び出るが命には代えられない。" },
+    "L050": { title: "ペットのシニア期・医療費", type: "life_event_asset_change", costsByIncome: { low: 10, mid: 20, high: 50 }, requireFlag: "hasPet", life_point: -10, explanation: "愛犬・愛猫が体調を崩し手術へ。人間の保険が効かないため、お会計の金額に目玉が飛び出るが命には代えられない。" },
     "L051": { title: "歯のトラブル・自費診療", type: "life_event_asset_change", costsByIncome: { low: 5, mid: 15, high: 40 }, life_point: -10, explanation: "歯痛で駆け込んだ歯医者で「セラミックかインプラントですね」と宣告され、保険適用外の治療でボーナスが消滅。" },
     "L052": { title: "親の実家をバリアフリー改修", type: "life_event_asset_change", costsByIncome: { low: 5, mid: 10, high: 30 }, life_point: 10, explanation: "実家に手すり等を設置！親の要介護認定により「介護保険の住宅改修費制度（上限20万円）」を活用し、賢く費用を抑えつつ親孝行できた！" },
     "L053": { title: "子どもの短期留学サポート", type: "life_event_asset_change", costsByIncome: { low: 30, mid: 80, high: 200 }, life_point: 25, explanation: "かわいい子には旅をさせよ。子どもの成長と国際感覚を養うため、数週間の語学留学費用を親心でポンと出す。" },
-    "L054": { title: "もらい事故で車が破損", type: "life_event_asset_change", costsByIncome: { low: 20, mid: 50, high: 100 }, life_point: -15, explanation: "駐車場での当て逃げや追突事故により愛車が大きく破損。修理代の請求書を見て青ざめる。" },
+    "L054": { title: "もらい事故で車が破損", type: "life_event_asset_change", costsByIncome: { low: 20, mid: 50, high: 100 }, requireFlag: "hasCar", life_point: -15, explanation: "駐車場での当て逃げや追突事故により愛車が大きく破損。修理代の請求書を見て青ざめる。" },
     "L055": { title: "推し活の「遠征」ガチ勢化", type: "life_event_asset_change", costsByIncome: { low: 5, mid: 15, high: 40 }, life_point: 20, explanation: "アイドルや舞台の全国ツアーを全通。新幹線代、ホテル代、グッズのコンプリート買いで財産がものすごい勢いで溶ける。" },
     "L056": { title: "子どもの自転車トラブルで賠償", type: "life_event_asset_change", costsByIncome: { low: 30, mid: 50, high: 100 }, life_point: -20, explanation: "子どもが自転車で他人の高級車に激突！高額修理代に青ざめるが、実は火災保険の「個人賠償責任特約」で全額カバーできると学ぶ。" },
     "L057": { title: "副業スキルの本格化と結実", type: "life_event_asset_change", costsByIncome: { low: -100, mid: -100, high: -100 }, life_point: 20, explanation: "30代からコツコツと磨いてきた副業スキル（動画編集やコンサル等）が完全に軌道に乗り、安定した大きな副収入源となる。長年の努力が実を結び資産が大きく増加する！" },
     // ▲▲▲ L038〜L057 追加ここまで ▲▲▲
 
     // ▼▼▼ 50代向けライフイベント (L058〜L077) ▼▼▼
-    "L058": { title: "役職定年の冷たい風", type: "life_event_asset_change", costsByIncome: { low: -30, mid: -50, high: -100 }, life_point: -10, explanation: "役職を解かれボーナス等が減少。プライドが傷つくと共に、家計の見直しを迫られる。" },
+    "L058": { title: "役職定年の冷たい風", type: "life_event_asset_change", costsByIncome: { low: 30, mid: 50, high: 100 }, life_point: -10, explanation: "役職を解かれボーナス等が減少。プライドが傷つくと共に、家計の見直しを迫られる。" },
     "L059": { title: "子どもの「巣立ち」と引越し援助", type: "life_event_asset_change", costsByIncome: { low: 30, mid: 50, high: 100 }, life_point: 20, explanation: "子どもが家を出る。寂しさをこらえ、新居の敷金礼金や家具家電をプレゼントして送り出す。" },
     "L060": { title: "親の介護施設入居費用（一部負担）", type: "life_event_asset_change", costsByIncome: { low: 50, mid: 100, high: 300 }, life_point: -15, explanation: "親が有料老人ホームへ。高額な入居一時金を、親の貯金や兄弟と分担しつつ、自分も一部を負担する。" },
     "L061": { title: "子育て終了記念！豪華夫婦旅行", type: "life_event_asset_change", costsByIncome: { low: 30, mid: 50, high: 100 }, life_point: 30, explanation: "学費の支払いがすべて終わった記念に、海外旅行や高級温泉宿へ繰り出す。" },
@@ -326,7 +327,7 @@ const CARD_DATA = {
     "L088": { title: "愛犬・愛猫向けシニアリフォーム", type: "life_event_asset_change", costsByIncome: { low: 10, mid: 30, high: 50 }, life_point: 15, requireFlag: "hasPet", explanation: "足腰が弱ってきたペットのため、滑りにくい床材への変更やスロープの設置工事を行う。" },
     "L089": { title: "テレビショッピングのVIP顧客", type: "life_event_asset_change", costsByIncome: { low: 5, mid: 10, high: 30 }, life_point: -5, explanation: "夜中に眠れずテレビを見て、カニや高枝切りバサミなどを毎晩のように電話注文してしまう。" },
     "L090": { title: "白内障の手術（多焦点レンズ）", type: "life_event_asset_change", costsByIncome: { low: 30, mid: 60, high: 100 }, life_point: 20, explanation: "目の霞みを治すため、あえて高額な「多焦点眼内レンズ」を選択。出費は痛いが視界は超クリアに！" },
-    "L091": { title: "二世帯住宅への大規模リフォーム", type: "life_event_asset_change", costsByIncome: { low: 100, mid: 300, high: 500 }, life_point: 20, explanation: "子ども家族と同居するため、家を「完全分離型」の二世帯住宅にリフォーム。老後資金の大半が吹き飛ぶ。" },
+    "L091": { title: "二世帯住宅への大規模リフォーム", type: "life_event_asset_change", costsByIncome: { low: 100, mid: 300, high: 500 }, requireFlag: "hasHome", life_point: 20, explanation: "子ども家族と同居するため、家を「完全分離型」の二世帯住宅にリフォーム。老後資金の大半が吹き飛ぶ。" },
     "L092": { title: "プロに頼む「公正証書遺言」", type: "life_event_asset_change", costsByIncome: { low: 10, mid: 20, high: 30 }, life_point: 10, explanation: "「争族」を防ぐため、公証役場に依頼して法的に完璧な遺言書を作成。大人の責任を果たしホッとする。" },
     "L093": { title: "シニアサークルで「ボス」になり散財", type: "life_event_asset_change", costsByIncome: { low: 5, mid: 15, high: 50 }, life_point: -10, explanation: "地域のクラブで役員に就任。元会社員のプライドから見栄を張り、飲み会費用を全額奢って資産を減らす。" },
     "L094": { title: "真珠婚式（結婚30周年）のお祝い", type: "life_event_asset_change", costsByIncome: { low: 10, mid: 30, high: 80 }, life_point: 30, explanation: "結婚30年の節目。子どもたちも招待し、一流ホテルでディナーパーティーを主催。最高の思い出となる。" },
@@ -336,33 +337,33 @@ const CARD_DATA = {
     "L098": { title: "晩婚化時代の「子どもの結婚」", type: "life_event_asset_change", costsByIncome: { low: 30, mid: 80, high: 200 }, life_point: 30, setFlag: "childMarried", excludeFlag: "childMarried", explanation: "子どもがようやく結婚！安堵と共に、親としてのメンツで結婚式や新生活の援助に大金を出す。" },
     "L099": { title: "待望の孫誕生！お祝いラッシュ", type: "life_event_asset_change", costsByIncome: { low: 10, mid: 30, high: 50 }, life_point: 40, requireFlag: "childMarried", setFlag: "grandchildBorn", excludeFlag: "grandchildBorn", explanation: "目に入れても痛くない孫が誕生！ベビーベッドからお宮参りまで、嬉しさのあまり財布の紐が完全に崩壊する。" },
     // ▲▲▲ L078〜L099 追加ここまで ▲▲▲
-    "S001": { title: "好景気発生", type: "social_event", effect: "現ターン中、世帯収入の2割収入アップ", life_point: 5, explanation: "世の中が明るく、気分も上々。" },
-    "S002": { title: "不景気発生", type: "social_event", effect: "現ターン中、世帯収入の2割収入ダウン", life_point: 0, explanation: "我慢の時期。" },
+    "S001": { title: "好景気発生", type: "social_event", effect: "世帯収入の2割収入アップ（公務員・看護師は影響なし）", life_point: 5, explanation: "世の中が明るく、気分も上々。" },
+    "S002": { title: "不景気発生", type: "social_event", effect: "世帯収入の2割収入ダウン（公務員・看護師は影響なし）", life_point: 0, explanation: "我慢の時期。" },
     "S003": { title: "インフレ発生", type: "social_event", effect: "一時収入 50万円、一時支出 50万円", life_point: 0, explanation: "物価上昇で生活が変化。" },
     "S004": { title: "新型感染症大流行", type: "social_event", effect: "臨時支出: 50万円 (一括支出)", life_point: 0, explanation: "健康不安と出費。" },
     "S005": { title: "社会保障費増大", type: "social_event", effect: "年間支出が5%増加", life_point: 0, explanation: "将来への負担増。" },
     "S006": { title: "デフレ発生", type: "social_event", effect: "一時収入減 50万円、一時支出減 50万円", life_point: 0, explanation: "経済の停滞。" },
     "S007": { title: "バラマキ政策のツケ（増税）", type: "social_event", effect: "給付金10万円 / 増税", explanation: "特別税が新設されました。" },
-    "S008": { title: "転売ヤーの暗躍", type: "social_event", costsByIncome: { low: 5, mid: 15, high: 30 }, effect: "条件付き購入", explanation: "買い占めにより高値で購入。" },
-    "S009": { title: "記録的猛暑の到来", type: "social_event", effect: "対象職業に臨時収入", explanation: "猛暑により一部職業に臨時収入。" },
-    "S010": { title: "オーバーツーリズムの弊害", type: "social_event", effect: "収入増(過労) or ストレス", explanation: "観光公害により街はパンク状態。" },
+    "S008": { title: "転売ヤーの暗躍", type: "social_event", costsByIncome: { low: 5, mid: 15, high: 30 }, effect: "趣味の買い物をした世帯のみ高値購入（支出）", explanation: "限定品やレア物を転売ヤーが買い占め！過去に趣味のための買い物（装飾品・自分磨き・趣味・推し活・キャンプ用品・バイク・自転車・カメラ・キャンピングカーなど）をしたプレイヤーは、泣く泣く高値で購入させられる。趣味の買い物をしていない世帯は影響なし。" },
+    "S009": { title: "記録的猛暑の到来", type: "social_event", effect: "医師・看護師・会社員・フリーターに臨時収入 (1人+20万円)", explanation: "猛暑により病院と涼しいお店が大繁盛！医師・看護師・会社員・フリーターに臨時収入が入る。" },
+    "S010": { title: "オーバーツーリズムの弊害", type: "social_event", effect: "料理人・フリーターに臨時収入 (1人+30万円)", explanation: "観光客が押し寄せ街はパンク状態。飲食店や短期バイトは稼ぎ時となり、料理人・フリーターに臨時収入が入る。" },
     "S011": { title: "レトロブームの到来", type: "social_event", effect: "趣味(L010)の投資額×2倍の収入", explanation: "昔のコレクションが高騰！" },
     "S012": { title: "ステルス値上げ", type: "social_event", costsByIncome: { low: 4, mid: 15, high: 40 }, effect: "実質値上げによる支出増", explanation: "中身が減る実質値上げ。" },
 
     // ▼▼▼ ソーシャルイベント拡張 (S013〜S062) ▼▼▼
     "S013": { title: "消費税15%へ増税", type: "social_event_asset_change", costsByIncome: { low: 150, mid: 200, high: 250 }, life_point: -10, explanation: "社会保障費の増大により消費税が引き上げられた！一度発生すると、以降の年代でも10年分の増税負担が恒久的に重くのしかかる。", setFlag: "taxIncreased15" },
-    "S014": { title: "異次元の少子化対策第2弾", type: "social_event_asset_change", costsByIncome: { low: 0, mid: 0, high: 0 }, life_point: 20, explanation: "国が本気を出した！子どもがいる家庭にのみ、臨時ボーナスが支給される！", conditionBonus: { flag: "childMarried", amount: -50 } },
+    "S014": { title: "異次元の少子化対策第2弾", type: "social_event_asset_change", costsByIncome: { low: 0, mid: 0, high: 0 }, life_point: 20, explanation: "国が本気を出した！子どもがいる家庭にのみ、臨時ボーナスが支給される！", conditionBonus: { flag: "hasChildren", amount: -50 } },
     "S015": { title: "ベーシックインカム実験導入", type: "social_event_asset_change", costsByIncome: { low: -10, mid: -10, high: -10 }, life_point: 10, explanation: "国民全員に無条件で最低限の生活費を配る制度がテスト導入。全員に臨時収入が入る！" },
     "S016": { title: "ペット税の導入", type: "social_event_asset_change", costsByIncome: { low: 0, mid: 0, high: 0 }, life_point: -10, explanation: "動物保護の財源としてペット税が新設。ペットを飼っているプレイヤーのみ税金を徴収される！", conditionPenalty: { flag: "hasPet", amount: 10 } },
     "S017": { title: "インフラ老朽化で一斉値上げ", type: "social_event_asset_change", costsByIncome: { low: 3, mid: 5, high: 10 }, life_point: -5, explanation: "全国で公共インフラが寿命を迎え利用料金に転嫁された！家が広く使用量が多い高年収世帯ほど、累進制によって値上げのダメージ額が大きくなる。" },
     "S018": { title: "選挙で歴史的政権交代", type: "social_event_asset_change", costsByIncome: { low: 5, mid: 10, high: 20 }, life_point: 0, explanation: "与党が敗北し政権交代！ルールがコロコロ変わり、社会が混乱して一時的な出費がかさむ。" },
     "S019": { title: "AI議員の試験導入", type: "social_event_asset_change", costsByIncome: { low: -5, mid: -5, high: -5 }, life_point: 10, explanation: "居眠りする議員の代わりにAIが法案を作成。ムダな税金が減り、少しだけ国民に還元された！" },
     "S020": { title: "ふるさと納税制度の崩壊", type: "social_event_asset_change", costsByIncome: { low: 5, mid: 10, high: 15 }, life_point: -10, explanation: "「返礼品競争」がエスカレートしすぎて国が制度を廃止。お得な思いができなくなり実質的な損に。" },
-    "S021": { title: "空き家税の導入", type: "social_event_asset_change", costsByIncome: { low: 5, mid: 10, high: 20 }, life_point: -5, explanation: "放置された空き家を防ぐための新税。家を持っている人たちに新たな維持費がのしかかる。" },
+    "S021": { title: "空き家税の導入", type: "social_event_asset_change", costsByIncome: { low: 5, mid: 10, high: 20 }, requireHouseholdFlag: "hasHome", life_point: -5, explanation: "放置された空き家を防ぐための新税。家を持っている人たちに新たな維持費がのしかかる。" },
     "S022": { title: "祝日「推し活の日」制定", type: "social_event_asset_change", costsByIncome: { low: 10, mid: 20, high: 30 }, life_point: 20, explanation: "経済を回すため、国がオタク活動を推奨する祝日を制定。全員が嬉々として散財する。" },
     "S023": { title: "歴史的「円安」の波", type: "social_event_asset_change", costsByIncome: { low: 10, mid: 30, high: 50 }, life_point: 0, explanation: "1ドル160円を突破！輸入品が高騰。しかし投資信託（海外株式）を持っていれば円換算で価値が跳ね上がり、生活費増を上回る利益を生む！" },
     "S024": { title: "歴史的「円高」の波", type: "social_event_asset_change", costsByIncome: { low: 10, mid: 30, high: 50 }, life_point: 0, explanation: "1ドル100円割れ！輸入品が安くなり生活費が浮く。しかし投資信託を持っていた場合、円換算で価値が目減りし、節約分以上の損失が出てしまう…" },
-    "S025": { title: "中東情勢不安でガソリン高騰", type: "social_event_asset_change", costsByIncome: { low: 0, mid: 0, high: 0 }, life_point: -10, explanation: "産油国で紛争発生！ガソリンがリッター200円を突破。自動車を所有している人だけが地味に痛い出費を強いられる！", conditionPenalty: { flag: "autoInsurance", amount: 10 } },
+    "S025": { title: "中東情勢不安でガソリン高騰", type: "social_event_asset_change", costsByIncome: { low: 0, mid: 0, high: 0 }, life_point: -10, explanation: "産油国で紛争発生！ガソリンがリッター200円を突破。自動車を所有している人だけが地味に痛い出費を強いられる！", conditionPenalty: { flag: "hasCar", amount: 10 } },
     "S026": { title: "世界的な半導体不足", type: "social_event_asset_change", costsByIncome: { low: 5, mid: 15, high: 30 }, life_point: -5, explanation: "家電も車もゲーム機も作れない！あらゆる電化製品の価格が高騰し、買い替え費用が跳ね上がる。" },
     "S027": { title: "地政学リスク：台湾有事の噂", type: "social_event_asset_change", costsByIncome: { low: 5, mid: 10, high: 20 }, life_point: -15, explanation: "近隣で紛争の噂が立ち、スーパーからトイレットペーパーや水が消える。パニック買いで出費増。" },
     "S028": { title: "ブラックマンデー再来", type: "social_event_asset_change", costsByIncome: { low: 20, mid: 50, high: 100 }, life_point: -20, explanation: "世界の株価が一日で大暴落！全員が不況の波を被るのに加え、投資信託を持っていたプレイヤーは資産が目減りし【ダメージが2倍】に膨れ上がる致命傷となる！" },
@@ -386,12 +387,12 @@ const CARD_DATA = {
     "S046": { title: "フリマアプリの手数料値上げ", type: "social_event_asset_change", costsByIncome: { low: 3, mid: 5, high: 10 }, life_point: -5, explanation: "プラットフォーマーの独占により手数料が大幅アップ。売る側も買う側も地味に損をする。" },
     "S047": { title: "物流クライシスで配送料高騰", type: "social_event_asset_change", costsByIncome: { low: 5, mid: 10, high: 20 }, life_point: -5, explanation: "ドライバー不足により物流コストが爆発！ネット通販の「送料無料」が次々と消滅し、あらゆる物の値段と配送料が家計に重くのしかかる。" },
     "S048": { title: "SNS発！日用品の品薄デマ", type: "social_event_asset_change", costsByIncome: { low: 3, mid: 5, high: 10 }, life_point: -5, explanation: "「〇〇がスーパーから消える！」というフェイクニュースが拡散。社会全体がパニック買いに走り、自分も焦って高額な転売品を買わされてしまう。" },
-    "S049": { title: "オリンピック特需の反動不況", type: "social_event_asset_change", costsByIncome: { low: 10, mid: 30, high: 50 }, life_point: -10, explanation: "国際大会が終わった途端に景気が急降下。仕事が減り、ボーナスもカットされる。" },
+    "S049": { title: "オリンピック特需の反動不況", type: "social_event_asset_change", costsByIncome: { low: 10, mid: 30, high: 50 }, life_point: -10, explanation: "国際大会が終わった途端に景気が急降下。仕事が減り、ボーナスもカットされる。※景気の影響を受けにくい公務員・看護師はダメージなし。" },
     "S050": { title: "空前の「アウトドア・キャンプ」ブーム", type: "social_event_asset_change", costsByIncome: { low: 5, mid: 10, high: 20 }, life_point: 5, explanation: "世間でキャンプが大流行！流行に乗って一式揃えようと出費がかさむ。ただし、既に過去のイベントで道具を持っている人は、不要なギアが高値で売れて逆に臨時収入となる！" },
     "S051": { title: "国際的スポーツ大会で日本優勝", type: "social_event_asset_change", costsByIncome: { low: 10, mid: 20, high: 40 }, life_point: 30, explanation: "日本中が熱狂の渦に！嬉しさのあまり「優勝記念セール」でテレビなどを衝動買いする。" },
     "S052": { title: "「大災厄」の予言デマと風評被害", type: "social_event_asset_change", costsByIncome: { low: 5, mid: 10, high: 20 }, life_point: -10, explanation: "根拠のない予言がSNSで拡散し社会がパニックに！不要不急の外出や観光が自粛され、特に飲食・観光業（料理人など）は売上激減の直撃を受ける。", conditionJobPenalty: { jobIds: ["J003"], amount: 20 } },
     "S053": { title: "週休3日制の導入", type: "social_event_asset_change", costsByIncome: { low: 10, mid: 20, high: 40 }, life_point: 20, explanation: "休みが増えたのは嬉しいが、ヒマを持て余して結局遊びに行ってしまい、出費が増える罠。" },
-    "S054": { title: "働き方改革で「残業完全禁止」", type: "social_event_asset_change", costsByIncome: { low: 10, mid: 30, high: 60 }, life_point: 10, explanation: "健康にはなったが、アテにしていた「残業代」が完全消滅し、実質的な収入（資産）が減る。" },
+    "S054": { title: "働き方改革で「残業完全禁止」", type: "social_event_asset_change", costsByIncome: { low: 10, mid: 30, high: 60 }, life_point: 10, explanation: "健康にはなったが、アテにしていた「残業代」が完全消滅し、実質的な収入（資産）が減る。※もともと残業代のないパート・専業主婦は影響なし。" },
     "S055": { title: "大規模情報漏洩と業績悪化の直撃", type: "social_event_asset_change", costsByIncome: { low: 0, mid: 0, high: 0 }, life_point: -10, explanation: "大手企業や医療機関を狙った大規模な情報漏洩事件が多発！セキュリティの抜本的な見直しや顧客対応に追われ、信頼失墜による企業の業績悪化（ボーナス減少）や、緊急の対策システム導入費用として、対象の職業（会社員・医師）のみが直接的な金銭ダメージを被る。", conditionJobPenalty: { jobIds: ["J001", "J005"], amount: 30 } },
     "S056": { title: "デジタルインフラの一斉値上げ", type: "social_event_asset_change", costsByIncome: { low: 5, mid: 10, high: 20 }, life_point: -5, explanation: "スマホのOSや主要クラウド、ネットの基本システムを提供する海外の巨大IT企業が、サービス利用料を一斉値上げ！デジタルツールが必須となった現代社会において、全世帯のサブスク代やネット維持費が強制的に引き上げられる。" },
     "S057": { title: "某大国の過激大統領誕生", type: "social_event_asset_change", costsByIncome: { low: 10, mid: 20, high: 50 }, life_point: -15, explanation: "「自国第一主義」を掲げられ関税が爆上がり。あらゆる輸入品の価格が高騰し家計を直撃！" },
@@ -1718,7 +1719,9 @@ function initGameFromMake() {
         socialInsuranceIncreased: false,
         hasInvestment: false,
         hasCampGear: false,
-        hasHome: false
+        hasHome: false,
+        socialCostUp5: false,   // S005 社会保障費増大（年間支出+5%）が発生済み
+        hobbyInvestTotal: 0     // 「趣味に夢中(L010)」の支払額合計（S011 レトロブーム用）
     };
 
     gameState.players.player1.name = familyMakeState.p1Name;
@@ -1817,6 +1820,8 @@ function initGameFromMake() {
 
 // ソーシャルイベント用フラグ解決（保険系は gameState.insurance を参照）
 function resolveSocialFlag(flagKey) {
+    if (flagKey === 'hasCar') return !!(gameState.car && gameState.car.cards && gameState.car.cards.length > 0);
+    if (flagKey === 'hasChildren') return ((gameState.children && gameState.children.count) || 0) > 0;
     if (flagKey === 'autoInsurance') return !!(gameState.insurance && gameState.insurance.auto);
     if (flagKey === 'fireInsurance') return !!(gameState.insurance && gameState.insurance.fire);
     if (flagKey === 'lifeInsurance') return !!(gameState.insurance && gameState.insurance.life);
@@ -1829,13 +1834,6 @@ function getJobName(jobId) {
         return CARD_DATA[jobId].title.replace('職業: ', '');
     }
     return '無職/その他';
-}
-
-// 個別損益(ec)を画面表示用テキストに整形（ec>0=支出, ec<0=収入, 0=増減なし）
-function formatSocialImpact(ec) {
-    if (ec < 0) return `+${Math.abs(ec)}万円`;
-    if (ec > 0) return `-${ec}万円`;
-    return '0万円';
 }
 
 // ▼▼▼ 保険で自己負担0円になるカードの対応表（表示用の理由テキストに使用） ▼▼▼
@@ -1859,128 +1857,284 @@ const SOCIAL_FLAG_LABELS = {
     hasPet: 'ペットを飼っている',
     hasInvestment: '投資をしている',
     hasHome: 'マイホームを持っている',
+    hasCar: '自動車を持っている',
+    hasChildren: '子どもがいる',
     hasCampGear: 'キャンプ道具を持っている',
     autoInsurance: '自動車を持っている',
     fireInsurance: '火災保険に加入している',
     lifeInsurance: '生命保険に加入している'
 };
 
-// ソーシャルイベントで個別損益が0になった理由（simulateSocialEventEc と同じ判定順）
-function explainSocialEventZero(card, targetId, playerKey) {
-    const player = gameState.players[playerKey];
-    const jobId = player ? player.jobId : null;
-    const gHouse = (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
-    let base = 0;
-    if (card.costsByIncome) {
-        base = (gHouse < 600) ? card.costsByIncome.low : (gHouse < 1000 ? card.costsByIncome.mid : card.costsByIncome.high);
-    }
+// ソーシャルイベントで個別損益が0になった理由などは computeSocialEventBreakdown() の notes に集約
+// ==========================================================
+// ▼▼▼ ソーシャルイベントの損益計算（資産への反映と画面表示で共通） ▼▼▼
+// 旧実装は「実際に適用する金額」と「個別リザルトに表示する金額」を別々に計算していたため、
+//  ・世帯で1回だけ引かれる金額が、プレイヤー1・2それぞれに表示される
+//  ・S032（株価乱高下）で、適用と表示で別々に抽選して結果が食い違う
+// といったズレがあった。ここで一度だけ計算し、その結果を資産への反映とモーダル表示の両方に使う。
+//   items[].ec    : 正=支出 / 負=収入（万円）
+//   items[].scope : 'household'（世帯共通） / 'player1' / 'player2'（個人の職業・収入によるもの）
+// ==========================================================
+const STABLE_ECONOMY_JOBS = ['J002', 'J006'];               // 景気変動の影響を受けにくい（公務員・看護師）
+const NO_OVERTIME_JOBS = ['J009', 'J010'];                  // 残業代がない働き方（パート・専業主婦）
+const HEATWAVE_BONUS_JOBS = ['J005', 'J006', 'J001', 'J008']; // S009 猛暑で臨時収入（医師・看護師・会社員・フリーター）
+const HEATWAVE_BONUS = 20;                                   // 1人あたり（万円）
+const TOURISM_BONUS_JOBS = ['J003', 'J008'];                // S010 オーバーツーリズムで臨時収入（料理人・フリーター）
+const TOURISM_BONUS = 30;                                    // 1人あたり（万円）
+const AI_BENEFIT_JOBS = ['J001', 'J005'];                   // S038 AIで収入アップ（会社員・医師）
+const AI_PENALTY_JOBS = ['J008', 'J009'];                   // S038 AIで収入ダウン（フリーター・パート）
+// S008 転売ヤー: 過去にこれらの「趣味のためのモノを買う」イベントを適用した世帯だけが高値購入で損をする
+// （当初の L008/L009/L010 に、推し活・キャンプ・バイク・自転車などの趣味の購入イベントを追加。対象の見直しはここで）
+const RESALE_HOBBY_CARD_IDS = [
+    'L008', // 装飾品の購入
+    'L009', // 自分磨き
+    'L010', // 趣味に夢中
+    'L014', // 推しの「卒業」発表
+    'L025', // ファミリーキャンプデビュー（高級テント・焚き火台）
+    'L038', // 中間管理職のストレス散財（高級時計・ゴルフセット）
+    'L044', // 中年の危機（ロードバイク・オープンカー）
+    'L047', // 「大人の趣味」沼への没入（キャンプ・カメラ機材）
+    'L055', // 推し活の「遠征」ガチ勢化（グッズのコンプリート買い）
+    'L070', // リターンライダーの大型バイク購入
+    'L074', // 衰え防止の「高級自転車」購入
+    'L095'  // キャンピングカー購入
+];
 
-    if (targetId === 'S038') {
-        const benefit = ["J001", "J005"].includes(jobId);
-        const penalty = ["J008", "J009"].includes(jobId);
-        if (benefit && penalty) return { reason: '収入と支出が同額のため', detail: `収入 +${base}万円 / 支出 -${base}万円` };
-        return { reason: '職業がAI革命の影響を受けない対象のため', detail: '' };
-    }
-    if (targetId === 'S059') return { reason: '持ち家がないため（賃貸・未購入）', detail: '' };
-    if (targetId === 'S032') return { reason: '投資をしていないため', detail: '' };
-
-    if (card.insuranceCheck === 'fire' && gameState.insurance && gameState.insurance.fire === true) {
-        let gross = base;
-        if (card.conditionPenalty) gross = resolveSocialFlag(card.conditionPenalty.flag) ? card.conditionPenalty.amount : 0;
-        return {
-            reason: '火災保険適用のため',
-            detail: gross > 0 ? `本来の支出 -${gross}万円 → 補償 +${gross}万円` : ''
-        };
-    }
-    if (targetId === 'S025') return { reason: '自動車を所有していないため', detail: '' };
-    if (card.conditionBonus && !resolveSocialFlag(card.conditionBonus.flag)) {
-        return { reason: `対象条件（${SOCIAL_FLAG_LABELS[card.conditionBonus.flag] || '特定の条件'}）に該当しないため`, detail: '' };
-    }
-    if (card.conditionPenalty && !resolveSocialFlag(card.conditionPenalty.flag)) {
-        return { reason: `対象条件（${SOCIAL_FLAG_LABELS[card.conditionPenalty.flag] || '特定の条件'}）に該当しないため`, detail: '' };
-    }
-    if (card.life_point || card.lifePointRequireFlag) return { reason: 'お金の増減はないイベントのため（ライフポイントのみ変化）', detail: '' };
-    return { reason: 'このイベントによるお金の増減はありません', detail: '' };
-}
-// ▲▲▲ ここまで ▲▲▲
-
-// 1プレイヤー個別の最終損益(ec)をシミュレート計算（要件4のロジックを個別パラメータで再現）
-// 戻り値: 正=支出(損), 負=収入(得), 0=影響なし
-function simulateSocialEventEc(card, targetId, playerKey) {
-    const player = gameState.players[playerKey];
-    const jobId = player ? player.jobId : null;
-
-    const gHouse = (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
-    let ec = 0;
-    if (card.costsByIncome) {
-        ec = (gHouse < 600) ? card.costsByIncome.low : (gHouse < 1000 ? card.costsByIncome.mid : card.costsByIncome.high);
-    }
-
-    // S023(円安)
-    if (targetId === 'S023') {
-        if (gameState.hasInvestment) { const investGain = ec * 3; const netGain = investGain - ec; return -netGain; }
-        return ec;
-    }
-    // S024(円高)
-    if (targetId === 'S024') {
-        if (gameState.hasInvestment) { const investLoss = ec * 3; const netLoss = investLoss - ec; return netLoss; }
-        return -ec;
-    }
-    // S050(キャンプブーム)
-    if (targetId === 'S050') {
-        return gameState.hasCampGear ? -ec : ec;
-    }
-    // S028(ブラックマンデー)
-    if (targetId === 'S028') {
-        return gameState.hasInvestment ? ec * 2 : ec;
-    }
-    // S038(AI革命) ※プレイヤー個別の職業で判定
-    if (targetId === 'S038') {
-        const benefit = ["J001", "J005"].includes(jobId);
-        const penalty = ["J008", "J009"].includes(jobId);
-        if (benefit && penalty) return 0;
-        if (benefit) return -ec;
-        if (penalty) return ec;
-        return 0;
-    }
-    // S059(緊急防災対策)
-    if (targetId === 'S059') {
-        return gameState.hasHome ? ec : 0;
-    }
-
-    // S032(株価乱高下) ※各プレイヤー個別にランダム判定（投資ありの世帯のみ発生）
-    if (targetId === 'S032') {
-        if (!gameState.hasInvestment) return 0;
-        // 50%で利益(マイナス=収入) / 50%で損失(プラス=支出)
-        return (Math.random() < 0.5) ? -ec : ec;
-    }
-
-    // 条件ボーナス / ペナルティ
-    if (card.conditionBonus) {
-        ec = resolveSocialFlag(card.conditionBonus.flag) ? card.conditionBonus.amount : 0;
-    }
-    if (card.conditionPenalty) {
-        ec = resolveSocialFlag(card.conditionPenalty.flag) ? card.conditionPenalty.amount : 0;
-    }
-    // S025(ガソリン高騰): 自動車保険(=車所有)が無ければ影響なし
-    if (targetId === 'S025' && !(gameState.insurance && gameState.insurance.auto === true)) {
-        ec = 0;
-    }
-    // 特定職業への追加ペナルティ（個別職業で判定）
-    if (card.conditionJobPenalty && card.conditionJobPenalty.jobIds.includes(jobId)) {
-        ec += card.conditionJobPenalty.amount;
-    }
-    // 火災保険で0円
-    if (card.insuranceCheck === 'fire' && gameState.insurance && gameState.insurance.fire === true) {
-        ec = 0;
-    }
-
-    return ec;
+function getHouseholdGross() {
+    return (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
 }
 
-// 全プレイヤーの個別リザルトを表示する通知モーダル（index.htmlを編集せず動的生成）
-// p1Why / p2Why: 個別損益が0のときの理由 { reason, detail }（省略可）
-function showSocialEventModal(card, p1Ec, p2Ec, p1Why, p2Why) {
+// 世帯年収ランク（～600万 / 600～1000万 / 1000万～）に応じたカードの基準額
+function getCostByIncomeRank(card) {
+    if (!card.costsByIncome) return 0;
+    const g = getHouseholdGross();
+    return (g < 600) ? card.costsByIncome.low : (g < 1000 ? card.costsByIncome.mid : card.costsByIncome.high);
+}
+
+function getPlayerLabel(playerKey) {
+    const p = gameState.players[playerKey];
+    const name = (p && p.name) || (playerKey === 'player1' ? 'プレイヤー1' : 'プレイヤー2');
+    return `${name}（${getJobName(p && p.jobId)}）`;
+}
+
+// 世帯の金額を、各プレイヤーの額面年収の割合で按分する（excludedJobs の人は0）
+function splitByIncomeShare(total, excludedJobs) {
+    const out = { player1: 0, player2: 0 };
+    const gross = getHouseholdGross();
+    if (gross <= 0 || !total) return out;
+    const p1 = Math.round(total * (gameState.players.player1.grossIncome || 0) / gross);
+    out.player1 = p1;
+    out.player2 = total - p1;
+    ['player1', 'player2'].forEach(k => {
+        if (excludedJobs.includes(gameState.players[k].jobId)) out[k] = 0;
+    });
+    return out;
+}
+
+function computeSocialEventBreakdown(card, id) {
+    const bd = { items: [], logs: [], notes: [], apply: null };
+    const add = (scope, ec, label) => {
+        const v = LRNet.round1(ec);
+        if (v) bd.items.push({ scope: scope, ec: v, label: label });
+    };
+    const note = (reason, detail, zeroOnly) => bd.notes.push({ reason: reason, detail: detail || '', zeroOnly: zeroOnly !== false });
+    const P = ['player1', 'player2'];
+    const pl = k => gameState.players[k];
+    const base = getCostByIncomeRank(card);
+    const duration = calcTurnDuration(gameState.currentAge);
+
+    switch (id) {
+        // --- 好景気 / 不景気: 各プレイヤーの手取りの2割（公務員・看護師は景気の影響を受けない） ---
+        case 'S001':
+        case 'S002': {
+            const up = (id === 'S001');
+            P.forEach(k => {
+                if (STABLE_ECONOMY_JOBS.includes(pl(k).jobId)) return;
+                const v = Math.round((pl(k).income || 0) * 0.2);
+                add(k, up ? -v : v, up ? '好景気の臨時ボーナス（手取りの2割）' : '不景気による収入減（手取りの2割）');
+            });
+            const stable = P.filter(k => STABLE_ECONOMY_JOBS.includes(pl(k).jobId));
+            if (stable.length) bd.logs.push(`${stable.map(getPlayerLabel).join('・')}は景気の影響を受けにくい職業のため対象外`);
+            if (!bd.items.length) note(stable.length ? '景気の影響を受けにくい職業のため' : '対象となる収入がないため');
+            break;
+        }
+        // --- インフレ: 収入も支出も50万円増える（差し引き0） ---
+        case 'S003':
+            add('household', -50, '物価上昇に伴う収入増（賃上げなど）');
+            add('household', 50, '物価上昇による支出増');
+            note('収入と支出が同額のため', '収入 +50万円 / 支出 -50万円');
+            break;
+        // --- デフレ: 収入も支出も50万円減る（差し引き0） ---
+        case 'S006':
+            add('household', 50, 'デフレによる収入減');
+            add('household', -50, 'デフレによる支出減');
+            note('収入と支出が同額のため', '収入 -50万円 / 支出 +50万円');
+            break;
+        case 'S004':
+            add('household', parseNumber(card.effect), '感染症対策の臨時支出');
+            break;
+        // --- 社会保障費増大: 年間支出が5%増（今の年代の残り期間分を即時負担し、以降の年代も継続） ---
+        case 'S005': {
+            const annual = gameState.annualExpense || 0;
+            add('household', Math.round(annual * 0.05 * duration), `社会保障費の増加（年間支出${annual}万円の5% × ${duration}年）`);
+            bd.apply = () => { gameState.socialCostUp5 = true; };
+            bd.logs.push('【恒久制度】以降の年代も、年間支出が5%増えた状態が続きます。');
+            break;
+        }
+        // --- 給付金 & 増税 ---
+        case 'S007': {
+            const g = getHouseholdGross();
+            const taxIncrease = (g < 600) ? 0.6 : (g < 1000 ? 1.2 : 3.6);
+            const totalTax = LRNet.round1(taxIncrease * duration);
+            add('household', -10, '給付金');
+            add('household', totalTax, `増税（年間${taxIncrease.toFixed(1)}万円 × ${duration}年）`);
+            bd.apply = () => { gameState.socialTax = (gameState.socialTax || 0) + taxIncrease; };
+            note('給付金と増税の差し引き', `給付金 +10万円 / 増税 -${totalTax.toFixed(1)}万円`, false);
+            break;
+        }
+        // --- 猛暑: 対象職業に臨時収入（1人あたり） ---
+        case 'S009':
+            P.forEach(k => { if (HEATWAVE_BONUS_JOBS.includes(pl(k).jobId)) add(k, -HEATWAVE_BONUS, '猛暑特需の臨時収入'); });
+            if (!bd.items.length) note('対象の職業（医師・看護師・会社員・フリーター）がいないため');
+            break;
+        // --- オーバーツーリズム: 料理人・フリーターに臨時収入（1人あたり） ---
+        case 'S010':
+            P.forEach(k => { if (TOURISM_BONUS_JOBS.includes(pl(k).jobId)) add(k, -TOURISM_BONUS, '観光客の急増で稼ぎ時の臨時収入'); });
+            if (!bd.items.length) note('対象の職業（料理人・フリーター）がいないため');
+            break;
+        // --- レトロブーム: 「趣味に夢中(L010)」で支払った金額の2倍が収入（コレクションは売却済みとして0に戻す） ---
+        case 'S011': {
+            const invested = gameState.hobbyInvestTotal || 0;
+            if (invested > 0) {
+                add('household', -invested * 2, `コレクションの高騰（趣味への投資 ${invested}万円 × 2）`);
+                bd.apply = () => { gameState.hobbyInvestTotal = 0; };
+            } else {
+                note('「趣味に夢中(L010)」への投資がないため');
+            }
+            break;
+        }
+        // --- 転売ヤー: 趣味の買い物をした世帯だけが高値で購入させられる ---
+        case 'S008': {
+            const scanned = gameState.scannedCards || [];
+            const hobbyCards = RESALE_HOBBY_CARD_IDS.filter(cid => scanned.includes(cid));
+            if (hobbyCards.length > 0) {
+                add('household', base, '転売品を高値で購入');
+                bd.logs.push(`転売ヤーの標的に…（趣味の買い物: ${hobbyCards.map(cid => CARD_DATA[cid].title).join('、')}）`);
+            } else {
+                note('趣味の買い物をしていないため（転売品を買う必要がない）');
+            }
+            break;
+        }
+        // --- 円安 ---
+        case 'S023':
+            add('household', base, '輸入品の高騰による生活費増');
+            if (gameState.hasInvestment) {
+                add('household', -base * 3, '海外資産の円換算の値上がり');
+                bd.logs.push(`円安ショック！生活費増(-${base}万円)を投資益(+${base * 3}万円)が上回り、トータル+${base * 2}万円の臨時収入！`);
+                note('生活費の増加と投資益の差し引き', `生活費 -${base}万円 / 投資益 +${base * 3}万円`, false);
+            }
+            break;
+        // --- 円高 ---
+        case 'S024':
+            add('household', -base, '輸入品が安くなり生活費が浮く');
+            if (gameState.hasInvestment) {
+                add('household', base * 3, '海外資産の円換算の目減り');
+                bd.logs.push(`円高バブル！生活費節約(+${base}万円)を投資の目減り(-${base * 3}万円)が上回り、トータル-${base * 2}万円の打撃…`);
+                note('生活費の節約と投資の目減りの差し引き', `生活費 +${base}万円 / 投資 -${base * 3}万円`, false);
+            }
+            break;
+        // --- ブラックマンデー: 投資をしていればダメージ2倍 ---
+        case 'S028':
+            add('household', base, '大暴落による不況の打撃');
+            if (gameState.hasInvestment) add('household', base, '投資資産の暴落（ダメージ2倍）');
+            break;
+        // --- 株価乱高下: 投資をしている世帯だけ、1回の抽選で利益か損失 ---
+        case 'S032':
+            if (gameState.hasInvestment) {
+                const isGain = Math.random() < 0.5;
+                add('household', isGain ? -base : base, isGain ? '投資が奇跡的な大高騰' : '市場の急暴落で投資が大損');
+            } else {
+                note('投資をしていないため');
+            }
+            break;
+        // --- AI革命: プレイヤーごとに職業で判定 ---
+        case 'S038': {
+            P.forEach(k => {
+                if (AI_BENEFIT_JOBS.includes(pl(k).jobId)) add(k, -base, 'AI活用で生産性アップ');
+                else if (AI_PENALTY_JOBS.includes(pl(k).jobId)) add(k, base, 'AIに業務を代替されシフト減');
+            });
+            const gain = bd.items.filter(it => it.ec < 0).reduce((s, it) => s - it.ec, 0);
+            const loss = bd.items.filter(it => it.ec > 0).reduce((s, it) => s + it.ec, 0);
+            if (!bd.items.length) note('職業がAI革命の影響を受けない対象のため');
+            else if (gain > 0 && gain === loss) note('収入と支出が同額のため', `収入 +${gain}万円 / 支出 -${loss}万円`);
+            break;
+        }
+        // --- 反動不況: 額面年収の割合で按分（公務員・看護師は影響を受けにくいので0） ---
+        case 'S049': {
+            const share = splitByIncomeShare(base, STABLE_ECONOMY_JOBS);
+            P.forEach(k => add(k, share[k], '反動不況で仕事・ボーナスが減少'));
+            if (!bd.items.length) note('景気の影響を受けにくい職業のため');
+            break;
+        }
+        // --- キャンプブーム ---
+        case 'S050':
+            if (gameState.hasCampGear) add('household', -base, '不要なギアが高値で売れた');
+            else add('household', base, '流行に乗ってキャンプ道具を購入');
+            break;
+        // --- 残業完全禁止: 額面年収の割合で按分（パート・専業主婦は残業代がないので0） ---
+        case 'S054': {
+            const share = splitByIncomeShare(base, NO_OVERTIME_JOBS);
+            P.forEach(k => add(k, share[k], '残業代の消滅'));
+            if (!bd.items.length) note('残業代がない働き方（パート・専業主婦）のため');
+            break;
+        }
+        // --- 緊急防災対策: 持ち家のみ ---
+        case 'S059':
+            if (gameState.hasHome) add('household', base, '持ち家の緊急防災対策費');
+            else note('持ち家がないため（賃貸・未購入）');
+            break;
+        // --- その他のカード（基準額 + 条件 + 職業別の追加損害 + 火災保険） ---
+        default: {
+            let ec = (card.type === 'social_event' && !card.costsByIncome) ? parseNumber(card.effect) : base;
+            if (card.requireHouseholdFlag && !resolveSocialFlag(card.requireHouseholdFlag)) {
+                ec = 0;
+                note(`対象条件（${SOCIAL_FLAG_LABELS[card.requireHouseholdFlag] || '特定の条件'}）に該当しないため`);
+            }
+            if (card.conditionBonus) {
+                if (resolveSocialFlag(card.conditionBonus.flag)) ec = card.conditionBonus.amount;
+                else { ec = 0; note(`対象条件（${SOCIAL_FLAG_LABELS[card.conditionBonus.flag] || '特定の条件'}）に該当しないため`); }
+            }
+            if (card.conditionPenalty) {
+                if (resolveSocialFlag(card.conditionPenalty.flag)) ec = card.conditionPenalty.amount;
+                else { ec = 0; note(`対象条件（${SOCIAL_FLAG_LABELS[card.conditionPenalty.flag] || '特定の条件'}）に該当しないため`); }
+            }
+            add('household', ec, ec < 0 ? '臨時収入・節約' : '一時支出');
+            if (card.conditionJobPenalty) {
+                P.forEach(k => {
+                    if (card.conditionJobPenalty.jobIds.includes(pl(k).jobId)) add(k, card.conditionJobPenalty.amount, '職業への直撃（追加の損害）');
+                });
+            }
+            if (card.insuranceCheck === 'fire' && gameState.insurance && gameState.insurance.fire === true) {
+                const covered = bd.items.filter(it => it.ec > 0).reduce((s, it) => s + it.ec, 0);
+                if (covered > 0) {
+                    bd.items = bd.items.filter(it => it.ec <= 0);
+                    note('火災保険適用のため', `本来の支出 -${covered}万円 → 補償 +${covered}万円`);
+                }
+            }
+        }
+    }
+
+    // ログ（内訳ごと）
+    bd.items.forEach(it => {
+        const who = (it.scope === 'household') ? '' : `${getPlayerLabel(it.scope)} `;
+        bd.logs.push(`${card.title}: ${who}${it.label} ${LRNet.formatSigned(-it.ec)}万円`);
+    });
+    if (!bd.items.length) bd.logs.push(`${card.title}: あなたの世帯のお金には影響がありませんでした`);
+    return bd;
+}
+
+// ソーシャルイベントのリザルト表示（世帯の最終増減値 + 内訳）。bd は computeSocialEventBreakdown の結果
+function showSocialEventModal(card, bd, netResult) {
     let modal = document.getElementById('socialEventModal');
     if (!modal) {
         modal = document.createElement('div');
@@ -1990,43 +2144,31 @@ function showSocialEventModal(card, p1Ec, p2Ec, p1Why, p2Why) {
         document.body.appendChild(modal);
     }
 
-    const p1 = gameState.players.player1;
-    const p2 = gameState.players.player2;
-    const p1Name = p1.name || 'プレイヤー1';
-    const p2Name = p2.name || 'プレイヤー2';
-    const p1Job = getJobName(p1.jobId);
-    const p2Job = getJobName(p2.jobId);
     const expl = (card.explanation || '').replace(/\n/g, '<br>');
-    // ec(正=支出/負=収入) を資産の増減値(正=増/負=減)に変換して、最終増減値を強調表示
-    const impactHtml = (ec, why) => {
-        const diff = -(Number(ec) || 0);
-        const w = (diff === 0 && why) ? why : { reason: '', detail: '' };
-        return LRNet.renderHtml({ diff: diff, reason: w.reason, detail: w.detail }, { compact: true });
-    };
+    const rows = bd.items.map(it => {
+        const who = (it.scope === 'household') ? '世帯' : getPlayerLabel(it.scope);
+        return `<li class="se-breakdown__row">
+                    <span class="se-breakdown__label"><span class="se-breakdown__who">${lrEscapeHtml(who)}</span>${lrEscapeHtml(it.label)}</span>
+                    <strong class="se-breakdown__amount ${it.ec < 0 ? 'is-plus' : 'is-minus'}">${LRNet.formatSigned(-it.ec)}万円</strong>
+                </li>`;
+    }).join('');
 
     modal.innerHTML = `
         <div class="modal-content" style="text-align:center; max-width:520px; border-top:6px solid #FF7F50;">
             <h2 style="color:#FF7F50; margin-bottom:8px;"><i class="fas fa-bullhorn"></i> ソーシャルイベント発生！</h2>
             <h3 style="margin-bottom:15px;">${card.title}</h3>
             <div style="text-align:left; background:#FFFDF8; border:2px solid #FFE4B5; border-radius:10px; padding:15px; margin-bottom:18px; font-size:0.92em; line-height:1.6;">${expl}</div>
-            <p style="font-weight:bold; color:#4a5568; margin-bottom:10px;">あなたの世帯への影響（個別リザルト）</p>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
-                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:15px;">
-                    <div style="font-weight:bold; color:#333;">${p1Name}</div>
-                    <div style="font-size:0.8em; color:#718096; margin-bottom:6px;">(${p1Job})</div>
-                    ${impactHtml(p1Ec, p1Why)}
-                </div>
-                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:15px;">
-                    <div style="font-weight:bold; color:#333;">${p2Name}</div>
-                    <div style="font-size:0.8em; color:#718096; margin-bottom:6px;">(${p2Job})</div>
-                    ${impactHtml(p2Ec, p2Why)}
-                </div>
+            <p style="font-weight:bold; color:#4a5568; margin-bottom:10px;">あなたの世帯への影響</p>
+            <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:15px; margin-bottom:${rows ? '10px' : '20px'};">
+                ${LRNet.renderHtml(netResult)}
             </div>
+            ${rows ? `<ul class="se-breakdown">${rows}</ul>` : ''}
             <button onclick="document.getElementById('socialEventModal').style.display='none';" class="btn-primary" style="width:100%; padding:14px;">確認しました</button>
         </div>
     `;
     modal.style.display = 'flex';
 }
+// ▲▲▲ ソーシャルイベントの損益計算ここまで ▲▲▲
 
 function applyCardEffect(cardIdOverride, fromRemote = false) {
     const targetId = cardIdOverride || lastScannedCardId;
@@ -2094,6 +2236,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
     const oldAssets = gameState.totalAssets;
 
     let updated = false;
+    let socialBreakdown = null; // ソーシャルイベントの内訳（資産反映とリザルト表示で共通）
     const val = parseNumber(c.effect) || c.amount || 0;
     const duration = calcTurnDuration(gameState.currentAge);
 
@@ -2171,6 +2314,15 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                 gameState.totalAssets += income;
                 gameState.turnExpenses.life_event -= income;
                 addEvent(`${logPrefix}${c.title} +${income}万円`);
+                updated = true;
+                break;
+            }
+            if (targetId === 'L012') { // 子育て世帯特別給付金: 子どもの人数×10万円の収入
+                const kidsL012 = (gameState.children && gameState.children.count) || 0;
+                const benefitL012 = kidsL012 * 10;
+                gameState.totalAssets += benefitL012;
+                gameState.turnExpenses.life_event -= benefitL012;
+                addEvent(`${logPrefix}${c.title} +${benefitL012}万円（子ども${kidsL012}人 × 10万円）`);
                 updated = true;
                 break;
             }
@@ -2315,6 +2467,11 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                 // ▲▲▲ マイナス値処理ここまで ▲▲▲
             }
 
+            // 「趣味に夢中(L010)」の支払額を記録（S011 レトロブームで2倍になって返ってくる）
+            if (targetId === 'L010' && ec > 0) {
+                gameState.hobbyInvestTotal = (gameState.hobbyInvestTotal || 0) + ec;
+            }
+
             // ▼▼▼ setFlag: 条件付きカード用の状態フラグを ON にする ▼▼▼
             if (c.setFlag) {
                 gameState[c.setFlag] = true;
@@ -2325,57 +2482,24 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             updated = true; break;
             
         case 'social_event':
-            const hi = gameState.players.player1.income + gameState.players.player2.income;
-            
-            if (targetId === 'S007') { // 給付金 & 増税
-                gameState.totalAssets += 10;
-                gameState.turnExpenses.social_event -= 10; 
-                addEvent(`${logPrefix}給付金 +10万円を受け取りました`);
+        case 'social_event_asset_change': {
+            // ソーシャルイベント（旧S001〜S012 / 新S013〜）: 内訳を1回だけ計算し、その合計を資産に反映
+            socialBreakdown = computeSocialEventBreakdown(c, targetId);
+            const socialTotal = socialBreakdown.items.reduce((sum, it) => sum + it.ec, 0);
+            gameState.totalAssets -= socialTotal;
+            gameState.turnExpenses.social_event += socialTotal;
+            socialBreakdown.logs.forEach(m => addEvent(`${logPrefix}${m}`));
+            socialBreakdown.notes.forEach(n => LRNet.note(n.reason, n.detail, n.zeroOnly));
+            if (socialBreakdown.apply) socialBreakdown.apply();
 
-                const g = (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
-                let taxIncrease = 0;
-                if (g < 600) taxIncrease = 0.6;
-                else if (g < 1000) taxIncrease = 1.2;
-                else taxIncrease = 3.6;
-
-                const totalTax = taxIncrease * duration;
-                gameState.socialTax = (gameState.socialTax || 0) + taxIncrease;
-                gameState.totalAssets -= totalTax;
-                
-                addEvent(`${logPrefix}増税: 年間${taxIncrease.toFixed(1)}万 × ${duration}年 = -${totalTax.toFixed(1)}万円`);
-                LRNet.note('給付金と増税の差し引き', `給付金 +10万円 / 増税 -${totalTax.toFixed(1)}万円`, false);
-            }
-            else if (targetId === 'S001') { // 好景気
-                const g = Math.round(hi * 0.2); 
-                gameState.totalAssets += g; 
-                gameState.turnExpenses.social_event -= g; 
-                addEvent(`${logPrefix}好景気: 臨時ボーナス +${g}万円`); 
-            }
-            else if (targetId === 'S002') { // 不景気
-                const l = Math.round(hi * 0.2); 
-                gameState.totalAssets -= l; 
-                gameState.turnExpenses.social_event += l; 
-                addEvent(`${logPrefix}不景気: 臨時支出 -${l}万円`); 
-            }
-            else { 
-                // その他の社会イベント(一時金)
-                let cost = val;
-                if (c.costsByIncome) {
-                    const g = (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
-                    if (g < 600) cost = c.costsByIncome.low;
-                    else if (g < 1000) cost = c.costsByIncome.mid;
-                    else cost = c.costsByIncome.high;
-                }
-                if (cost > 0) { 
-                    gameState.totalAssets -= cost; 
-                    gameState.turnExpenses.social_event += cost; 
-                    addEvent(`${logPrefix}${c.title} -${cost}万円`); 
-                } else {
-                    addEvent(`${logPrefix}${c.title} 発生`);
-                }
+            // 恒久負担フラグ等の setFlag を反映
+            if (c.setFlag) {
+                gameState[c.setFlag] = true;
+                addEvent(`${logPrefix}【恒久制度】「${c.title}」が発生。以降の年代でも負担が継続します。`);
             }
             updated = true; break;
-            
+        }
+
         case 'investment':
             if (c.effect.includes('積立')) {
                 // 積立: 資産から「年額×年数」を引く
@@ -2396,282 +2520,23 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             // ▲▲▲ ここまで ▲▲▲
             updated = true; break;
 
-        case 'social_event_asset_change': {
-            // =====================================================
-            // ソーシャルイベント(資産変動型)の処理
-            // （switch内の変数衝突を避けるためブロックスコープで囲む）
-            // =====================================================
-            const logPrefixS = logPrefix;
-
-            // フラグ解決ヘルパー（保険系フラグは gameState.insurance を参照）
-            const resolveFlagS = (flagKey) => {
-                if (flagKey === 'autoInsurance') return !!(gameState.insurance && gameState.insurance.auto);
-                if (flagKey === 'fireInsurance') return !!(gameState.insurance && gameState.insurance.fire);
-                if (flagKey === 'lifeInsurance') return !!(gameState.insurance && gameState.insurance.life);
-                return !!gameState[flagKey];
-            };
-
-            // 1. 基本のコスト計算（世帯総年収に応じて算出）
-            let ec = 0;
-            const gHouseS = (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
-            if (c.costsByIncome) {
-                ec = (gHouseS < 600) ? c.costsByIncome.low : (gHouseS < 1000 ? c.costsByIncome.mid : c.costsByIncome.high);
-            }
-
-            // 2. S023(円安)の特別処理
-            if (targetId === 'S023') {
-                let livingCost = ec;
-                if (gameState.hasInvestment) {
-                    let investGain = ec * 3;
-                    let netGain = investGain - livingCost;
-                    ec = -netGain;
-                    addEvent(`${logPrefixS}円安ショック！生活費増(-${livingCost}万円)を投資益(+${investGain}万円)が上回り、トータル+${netGain}万円の臨時収入！`);
-                    LRNet.note('生活費の増加と投資益の差し引き', `生活費 -${livingCost}万円 / 投資益 +${investGain}万円`, false);
-                } else {
-                    addEvent(`${logPrefixS}円安ショック！輸入品高騰により生活費増：-${livingCost}万円の打撃…`);
-                }
-                gameState.totalAssets -= ec;
-                gameState.turnExpenses.social_event += ec;
-                updated = true; break;
-            }
-
-            // 3. S024(円高)の特別処理
-            if (targetId === 'S024') {
-                let livingSave = ec;
-                if (gameState.hasInvestment) {
-                    let investLoss = ec * 3;
-                    let netLoss = investLoss - livingSave;
-                    ec = netLoss;
-                    addEvent(`${logPrefixS}円高バブル！生活費節約(+${livingSave}万円)を投資の目減り(-${investLoss}万円)が上回り、トータル-${netLoss}万円の打撃…`);
-                    LRNet.note('生活費の節約と投資の目減りの差し引き', `生活費 +${livingSave}万円 / 投資 -${investLoss}万円`, false);
-                } else {
-                    ec = -livingSave;
-                    addEvent(`${logPrefixS}円高バブル！輸入品が安くなり生活費節約：+${livingSave}万円の恩恵！`);
-                }
-                gameState.totalAssets -= ec;
-                gameState.turnExpenses.social_event += ec;
-                updated = true; break;
-            }
-
-            // 4. S050(キャンプブーム)の特別処理
-            if (targetId === 'S050') {
-                let campCost = ec;
-                if (gameState.hasCampGear) {
-                    ec = -campCost;
-                    addEvent(`${logPrefixS}キャンプブーム到来！不要なギアが高値で売れて+${Math.abs(ec)}万円の臨時収入！`);
-                } else {
-                    addEvent(`${logPrefixS}キャンプブーム到来！流行に乗って道具を揃えてしまい、-${campCost}万円の出費…`);
-                }
-                gameState.totalAssets -= ec;
-                gameState.turnExpenses.social_event += ec;
-                updated = true; break;
-            }
-
-            // 5. S028(ブラックマンデー)の特別処理
-            if (targetId === 'S028') {
-                let baseCost = ec;
-                if (gameState.hasInvestment) {
-                    ec = baseCost * 2;
-                    addEvent(`${logPrefixS}大暴落直撃！不況ダメージ(-${baseCost}万円)に加え、投資暴落で被害が2倍(-${ec}万円)に膨れ上がる致命傷！`);
-                } else {
-                    addEvent(`${logPrefixS}大暴落による不況の波！生活に-${baseCost}万円の打撃…（投資をしていないため致命傷は回避）`);
-                }
-                gameState.totalAssets -= ec;
-                gameState.turnExpenses.social_event += ec;
-                updated = true; break;
-            }
-
-            // 6. S038(AI革命)の特別処理
-            if (targetId === 'S038') {
-                let aiCost = ec;
-                let hasBenefit = false;
-                let hasPenalty = false;
-                let benefitJobs = ["J001", "J005"];
-                let penaltyJobs = ["J008", "J009"];
-
-                if (gameState.players) {
-                    let p1Job = gameState.players.player1 ? gameState.players.player1.jobId : null;
-                    let p2Job = gameState.players.player2 ? gameState.players.player2.jobId : null;
-                    if (benefitJobs.includes(p1Job) || benefitJobs.includes(p2Job)) hasBenefit = true;
-                    if (penaltyJobs.includes(p1Job) || penaltyJobs.includes(p2Job)) hasPenalty = true;
-                }
-
-                if (hasBenefit && hasPenalty) {
-                    ec = 0;
-                    addEvent(`${logPrefixS}AI革命到来！世帯内でAIの恩恵と打撃が相殺され、プラマイゼロに。`);
-                    LRNet.note('収入と支出が同額のため', `収入 +${aiCost}万円 / 支出 -${aiCost}万円`);
-                } else if (hasBenefit) {
-                    ec = -aiCost;
-                    addEvent(`${logPrefixS}AI革命到来！AIを活用して業務効率が爆上がりし、+${aiCost}万円の臨時収入！`);
-                } else if (hasPenalty) {
-                    ec = aiCost;
-                    addEvent(`${logPrefixS}AI革命到来！AIやロボットに業務を代替されてシフトが減少し、-${aiCost}万円の打撃…`);
-                } else {
-                    ec = 0;
-                    addEvent(`${logPrefixS}AI革命到来！あなたの職業（対人・手作業メイン等）には直接的な影響はありませんでした。`);
-                    LRNet.note('職業がAI革命の影響を受けない対象のため');
-                }
-                gameState.totalAssets -= ec;
-                gameState.turnExpenses.social_event += ec;
-                updated = true; break;
-            }
-
-            // 7. S059(災害リスク・緊急防災対策)の特別処理
-            if (targetId === 'S059') {
-                let homeLoss = ec;
-                if (gameState.hasHome) {
-                    addEvent(`${logPrefixS}災害リスク上昇！居住地域の大地震・水害リスク発表を受けて、大切な我が家を守るための耐震・耐水補強金具や防災グッズの緊急設置費用として-${homeLoss}万円の打撃！`);
-                } else {
-                    ec = 0;
-                    addEvent(`${logPrefixS}災害リスク上昇！あなたは賃貸（または家を未購入）のため、持ち家の緊急対策費は発生しませんでした。`);
-                    LRNet.note('持ち家がないため（賃貸・未購入）');
-                }
-                gameState.totalAssets -= ec;
-                gameState.turnExpenses.social_event += ec;
-                updated = true; break;
-            }
-
-            // 7-2. S032(インフルエンサー発言で株価乱高下)の特別処理
-            if (targetId === 'S032') {
-                let baseAmount = ec; // 年収帯に応じた基準額（10万 / 20万 / 30万）
-                if (gameState.hasInvestment) {
-                    // 50%の確率でプラス（利益）かマイナス（損失）かをランダム決定
-                    let isGain = Math.random() < 0.5;
-                    if (isGain) {
-                        ec = -baseAmount; // 臨時収入にするためマイナス値に設定
-                        addEvent(`${logPrefixS}株価乱高下！インフルエンサーの発言を味方につけ、投資が奇跡的な大高騰！+${baseAmount}万円の爆益！`);
-                    } else {
-                        ec = baseAmount; // 支出（損失）にするためプラス値に設定
-                        addEvent(`${logPrefixS}株価乱高下！インフルエンサーのつぶやきで市場が急暴落！投資が大損し、-${baseAmount}万円の打撃…`);
-                    }
-                } else {
-                    ec = 0; // 投資していない人は無傷
-                    addEvent(`${logPrefixS}株価乱高下！市場は混乱していますが、あなたは投資をしていないため影響はありませんでした。`);
-                    LRNet.note('投資をしていないため');
-                }
-                gameState.totalAssets -= ec;
-                gameState.turnExpenses.social_event += ec;
-                updated = true; break;
-            }
-
-            // 8. 条件ボーナス/ペナルティの適用（それ以外のカード）
-            if (c.conditionBonus && resolveFlagS(c.conditionBonus.flag)) {
-                ec = c.conditionBonus.amount;
-            } else if (c.conditionBonus) {
-                ec = 0;
-                LRNet.note(`対象条件（${SOCIAL_FLAG_LABELS[c.conditionBonus.flag] || '特定の条件'}）に該当しないため`);
-            }
-
-            if (c.conditionPenalty && resolveFlagS(c.conditionPenalty.flag)) {
-                ec = c.conditionPenalty.amount;
-            } else if (c.conditionPenalty) {
-                ec = 0;
-                LRNet.note(`対象条件（${SOCIAL_FLAG_LABELS[c.conditionPenalty.flag] || '特定の条件'}）に該当しないため`);
-            }
-
-            // S025: 自動車保険(=車所有)が無ければガソリン高騰の影響なし
-            if (targetId === 'S025' && !(gameState.insurance && gameState.insurance.auto === true)) {
-                ec = 0;
-                LRNet.note('自動車を所有していないため');
-            }
-
-            // 特定職業への追加ペナルティ
-            if (c.conditionJobPenalty) {
-                let hasTargetJob = false;
-                if (gameState.players && gameState.players.player1 && c.conditionJobPenalty.jobIds.includes(gameState.players.player1.jobId)) {
-                    hasTargetJob = true;
-                }
-                if (gameState.players && gameState.players.player2 && c.conditionJobPenalty.jobIds.includes(gameState.players.player2.jobId)) {
-                    hasTargetJob = true;
-                }
-                if (hasTargetJob) {
-                    ec += c.conditionJobPenalty.amount;
-                }
-            }
-
-            // 9. 保険適用の特例（火災保険で0円）
-            if (c.insuranceCheck === "fire" && gameState.insurance && gameState.insurance.fire === true) {
-                LRNet.offset(ec, '火災保険適用のため');
-                ec = 0;
-            }
-
-            // 10. 最終処理（収入/支出/影響なしの確定）
-            if (ec < 0) {
-                const gainS = Math.abs(ec);
-                gameState.totalAssets += gainS;
-                gameState.turnExpenses.social_event -= gainS;
-                addEvent(`${logPrefixS}${c.title} +${gainS}万円 (臨時収入/節約)`);
-            } else if (ec > 0) {
-                gameState.totalAssets -= ec;
-                gameState.turnExpenses.social_event += ec;
-                addEvent(`${logPrefixS}${c.title} -${ec}万円 (一時支出)`);
-            } else {
-                addEvent(`${logPrefixS}${c.title} あなたには影響がありませんでした`);
-            }
-
-            // 恒久負担フラグ等の setFlag を反映
-            if (c.setFlag) {
-                gameState[c.setFlag] = true;
-                addEvent(`${logPrefixS}【恒久制度】「${c.title}」が発生。以降の年代でも負担が継続します。`);
-            }
-
-            updated = true; break;
-        }
     }
 
     // 最終的な資産増減値と理由（保険適用・相殺など）を確定
     const netResult = LRNet.finish(oldAssets, gameState.totalAssets);
 
-    // ▼▼▼ 【要件5】ソーシャルイベントの全プレイヤー個別リザルト通知 & Firebase同期 ▼▼▼
-    if (c.type === 'social_event_asset_change') {
-        // player1 / player2 それぞれの個別最終損益を並列計算（カード定義のロジックで再現）
-        const sp1 = gameState.players.player1;
-        const sp2 = gameState.players.player2;
-        const p1Ec = simulateSocialEventEc(c, targetId, 'player1');
-        const p2Ec = simulateSocialEventEc(c, targetId, 'player2');
+    // ▼▼▼ ソーシャルイベントのリザルト通知 & ルーム共有 ▼▼▼
+    if (socialBreakdown) {
+        // 資産に反映したものと同じ内訳を表示する（表示と実際の金額がずれない）
+        showSocialEventModal(c, socialBreakdown, netResult);
 
-        // 個別損益が0のプレイヤーには、その理由（保険適用・条件外など）を併記
-        const p1Why = (p1Ec === 0) ? explainSocialEventZero(c, targetId, 'player1') : null;
-        const p2Why = (p2Ec === 0) ? explainSocialEventZero(c, targetId, 'player2') : null;
-
-        // 自端末（同一世帯の全プレイヤー）へ詳細リザルトモーダルを強制表示
-        showSocialEventModal(c, p1Ec, p2Ec, p1Why, p2Why);
-
-        // 発生元(スキャンした本人)のみルームへ共有
-        // → 他世帯の端末は RoomSync の eventLog リスナーが受信し、各自の世帯で再計算・表示する
-        if (!fromRemote && database && currentRoomId) {
+        // 新ソーシャルイベントは発生元のみルームへ共有（旧S001〜S012は関数冒頭で共有済み）
+        // → 他世帯の端末は受信後、各自の世帯の条件で計算し直して表示する
+        if (c.type === 'social_event_asset_change' && !fromRemote && database && currentRoomId) {
             RoomSync.publish(targetId, 'social_event_asset_change');
         }
     }
-    else if (c.type === 'social_event') {
-        // 旧ソーシャルイベント(S001〜S012)も個別リザルトを通知。
-        // 既存の計算ロジックは変更せず、「実際に発生した世帯資産の変動額」を
-        // 各プレイヤーの所得割合で按分し、個別の影響として明示する。
-        const householdDelta = gameState.totalAssets - oldAssets; // 正=収入 / 負=支出
-        const p1g = gameState.players.player1.grossIncome || 0;
-        const p2g = gameState.players.player2.grossIncome || 0;
-
-        let share1, share2;
-        if (p1g + p2g > 0) {
-            share1 = p1g / (p1g + p2g);
-            share2 = p2g / (p1g + p2g);
-        } else {
-            // 両者とも収入0なら世帯で折半
-            share1 = 0.5;
-            share2 = 0.5;
-        }
-
-        // ec 表記（正=支出/損, 負=収入/得）に変換。delta(正=収入) の符号を反転。
-        const p1EcOld = Math.round(-householdDelta * share1);
-        const p2EcOld = Math.round(-householdDelta * share2);
-
-        // 自端末（同一世帯の全プレイヤー）へ詳細リザルトモーダルを強制表示
-        const oldWhy = (householdDelta === 0) ? { reason: netResult.reason, detail: netResult.detail } : null;
-        showSocialEventModal(c, p1EcOld, p2EcOld, oldWhy, oldWhy);
-
-        // 旧イベントの他端末への共有は関数冒頭の RoomSync.publish で実施済み（二重送信防止）。
-    }
-    // ▲▲▲ 要件5 ここまで ▲▲▲
+    // ▲▲▲ リザルト通知ここまで ▲▲▲
 
     if (!fromRemote) {
         // 詳細モーダルを閉じる
@@ -3220,6 +3085,11 @@ function recalculateAnnualExpense() {
     const savings = gameState.subscriptionSavings || 0;
     total -= savings;
 
+    // 9. 社会保障費増大(S005)の恒久負担: 年間支出が5%増
+    if (gameState.socialCostUp5) {
+        total = Math.round(total * 1.05);
+    }
+
     if (total < 0) total = 0;
     gameState.annualExpense = total;
     updateDisplay();
@@ -3435,7 +3305,8 @@ function handleQRCode(data) {
 
             // ▼▼▼ 恒久制度カード(S013/S045)の重複発生防止 ▼▼▼
             if ((id === 'S013' && gameState.taxIncreased15 === true) ||
-                (id === 'S045' && gameState.socialInsuranceIncreased === true)) {
+                (id === 'S045' && gameState.socialInsuranceIncreased === true) ||
+                (id === 'S005' && gameState.socialCostUp5 === true)) {
                 alert("すでにこの制度変更（増税・値上げ）は発生しています。別のカードを引いてください");
                 closeCameraAndReturn(); // 引き直し: ガイダンス画面に戻して再スキャンできるようにする
                 return;
@@ -3445,7 +3316,7 @@ function handleQRCode(data) {
             // ▼▼▼ 条件付きカードの引き直しチェック (requireFlag) ▼▼▼
             if (scannedCard.requireFlag) {
                 const flagKey = scannedCard.requireFlag;
-                const flagValue = (typeof gameState !== 'undefined') ? gameState[flagKey] : false;
+                const flagValue = resolveSocialFlag(flagKey); // 車の所有・子どもの有無なども判定
 
                 if (flagValue !== true) {
                     let message = "条件を満たしていません（前提イベント未発生）。別のカードを引き直してください。";
@@ -3456,6 +3327,10 @@ function handleQRCode(data) {
                         message = "まだ子どもが結婚していません。別のカードを引き直してください。";
                     } else if (flagKey === "grandchildBorn") {
                         message = "まだお孫さんが誕生していません。別のカードを引き直してください。";
+                    } else if (flagKey === "hasHome") {
+                        message = "持ち家がないため（賃貸・未購入）、このイベントは発生しません。別のカードを引き直してください。";
+                    } else if (flagKey === "hasCar") {
+                        message = "自動車を持っていないため、このイベントは発生しません。別のカードを引き直してください。";
                     }
                     alert(message);
                     // スキャン画面を閉じて中断
@@ -3468,7 +3343,7 @@ function handleQRCode(data) {
             // ▼▼▼ 重複イベント防止チェック (excludeFlag) ▼▼▼
             if (scannedCard.excludeFlag) {
                 const exFlagKey = scannedCard.excludeFlag;
-                const exFlagValue = (typeof gameState !== 'undefined') ? gameState[exFlagKey] : false;
+                const exFlagValue = resolveSocialFlag(exFlagKey);
 
                 if (exFlagValue === true) {
                     let message = "このイベントは既に発生済みです。別のカードを引き直してください。";
