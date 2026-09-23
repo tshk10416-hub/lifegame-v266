@@ -892,3 +892,94 @@ details[open] .age-label::before { transform: rotate(90deg); }
 .lr-toast--success { background: #2f855a; }
 .lr-toast--error { background: #c53030; }
 /* ▲▲▲ 2026-09 体験会フィードバック対応ここまで ▲▲▲ */
+
+/* ==========================================================
+   ▼▼▼ 2026-09 追加改善: アバター / 性別選択 / 波紋エフェクト ▼▼▼
+   ========================================================== */
+
+/* ---------- 年代・性別アバター（ステータス画面のプレイヤーカード） ---------- */
+.player-heading {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.player-avatar {
+    width: 96px;
+    height: 96px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    background: #edf2f7;
+    object-fit: cover;
+}
+.player-avatar.avatar--male { border-color: #90cdf4; }
+.player-avatar.avatar--female { border-color: #fbb6ce; }
+/* 年代が進んでアバターが切り替わったときの演出 */
+.player-avatar.avatar--changed { animation: lrAvatarAge 0.9s ease-out; }
+@keyframes lrAvatarAge {
+    0% { transform: scale(1); filter: brightness(1); }
+    35% { transform: scale(0.8) rotate(-8deg); filter: brightness(1.6); }
+    70% { transform: scale(1.12) rotate(4deg); filter: brightness(1.1); }
+    100% { transform: scale(1) rotate(0); filter: brightness(1); }
+}
+
+/* ---------- ファミリーメイク: 性別の選択 ---------- */
+.gender-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.gender-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 8px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    color: #4a5568;
+    font-weight: bold;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.gender-option img { width: 56px; height: 56px; border-radius: 50%; }
+.gender-option.is-selected {
+    border-color: #FF7F50;
+    background: #FFF5EE;
+    color: #c05621;
+    box-shadow: 0 0 0 3px rgba(255, 127, 80, 0.25);
+}
+.gender-option:focus-visible { outline: 3px solid #90cdf4; outline-offset: 2px; }
+
+/* ---------- ボタン押下時の波紋（リップル） ---------- */
+.lr-ripple-container {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+}
+.lr-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0;
+    transform: scale(0);
+    pointer-events: none;
+    animation-name: lrRipple;
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.35, 1);
+    animation-fill-mode: forwards;
+}
+@keyframes lrRipple {
+    0% { transform: scale(0); opacity: 0.35; }
+    60% { opacity: 0.22; }
+    100% { transform: scale(1); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .player-avatar.avatar--changed { animation: none; }
+    .lr-ripple { display: none; }
+}
+/* ▲▲▲ 2026-09 追加改善ここまで ▲▲▲ */
