@@ -172,7 +172,7 @@
             "L008": { title: "装飾品の購入", type: "life_event_asset_change", effect: "購入費用: 50万円 (一括支出)", explanation: "装飾品購入。生活の彩り。" },
             "L009": { title: "自分磨き", type: "life_event_asset_change", costsByIncome: { low: 50, mid: 150, high: 300 }, effect: "臨時出費 (年収による)", explanation: "自分磨き投資。スキルアップ。費用は世帯年収によります。" },
             "L010": { title: "趣味に夢中", type: "life_event_asset_change", costsByIncome: { low: 100, mid: 150, high: 350 }, effect: "臨時出費 (年収による)", explanation: "趣味の出費。リフレッシュ。費用は世帯年収によります。" },
-            "L011": { title: "子どもの結婚", type: "life_event", effect: "援助資金: 100万円 (一括支出)", explanation: "子どもの結婚援助。" },
+            "L011": { title: "子どもの結婚", type: "life_event_asset_change", effect: "援助資金: 100万円 (一括支出)", explanation: "子どもの結婚援助。" },
             "L013": { title: "深夜2時の「ポチり」事故", type: "life_event", effect: "散財: 30万円", explanation: "謎の万能感で不要な物を爆買い。届いた時の絶望感と、開封時のワクワク感。" },
             "L014": { title: "推しの「卒業」発表", type: "life_event_asset_change", costsByIncome: { low: 20, mid: 50, high: 100 }, explanation: "悔いを残さないための全力投資。最後のライブとグッズ購入費は年収に比例します。" },
             "L015": { title: "飼い猫の動画がバズった", type: "life_event", effect: "臨時収入: 30万円", explanation: "「うちの子が世界一可愛い」という親バカ心で動画を投稿したら、世界中が『Yes』と答えた。承認欲求とお財布が同時に満たされる、最高の瞬間。" },
@@ -224,7 +224,7 @@
             "L057": { title: "副業スキルの本格化と結実", type: "life_event_asset_change", costsByIncome: { low: -100, mid: -100, high: -100 }, explanation: "30代からコツコツと磨いてきた副業スキル（動画編集やコンサル等）が完全に軌道に乗り、安定した大きな副収入源となる。長年の努力が実を結び資産が大きく増加する！" },
 
             // --- 50代向けライフイベントカード (L058 - L077) ---
-            "L058": { title: "役職定年の冷たい風", type: "life_event_asset_change", costsByIncome: { low: -30, mid: -50, high: -100 }, explanation: "役職を解かれボーナス等が減少。プライドが傷つくと共に、家計の見直しを迫られる。" },
+            "L058": { title: "役職定年の冷たい風", type: "life_event_asset_change", costsByIncome: { low: 30, mid: 50, high: 100 }, explanation: "役職を解かれボーナス等が減少。プライドが傷つくと共に、家計の見直しを迫られる。" },
             "L059": { title: "子どもの「巣立ち」と引越し援助", type: "life_event_asset_change", costsByIncome: { low: 30, mid: 50, high: 100 }, explanation: "子どもが家を出る。寂しさをこらえ、新居の敷金礼金や家具家電をプレゼントして送り出す。" },
             "L060": { title: "親の介護施設入居費用（一部負担）", type: "life_event_asset_change", costsByIncome: { low: 50, mid: 100, high: 300 }, explanation: "親が有料老人ホームへ。高額な入居一時金を、親の貯金や兄弟と分担しつつ、自分も一部を負担する。" },
             "L061": { title: "子育て終了記念！豪華夫婦旅行", type: "life_event_asset_change", costsByIncome: { low: 30, mid: 50, high: 100 }, explanation: "学費の支払いがすべて終わった記念に、海外旅行や高級温泉宿へ繰り出す。" },
@@ -270,23 +270,23 @@
             "L099": { title: "待望の孫誕生！お祝いラッシュ", type: "life_event_asset_change", costsByIncome: { low: 10, mid: 30, high: 50 }, requireFlag: "childMarried", setFlag: "grandchildBorn", excludeFlag: "grandchildBorn", explanation: "目に入れても痛くない孫が誕生！ベビーベッドからお宮参りまで、嬉しさのあまり財布の紐が完全に崩壊する。" },
 
             // --- ソーシャルイベントカード (S001 - S012) ---
-            "S001": { title: "好景気発生", type: "social_event", effect: "現ターン中、世帯収入の2割収入アップ（一時収入扱い）", explanation: "好景気。現在の世帯手取り年収の20%が、一時収入として入ります。" },
-            "S002": { title: "不景気発生", type: "social_event", effect: "現ターン中、世帯収入の2割収入ダウン（一時支出扱い）", explanation: "不景気。現在の世帯手取り年収の20%が、一時支出として発生します。" },
-            "S003": { title: "インフレ発生", type: "social_event", effect: "一時収入 50万円、一時支出 50万円", explanation: "インフレ。物価と賃金が同時に上昇。一時的に収入が50万円増え、支出も50万円増えます。" },
+            "S001": { title: "好景気発生", type: "social_event", effect: "世帯収入の2割収入アップ（一時収入扱い・公務員・看護師は影響なし）", explanation: "好景気。現在の世帯手取り年収の20%が、一時収入として入ります。" },
+            "S002": { title: "不景気発生", type: "social_event", effect: "世帯収入の2割収入ダウン（一時支出扱い・公務員・看護師は影響なし）", explanation: "不景気。現在の世帯手取り年収の20%が、一時支出として発生します。" },
+            "S003": { title: "インフレ発生", type: "social_event", effect: "一時収入 50万円、一時支出 50万円（差し引き0円）", explanation: "インフレ。物価と賃金が同時に上昇。一時的に収入が50万円増え、支出も50万円増えます。" },
             "S004": { title: "新型感染症大流行", type: "social_event", effect: "臨時支出: 50万円 (一括支出)", explanation: "感染症流行。医療出費。" },
             "S005": { title: "社会保障費増大", type: "social_event", effect: "年間支出が5%増加", explanation: "社会保障費増。負担増加。" },
-            "L012": { title: "子育て世帯特別給付金", type: "social_event", effect: "子どもの人数×10万円を支給", explanation: "子育て支援給付金。" },
-            "S006": { title: "デフレ発生", type: "social_event", effect: "一時収入減 50万円、一時支出減 50万円", explanation: "デフレ。物価と賃金が同時に下落。一時的に収入が50万円減り、支出も50万円減ります。" },
+            "L012": { title: "子育て世帯特別給付金", type: "life_event", effect: "子どもの人数×10万円を支給", explanation: "子育て支援給付金。" },
+            "S006": { title: "デフレ発生", type: "social_event", effect: "一時収入減 50万円、一時支出減 50万円（差し引き0円）", explanation: "デフレ。物価と賃金が同時に下落。一時的に収入が50万円減り、支出も50万円減ります。" },
             "S007": { title: "バラマキ政策のツケ（増税）", type: "social_event", effect: "給付金10万円 / 増税(年収連動)", explanation: "政府が給付金を配布しましたが、その財源確保のため「なんとなく特別税」が新設されました。給付金10万円を受け取りますが、以降「毎年の支出」が増えます（額は年収により変動）。" },
-            "S008": { title: "転売ヤーの暗躍", type: "social_event", costsByIncome: { low: 5, mid: 15, high: 30 }, effect: "条件付き購入", explanation: "「趣味(L010)」「自分磨き(L009)」「装飾品(L008)」のいずれかを持っていると発生。買い占めにより、泣く泣く高値で購入させられます。" },
-            "S009": { title: "記録的猛暑の到来", type: "social_event", effect: "対象職業に臨時収入", explanation: "猛暑により病院と涼しいお店が大繁盛！「医師・看護師・会社員・フリーター」に臨時収入が入ります。" },
-            "S010": { title: "オーバーツーリズムの弊害", type: "social_event", effect: "収入増(過労) or ストレス", explanation: "観光公害により街はパンク状態。「料理人・フリーター・会社員」は収入が増えますが過労でライフポイント減。他職業はストレスでLP減。" },
+            "S008": { title: "転売ヤーの暗躍", type: "social_event", costsByIncome: { low: 5, mid: 15, high: 30 }, effect: "趣味の買い物をした世帯のみ高値購入（支出）", explanation: "限定品やレア物を転売ヤーが買い占め！過去に趣味のための買い物（装飾品・自分磨き・趣味・推し活・キャンプ用品・バイク・自転車・カメラ・キャンピングカーなど）をしたプレイヤーは、泣く泣く高値で購入させられる。趣味の買い物をしていない世帯は影響なし。" },
+            "S009": { title: "記録的猛暑の到来", type: "social_event", effect: "医師・看護師・会社員・フリーターに臨時収入 (1人+20万円)", explanation: "猛暑により病院と涼しいお店が大繁盛！「医師・看護師・会社員・フリーター」に臨時収入が入ります。" },
+            "S010": { title: "オーバーツーリズムの弊害", type: "social_event", effect: "料理人・フリーターに臨時収入 (1人+30万円)", explanation: "観光客が押し寄せ街はパンク状態。飲食店や短期バイトは稼ぎ時となり、「料理人・フリーター」に臨時収入が入ります。" },
             "S011": { title: "レトロブームの到来", type: "social_event", effect: "趣味(L010)の投資額×2倍の収入", explanation: "昔のコレクションが高騰！ 過去に「趣味に夢中(L010)」で支払った金額の倍額が収入として入ります。" },
             "S012": { title: "ステルス値上げ", type: "social_event", costsByIncome: { low: 4, mid: 15, high: 40 }, explanation: "「お値段そのまま」で中身が減る実質値上げ。同じ生活水準を維持するため、買う回数が増えて支出増に。" },
 
             // --- ソーシャルイベント拡張カード (S013 - S062) ---
             "S013": { title: "消費税15%へ増税", type: "social_event_asset_change", costsByIncome: { low: 150, mid: 200, high: 250 }, explanation: "社会保障費の増大により消費税が引き上げられた！一度発生すると、以降の年代でも10年分の増税負担が恒久的に重くのしかかる。", setFlag: "taxIncreased15" },
-            "S014": { title: "異次元の少子化対策第2弾", type: "social_event_asset_change", costsByIncome: { low: 0, mid: 0, high: 0 }, explanation: "国が本気を出した！子どもがいる家庭にのみ、臨時ボーナスが支給される！", conditionBonus: { flag: "childMarried", amount: -50 } },
+            "S014": { title: "異次元の少子化対策第2弾", type: "social_event_asset_change", costsByIncome: { low: 0, mid: 0, high: 0 }, explanation: "国が本気を出した！子どもがいる家庭にのみ、臨時ボーナスが支給される！", conditionBonus: { flag: "hasChildren", amount: -50 } },
             "S015": { title: "ベーシックインカム実験導入", type: "social_event_asset_change", costsByIncome: { low: -10, mid: -10, high: -10 }, explanation: "国民全員に無条件で最低限の生活費を配る制度がテスト導入。全員に臨時収入が入る！" },
             "S016": { title: "ペット税の導入", type: "social_event_asset_change", costsByIncome: { low: 0, mid: 0, high: 0 }, explanation: "動物保護の財源としてペット税が新設。ペットを飼っているプレイヤーのみ税金を徴収される！", conditionPenalty: { flag: "hasPet", amount: 10 } },
             "S017": { title: "インフラ老朽化で一斉値上げ", type: "social_event_asset_change", costsByIncome: { low: 3, mid: 5, high: 10 }, explanation: "全国で公共インフラが寿命を迎え利用料金に転嫁された！家が広く使用量が多い高年収世帯ほど、累進制によって値上げのダメージ額が大きくなる。" },
@@ -297,7 +297,7 @@
             "S022": { title: "祝日「推し活の日」制定", type: "social_event_asset_change", costsByIncome: { low: 10, mid: 20, high: 30 }, explanation: "経済を回すため、国がオタク活動を推奨する祝日を制定。全員が嬉々として散財する。" },
             "S023": { title: "歴史的「円安」の波", type: "social_event_asset_change", costsByIncome: { low: 10, mid: 30, high: 50 }, explanation: "1ドル160円を突破！輸入品が高騰。しかし投資信託（海外株式）を持っていれば円換算で価値が跳ね上がり、生活費増を上回る利益を生む！" },
             "S024": { title: "歴史的「円高」の波", type: "social_event_asset_change", costsByIncome: { low: 10, mid: 30, high: 50 }, explanation: "1ドル100円割れ！輸入品が安くなり生活費が浮く。しかし投資信託を持っていた場合、円換算で価値が目減りし、節約分以上の損失が出てしまう…" },
-            "S025": { title: "中東情勢不安でガソリン高騰", type: "social_event_asset_change", costsByIncome: { low: 0, mid: 0, high: 0 }, explanation: "産油国で紛争発生！ガソリンがリッター200円を突破。自動車を所有している人だけが地味に痛い出費を強いられる！", conditionPenalty: { flag: "autoInsurance", amount: 10 } },
+            "S025": { title: "中東情勢不安でガソリン高騰", type: "social_event_asset_change", costsByIncome: { low: 0, mid: 0, high: 0 }, explanation: "産油国で紛争発生！ガソリンがリッター200円を突破。自動車を所有している人だけが地味に痛い出費を強いられる！", conditionPenalty: { flag: "hasCar", amount: 10 } },
             "S026": { title: "世界的な半導体不足", type: "social_event_asset_change", costsByIncome: { low: 5, mid: 15, high: 30 }, explanation: "家電も車もゲーム機も作れない！あらゆる電化製品の価格が高騰し、買い替え費用が跳ね上がる。" },
             "S027": { title: "地政学リスク：台湾有事の噂", type: "social_event_asset_change", costsByIncome: { low: 5, mid: 10, high: 20 }, explanation: "近隣で紛争の噂が立ち、スーパーからトイレットペーパーや水が消える。パニック買いで出費増。" },
             "S028": { title: "ブラックマンデー再来", type: "social_event_asset_change", costsByIncome: { low: 20, mid: 50, high: 100 }, explanation: "世界の株価が一日で大暴落！全員が不況の波を被るのに加え、投資信託を持っていたプレイヤーは資産が目減りし【ダメージが2倍】に膨れ上がる致命傷となる！" },
@@ -789,6 +789,24 @@
                     condNotes += `<br><span style="color:#2b6cb0; font-weight:bold;">※投資カードを所持しているプレイヤーのみ、ランダムでプラスまたはマイナスの影響が発生します（投資していない場合は影響なし）。</span>`;
                 }
 
+                // 空き家税（持ち家のみ）
+                if (cardId === 'S021') {
+                    condNotes += `<br><span style="color:#e53e3e; font-weight:bold;">※マイホームを持っている世帯のみ負担します（賃貸は影響なし）。</span>`;
+                }
+                // 反動不況（公務員・看護師は影響なし／額面年収の割合で按分）
+                if (cardId === 'S049') {
+                    condNotes += `<br><span style="color:#2b6cb0; font-weight:bold;">※景気の影響を受けにくい公務員・看護師は影響なし。世帯の負担は各プレイヤーの年収の割合で分かれます。</span>`;
+                }
+                // 残業完全禁止（パート・専業主婦は影響なし）
+                if (cardId === 'S054') {
+                    condNotes += `<br><span style="color:#2b6cb0; font-weight:bold;">※もともと残業代のないパート・専業主婦は影響なし。世帯の負担は各プレイヤーの年収の割合で分かれます。</span>`;
+                }
+
+                // 転売ヤー（趣味の買い物をした世帯のみ）
+                if (cardId === 'S008') {
+                    condNotes += `<br><span style="color:#e53e3e; font-weight:bold;">※装飾品・自分磨き・趣味・推し活・キャンプ用品・バイク・自転車・カメラ・キャンピングカーなど、趣味の買い物イベントを経験した世帯のみ支出が発生します。</span>`;
+                }
+
                 // 大手銀行の大規模システム障害（会社員・料理人のみ機会損失）
                 if (cardId === 'S029') {
                     condNotes += `<br><span style="color:#e53e3e; font-weight:bold;">※特定の職業（会社員、料理人）のみ、取引や仕入れの停止によるビジネス上の機会損失（30万円の損害）が発生します。それ以外の職業は影響ありません。</span>`;
@@ -796,7 +814,8 @@
 
                 // 条件ボーナス（特定フラグ保持者のみ給付）
                 if (card.conditionBonus) {
-                    let bLabel = card.conditionBonus.flag === 'childMarried' ? '子どもが結婚している（子持ち）' :
+                    let bLabel = card.conditionBonus.flag === 'hasChildren' ? '子どもがいる' :
+                                 card.conditionBonus.flag === 'childMarried' ? '子どもが結婚している（子持ち）' :
                                  card.conditionBonus.flag === 'grandchildBorn' ? '孫がいる' :
                                  card.conditionBonus.flag === 'hasPet' ? 'ペットを飼っている' :
                                  card.conditionBonus.flag === 'hasInvestment' ? '投資（積立・一括）をしている' : '特定の条件を満たす';
@@ -814,6 +833,7 @@
                 // 条件ペナルティ（特定フラグ保持者のみ課金）
                 if (card.conditionPenalty) {
                     let pLabel = card.conditionPenalty.flag === 'hasPet' ? 'ペットを飼っている' :
+                                 card.conditionPenalty.flag === 'hasCar' ? '自動車を持っている' :
                                  card.conditionPenalty.flag === 'autoInsurance' ? '自動車（自動車保険）を持っている' :
                                  card.conditionPenalty.flag === 'hasHome' ? 'マイホームを持っている' : '特定の条件を満たす';
                     condNotes += `<br><span style="color:#e53e3e; font-weight:bold;">※「${pLabel}」プレイヤーのみ -${card.conditionPenalty.amount}万円の負担。該当しない場合は影響なし。</span>`;
