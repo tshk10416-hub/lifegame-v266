@@ -1041,3 +1041,81 @@ const RoomSync = (() => {
         getStatus: () => ({ roomId, status, connected, pending: state ? state.outbox.length : 0, cursorTs: state ? state.cursorTs : 0 })
     };
 })();
+
+// ==========================================================
+// 4. LRRipple - ボタン押下時の波紋（リップル）エフェクト
+//    ・document 全体で pointerdown を1か所だけ監視（イベント委譲）するため、
+//      後から動的に生成されたボタンにも自動で適用される
+//    ・波紋はボタン内に重ねた「はみ出し防止用コンテナ」の中に描画するので、
+//      ボタン自体の overflow や既存のデザインは変更しない
+//    ・色は文字色(currentColor)の半透明。白文字のボタンは白、黒文字のボタンは黒の波紋になる
+//    ・キーボード操作（Enter / Space）ではボタン中央から波紋を出す
+//    ・data-no-ripple 属性を付けた要素は対象外
+// ==========================================================
+const LRRipple = (() => {
+    const SELECTOR = [
+        'button',
+        '.btn-primary', '.btn-secondary', '.btn-success', '.btn-danger',
+        '.start-btn', '.slider-btn', '.selection-card', '.gender-option',
+        '[role="button"]'
+    ].join(',');
+    const DURATION_MS = 600;
+    const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+    function findHost(target) {
+        if (!target || !target.closest) return null;
+        const host = target.closest(SELECTOR);
+        if (!host) return null;
+        if (host.disabled || host.getAttribute('aria-disabled') === 'true') return null;
+        if (host.closest('[data-no-ripple]')) return null;
+        return host;
+    }
+
+    function spawn(host, clientX, clientY) {
+        if (reduceMotion) return;
+        const rect = host.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+
+        // 位置指定の基準にするため、static のボタンだけ relative にする（見た目は変わらない）
+        if (window.getComputedStyle(host).position === 'static') {
+            host.style.position = 'relative';
+        }
+
+        const container = document.createElement('span');
+        container.className = 'lr-ripple-container';
+        container.setAttribute('aria-hidden', 'true');
+
+        const x = (clientX == null) ? rect.width / 2 : clientX - rect.left;
+        const y = (clientY == null) ? rect.height / 2 : clientY - rect.top;
+        // タップ位置から最も遠い角まで届く半径
+        const radius = Math.sqrt(Math.pow(Math.max(x, rect.width - x), 2) + Math.pow(Math.max(y, rect.height - y), 2));
+
+        const ripple = document.createElement('span');
+        ripple.className = 'lr-ripple';
+        ripple.style.width = ripple.style.height = (radius * 2) + 'px';
+        ripple.style.left = (x - radius) + 'px';
+        ripple.style.top = (y - radius) + 'px';
+        ripple.style.animationDuration = DURATION_MS + 'ms';
+
+        container.appendChild(ripple);
+        host.appendChild(container);
+
+        const cleanup = () => { if (container.parentNode) container.parentNode.removeChild(container); };
+        ripple.addEventListener('animationend', cleanup, { once: true });
+        setTimeout(cleanup, DURATION_MS + 200); // animationend が来ない場合の保険
+    }
+
+    document.addEventListener('pointerdown', (e) => {
+        if (e.button !== undefined && e.button !== 0) return; // 左クリック / タッチのみ
+        const host = findHost(e.target);
+        if (host) spawn(host, e.clientX, e.clientY);
+    }, { passive: true, capture: true });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const host = findHost(document.activeElement);
+        if (host && host === e.target) spawn(host, null, null);
+    }, true);
+
+    return { spawn };
+})();
