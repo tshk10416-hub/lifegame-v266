@@ -298,7 +298,7 @@ const LRFx = (() => {
             for (let i = 0; i < 26; i++) {
                 particles.push({
                     kind: 'coin', x: sideX(), y: h + rand(10, 80),
-                    vx: rand(-0.6, 0.6), vy: -rand(5, 8.5), g: 0.1,
+                    vx: rand(-0.15, 0.15), vy: -rand(5, 8.5), g: 0.1,
                     r: rand(8, 13), phase: rand(0, Math.PI * 2), spin: rand(0.12, 0.25),
                     life: 0, maxLife: rand(80, 120), delay: i * 2,
                     fill: '#F6C744', stroke: '#B7791F', glyph: '¥'
@@ -316,7 +316,7 @@ const LRFx = (() => {
             for (let i = 0; i < 22; i++) {
                 particles.push({
                     kind: 'coin', x: sideX(), y: -rand(10, 60),
-                    vx: rand(-0.4, 0.4), vy: rand(1.5, 3), g: 0.12,
+                    vx: rand(-0.1, 0.1), vy: rand(1.5, 3), g: 0.12,
                     r: rand(8, 12), phase: rand(0, Math.PI * 2), spin: rand(0.05, 0.12),
                     life: 0, maxLife: rand(70, 100), delay: i * 2.5,
                     fill: '#CBD5E0', stroke: '#E53E3E', glyph: '¥'
@@ -424,6 +424,8 @@ const LRFx = (() => {
     function runParticles(sign) {
         if (reduceMotion) return;
         ensureCanvas();
+        // 連続して演出が重なった場合（再接続後の一括受信など）に画面が埋まらないよう上限を設ける
+        if (particles.length > 120) return;
         spawn(sign);
         if (!rafId) rafId = requestAnimationFrame(frame);
     }
