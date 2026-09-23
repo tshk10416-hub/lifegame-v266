@@ -199,12 +199,12 @@ const CARD_DATA = {
     },
 
     // --- 住宅カード ---
-    "H001": { title: "一戸建て - お手ごろ", type: "house", costsByIncome: { low: 50, mid: 100, high: 160 }, life_point: 30, explanation: `<h3>一戸建て</h3><p><strong>【特徴】</strong><br>独立性が高く、上下階の騒音トラブルを気にせず子育てができます。駐車場代がかからないことが多く、庭を持てるのも魅力です。</p><p><strong>【平均費用：約3,800万～4,900万円】</strong><br>土地付き注文住宅の全国平均費用です。<br><ul><li><strong>メリット：</strong> 建物が古くなっても「土地」という資産が確実に残ります。</li><li><strong>注意点：</strong> 建物の修繕（外壁塗装や屋根修理など）の手配・費用負担はすべて「自己責任」です。また、セキュリティ対策やゴミ当番、町内会などの地域活動も自分たちで行う必要があります。</li></ul></p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～住宅金融支援機構「フラット35利用者調査」等より参照</p>` },
-    "H002": { title: "一戸建て - 標準",   type: "house", costsByIncome: { low: 65, mid: 130, high: 170 }, life_point: 40, explanation: `<h3>一戸建て</h3><p><strong>【特徴】</strong><br>独立性が高く、上下階の騒音トラブルを気にせず子育てができます。駐車場代がかからないことが多く、庭を持てるのも魅力です。</p><p><strong>【平均費用：約3,800万～4,900万円】</strong><br>土地付き注文住宅の全国平均費用です。<br><ul><li><strong>メリット：</strong> 建物が古くなっても「土地」という資産が確実に残ります。</li><li><strong>注意点：</strong> 建物の修繕（外壁塗装や屋根修理など）の手配・費用負担はすべて「自己責任」です。また、セキュリティ対策やゴミ当番、町内会などの地域活動も自分たちで行う必要があります。</li></ul></p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～住宅金融支援機構「フラット35利用者調査」等より参照</p>` },
-    "H003": { title: "一戸建て - 豪華",   type: "house", costsByIncome: { low: 130, mid: 200, high: 270 }, life_point: 60, explanation: `<h3>一戸建て</h3><p><strong>【特徴】</strong><br>独立性が高く、上下階の騒音トラブルを気にせず子育てができます。駐車場代がかからないことが多く、庭を持てるのも魅力です。</p><p><strong>【平均費用：約3,800万～4,900万円】</strong><br>土地付き注文住宅の全国平均費用です。<br><ul><li><strong>メリット：</strong> 建物が古くなっても「土地」という資産が確実に残ります。</li><li><strong>注意点：</strong> 建物の修繕（外壁塗装や屋根修理など）の手配・費用負担はすべて「自己責任」です。また、セキュリティ対策やゴミ当番、町内会などの地域活動も自分たちで行う必要があります。</li></ul></p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～住宅金融支援機構「フラット35利用者調査」等より参照</p>` },
-    "H004": { title: "マンション - お手ごろ", type: "house", costsByIncome: { low: 50, mid: 90, high: 150 }, life_point: 25, explanation: `<h3>マンション（新築・中古）</h3><p><strong>【特徴】</strong><br>駅近などの好立地や、高いセキュリティ・断熱性が魅力です。<br>・<strong>新築：</strong> 最新設備と保証が充実していますが、価格は高騰傾向です。<br>・<strong>中古：</strong> 新築より割安で、リノベーションで自由に内装を変えられるのが人気です。ただし、購入前に「管理状態」や「修繕積立金の残高」を確認する必要があります。</p><p><strong>【平均費用】</strong><br>・新築：約5,000万～6,000万円<br>・中古：約3,000万～4,500万円（築年数による）<br>毎月のローンとは別に、管理費・修繕積立金・駐車場代がずっとかかります。</p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～不動産経済研究所、各種市場調査より参照</p>` },
-    "H005": { title: "マンション - 標準",   type: "house", costsByIncome: { low: 60, mid: 120, high: 160 }, life_point: 35, explanation: `<h3>マンション（新築・中古）</h3><p><strong>【特徴】</strong><br>駅近などの好立地や、高いセキュリティ・断熱性が魅力です。<br>・<strong>新築：</strong> 最新設備と保証が充実していますが、価格は高騰傾向です。<br>・<strong>中古：</strong> 新築より割安で、リノベーションで自由に内装を変えられるのが人気です。ただし、購入前に「管理状態」や「修繕積立金の残高」を確認する必要があります。</p><p><strong>【平均費用】</strong><br>・新築：約5,000万～6,000万円<br>・中古：約3,000万～4,500万円（築年数による）<br>毎月のローンとは別に、管理費・修繕積立金・駐車場代がずっとかかります。</p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～不動産経済研究所、各種市場調査より参照</p>` },
-    "H006": { title: "マンション - 豪華",   type: "house", costsByIncome: { low: 120, mid: 180, high: 250 }, life_point: 55, explanation: `<h3>マンション（新築・中古）</h3><p><strong>【特徴】</strong><br>駅近などの好立地や、高いセキュリティ・断熱性が魅力です。<br>・<strong>新築：</strong> 最新設備と保証が充実していますが、価格は高騰傾向です。<br>・<strong>中古：</strong> 新築より割安で、リノベーションで自由に内装を変えられるのが人気です。ただし、購入前に「管理状態」や「修繕積立金の残高」を確認する必要があります。</p><p><strong>【平均費用】</strong><br>・新築：約5,000万～6,000万円<br>・中古：約3,000万～4,500万円（築年数による）<br>毎月のローンとは別に、管理費・修繕積立金・駐車場代がずっとかかります。</p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～不動産経済研究所、各種市場調査より参照</p>` },
+    "H001": { title: "一戸建て - お手ごろ", type: "house", costsByIncome: { low: 55, mid: 115, high: 180 }, life_point: 30, explanation: `<h3>一戸建て</h3><p><strong>【特徴】</strong><br>独立性が高く、上下階の騒音トラブルを気にせず子育てができます。駐車場代がかからないことが多く、庭を持てるのも魅力です。</p><p><strong>【平均費用：約3,800万～4,900万円】</strong><br>土地付き注文住宅の全国平均費用です。<br><ul><li><strong>メリット：</strong> 建物が古くなっても「土地」という資産が確実に残ります。</li><li><strong>注意点：</strong> 建物の修繕（外壁塗装や屋根修理など）の手配・費用負担はすべて「自己責任」です。また、セキュリティ対策やゴミ当番、町内会などの地域活動も自分たちで行う必要があります。</li></ul></p><p><strong>【ゲーム内の住宅費】</strong><br>変動金利1.25%（2026年9月時点のメガバンク平均）・35年返済（元利均等）で試算しています。変動金利は今後の利上げで上昇する可能性があり、その場合は毎年の返済額も増える点に注意しましょう。</p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～住宅金融支援機構「フラット35利用者調査」等より参照</p>` },
+    "H002": { title: "一戸建て - 標準",   type: "house", costsByIncome: { low: 75, mid: 150, high: 195 }, life_point: 40, explanation: `<h3>一戸建て</h3><p><strong>【特徴】</strong><br>独立性が高く、上下階の騒音トラブルを気にせず子育てができます。駐車場代がかからないことが多く、庭を持てるのも魅力です。</p><p><strong>【平均費用：約3,800万～4,900万円】</strong><br>土地付き注文住宅の全国平均費用です。<br><ul><li><strong>メリット：</strong> 建物が古くなっても「土地」という資産が確実に残ります。</li><li><strong>注意点：</strong> 建物の修繕（外壁塗装や屋根修理など）の手配・費用負担はすべて「自己責任」です。また、セキュリティ対策やゴミ当番、町内会などの地域活動も自分たちで行う必要があります。</li></ul></p><p><strong>【ゲーム内の住宅費】</strong><br>変動金利1.25%（2026年9月時点のメガバンク平均）・35年返済（元利均等）で試算しています。変動金利は今後の利上げで上昇する可能性があり、その場合は毎年の返済額も増える点に注意しましょう。</p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～住宅金融支援機構「フラット35利用者調査」等より参照</p>` },
+    "H003": { title: "一戸建て - 豪華",   type: "house", costsByIncome: { low: 150, mid: 230, high: 305 }, life_point: 60, explanation: `<h3>一戸建て</h3><p><strong>【特徴】</strong><br>独立性が高く、上下階の騒音トラブルを気にせず子育てができます。駐車場代がかからないことが多く、庭を持てるのも魅力です。</p><p><strong>【平均費用：約3,800万～4,900万円】</strong><br>土地付き注文住宅の全国平均費用です。<br><ul><li><strong>メリット：</strong> 建物が古くなっても「土地」という資産が確実に残ります。</li><li><strong>注意点：</strong> 建物の修繕（外壁塗装や屋根修理など）の手配・費用負担はすべて「自己責任」です。また、セキュリティ対策やゴミ当番、町内会などの地域活動も自分たちで行う必要があります。</li></ul></p><p><strong>【ゲーム内の住宅費】</strong><br>変動金利1.25%（2026年9月時点のメガバンク平均）・35年返済（元利均等）で試算しています。変動金利は今後の利上げで上昇する可能性があり、その場合は毎年の返済額も増える点に注意しましょう。</p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～住宅金融支援機構「フラット35利用者調査」等より参照</p>` },
+    "H004": { title: "マンション - お手ごろ", type: "house", costsByIncome: { low: 55, mid: 100, high: 170 }, life_point: 25, explanation: `<h3>マンション（新築・中古）</h3><p><strong>【特徴】</strong><br>駅近などの好立地や、高いセキュリティ・断熱性が魅力です。<br>・<strong>新築：</strong> 最新設備と保証が充実していますが、価格は高騰傾向です。<br>・<strong>中古：</strong> 新築より割安で、リノベーションで自由に内装を変えられるのが人気です。ただし、購入前に「管理状態」や「修繕積立金の残高」を確認する必要があります。</p><p><strong>【平均費用】</strong><br>・新築：約5,000万～6,000万円<br>・中古：約3,000万～4,500万円（築年数による）<br>毎月のローンとは別に、管理費・修繕積立金・駐車場代がずっとかかります。</p><p><strong>【ゲーム内の住宅費】</strong><br>変動金利1.25%（2026年9月時点のメガバンク平均）・35年返済（元利均等）で試算しています。変動金利は今後の利上げで上昇する可能性があり、その場合は毎年の返済額も増える点に注意しましょう。</p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～不動産経済研究所、各種市場調査より参照</p>` },
+    "H005": { title: "マンション - 標準",   type: "house", costsByIncome: { low: 70, mid: 135, high: 180 }, life_point: 35, explanation: `<h3>マンション（新築・中古）</h3><p><strong>【特徴】</strong><br>駅近などの好立地や、高いセキュリティ・断熱性が魅力です。<br>・<strong>新築：</strong> 最新設備と保証が充実していますが、価格は高騰傾向です。<br>・<strong>中古：</strong> 新築より割安で、リノベーションで自由に内装を変えられるのが人気です。ただし、購入前に「管理状態」や「修繕積立金の残高」を確認する必要があります。</p><p><strong>【平均費用】</strong><br>・新築：約5,000万～6,000万円<br>・中古：約3,000万～4,500万円（築年数による）<br>毎月のローンとは別に、管理費・修繕積立金・駐車場代がずっとかかります。</p><p><strong>【ゲーム内の住宅費】</strong><br>変動金利1.25%（2026年9月時点のメガバンク平均）・35年返済（元利均等）で試算しています。変動金利は今後の利上げで上昇する可能性があり、その場合は毎年の返済額も増える点に注意しましょう。</p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～不動産経済研究所、各種市場調査より参照</p>` },
+    "H006": { title: "マンション - 豪華",   type: "house", costsByIncome: { low: 135, mid: 205, high: 285 }, life_point: 55, explanation: `<h3>マンション（新築・中古）</h3><p><strong>【特徴】</strong><br>駅近などの好立地や、高いセキュリティ・断熱性が魅力です。<br>・<strong>新築：</strong> 最新設備と保証が充実していますが、価格は高騰傾向です。<br>・<strong>中古：</strong> 新築より割安で、リノベーションで自由に内装を変えられるのが人気です。ただし、購入前に「管理状態」や「修繕積立金の残高」を確認する必要があります。</p><p><strong>【平均費用】</strong><br>・新築：約5,000万～6,000万円<br>・中古：約3,000万～4,500万円（築年数による）<br>毎月のローンとは別に、管理費・修繕積立金・駐車場代がずっとかかります。</p><p><strong>【ゲーム内の住宅費】</strong><br>変動金利1.25%（2026年9月時点のメガバンク平均）・35年返済（元利均等）で試算しています。変動金利は今後の利上げで上昇する可能性があり、その場合は毎年の返済額も増える点に注意しましょう。</p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～不動産経済研究所、各種市場調査より参照</p>` },
     "H007": { title: "賃貸 - お手ごろ",   type: "house", costsByIncome: { low: 50, mid: 90, high: 150 }, life_point: 10, explanation: `<h3>賃貸</h3><p><strong>【特徴】</strong><br>ライフスタイルの変化（転勤・家族構成の変化）に合わせて気軽に引越しができる「身軽さ」が最大の特徴です。固定資産税や設備の修繕義務がなく、災害時や収入減少時のリスクヘッジがしやすいスタイルです。</p><p><strong>【平均費用：月額 8万～15万円】</strong><br>ファミリー向け（2LDK～3LDK）の家賃相場です。<br>・<strong>生涯コスト：</strong> 購入と異なり資産は残りませんが、50年間家賃を払い続けた場合の総額（約5,000万～8,000万円）は、持ち家の購入・維持費総額と大差ないという試算もあります。</p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～総務省統計局「小売物価統計調査」等より参照</p>` },
     "H008": { title: "賃貸 - 標準",     type: "house", costsByIncome: { low: 60, mid: 120, high: 160 }, life_point: 15, explanation: `<h3>賃貸</h3><p><strong>【特徴】</strong><br>ライフスタイルの変化（転勤・家族構成の変化）に合わせて気軽に引越しができる「身軽さ」が最大の特徴です。固定資産税や設備の修繕義務がなく、災害時や収入減少時のリスクヘッジがしやすいスタイルです。</p><p><strong>【平均費用：月額 8万～15万円】</strong><br>ファミリー向け（2LDK～3LDK）の家賃相場です。<br>・<strong>生涯コスト：</strong> 購入と異なり資産は残りませんが、50年間家賃を払い続けた場合の総額（約5,000万～8,000万円）は、持ち家の購入・維持費総額と大差ないという試算もあります。</p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～総務省統計局「小売物価統計調査」等より参照</p>` },
     "H009": { title: "賃貸 - 豪華",     type: "house", costsByIncome: { low: 120, mid: 180, high: 250 }, life_point: 25, explanation: `<h3>賃貸</h3><p><strong>【特徴】</strong><br>ライフスタイルの変化（転勤・家族構成の変化）に合わせて気軽に引越しができる「身軽さ」が最大の特徴です。固定資産税や設備の修繕義務がなく、災害時や収入減少時のリスクヘッジがしやすいスタイルです。</p><p><strong>【平均費用：月額 8万～15万円】</strong><br>ファミリー向け（2LDK～3LDK）の家賃相場です。<br>・<strong>生涯コスト：</strong> 購入と異なり資産は残りませんが、50年間家賃を払い続けた場合の総額（約5,000万～8,000万円）は、持ち家の購入・維持費総額と大差ないという試算もあります。</p><p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～総務省統計局「小売物価統計調査」等より参照</p>` },
@@ -687,7 +687,137 @@ let gameState = {
     hasHome: false
 };
 
-let familyMakeState = { step: 0, p1Name: '', p2Name: '', p1JobId: 'J001', p2JobId: 'J001', marriageId: 'M001', childCount: 0, houseType: 0, houseLevel: 0, houseId: 'H001' };
+let familyMakeState = { step: 0, p1Name: '', p2Name: '', p1Gender: 'male', p2Gender: 'female', p1JobId: 'J001', p2JobId: 'J001', marriageId: 'M001', childCount: 0, houseType: 0, houseLevel: 0, houseId: 'H001' };
+
+// ==========================================================
+// ▼▼▼ アバター（年代 × 性別）▼▼▼
+// 画像は avatars/{gender}_{年代}.svg（例: avatars/female_40.svg）
+// 同じファイル名で PNG/SVG のイラストに差し替えれば、そのまま反映されます。
+// ==========================================================
+const AVATAR_AGE_BANDS = [30, 40, 50, 60, 70]; // 70 = 65歳以上（リタイア後）
+const AVATAR_GENDER_LABELS = { male: '男性', female: '女性' };
+
+// 年齢の値から、アバター用の年代バンドを求める（30未満は30、70以上は70）
+function getAvatarAgeBand(age) {
+    const a = Number(age) || 30;
+    let band = AVATAR_AGE_BANDS[0];
+    AVATAR_AGE_BANDS.forEach(b => { if (a >= b) band = b; });
+    return band;
+}
+
+// 性別が未設定の古いセーブデータは、プレイヤー1=男性 / プレイヤー2=女性 として扱う
+function getPlayerGender(playerKey) {
+    const p = gameState.players && gameState.players[playerKey];
+    if (p && (p.gender === 'male' || p.gender === 'female')) return p.gender;
+    return playerKey === 'player2' ? 'female' : 'male';
+}
+
+function getAvatarPath(gender, age) {
+    const g = (gender === 'female') ? 'female' : 'male';
+    return `avatars/${g}_${getAvatarAgeBand(age)}.svg`;
+}
+
+// ステータス画面のプレイヤー1/2のアバターを、現在の年代・性別に合わせて切り替える
+function updatePlayerAvatars() {
+    ['player1', 'player2'].forEach(key => {
+        const img = document.getElementById(key === 'player1' ? 'p1-avatar' : 'p2-avatar');
+        if (!img) return;
+        const gender = getPlayerGender(key);
+        const band = getAvatarAgeBand(gameState.currentAge);
+        const src = getAvatarPath(gender, gameState.currentAge);
+        const name = (gameState.players[key] && gameState.players[key].name) || (key === 'player1' ? 'プレイヤー1' : 'プレイヤー2');
+        const ageLabel = band >= 70 ? '65歳以上' : `${band}代`;
+
+        img.alt = `${name}（${AVATAR_GENDER_LABELS[gender]}・${ageLabel}）`;
+        img.className = `player-avatar avatar--${gender} avatar--age-${band}`;
+
+        if (img.dataset.src !== src) {
+            const isFirst = !img.dataset.src;
+            img.dataset.src = src;
+            img.src = src;
+            // 年代が進んで見た目が変わったときだけ、切り替えアニメーションを再生
+            if (!isFirst) {
+                img.classList.remove('avatar--changed');
+                void img.offsetWidth;
+                img.classList.add('avatar--changed');
+            }
+        }
+    });
+}
+
+// ファミリーメイク: 性別の選択（プレビュー付き）
+function genderSelectorHtml(stateKey) {
+    const current = familyMakeState[stateKey];
+    const option = (value) => `
+        <button type="button" class="gender-option${current === value ? ' is-selected' : ''}" aria-pressed="${current === value}"
+                onclick="setMakeGender('${stateKey}', '${value}')">
+            <img src="${getAvatarPath(value, 30)}" alt="" width="56" height="56">
+            <span>${AVATAR_GENDER_LABELS[value]}</span>
+        </button>`;
+    return `<div class="make-input-group"><label>性別</label><div class="gender-selector" role="group" aria-label="性別">${option('male')}${option('female')}</div></div>`;
+}
+
+function setMakeGender(stateKey, value) {
+    // 入力中の名前を保持してから再描画
+    const nameEl = document.getElementById(stateKey === 'p1Gender' ? 'makeP1Name' : 'makeP2Name');
+    if (nameEl) familyMakeState[stateKey === 'p1Gender' ? 'p1Name' : 'p2Name'] = nameEl.value;
+    familyMakeState[stateKey] = value;
+    renderMakeStep();
+}
+// ▲▲▲ アバターここまで ▲▲▲
+
+// ==========================================================
+// ▼▼▼ 子育てボーナス（ライフポイント）▼▼▼
+// 「子どもなし」世帯は教育費がかからない分、資産面で有利になるため、
+// 子どもがいる世帯はライフポイントが「上昇」するときの獲得量に倍率をかける。
+// ※ 減少（マイナス）には倍率をかけない。倍率はここで調整してください。
+// ==========================================================
+const CHILD_LP_BONUS_RATE = { 1: 1.2, 2: 1.3, 3: 1.5 };
+
+function getChildLpMultiplier() {
+    const n = (gameState.children && gameState.children.count) || 0;
+    if (n <= 0) return 1;
+    return CHILD_LP_BONUS_RATE[Math.min(n, 3)] || 1;
+}
+
+// 倍率を適用した獲得LP（表示・プレビュー用。状態は変更しない）
+function calcLifePointGain(base) {
+    const b = Number(base) || 0;
+    if (b <= 0) return { total: b, bonus: 0 };
+    const total = Math.ceil(b * getChildLpMultiplier());
+    return { total: total, bonus: total - b };
+}
+
+// ライフポイントを加算する（プラスのときだけ子育てボーナスを適用）
+function gainLifePoint(base) {
+    const r = calcLifePointGain(base);
+    gameState.happiness = (gameState.happiness || 0) + r.total;
+    return r;
+}
+
+// 表示用: 「+24pt（子育てボーナス +4pt 込み）」
+function formatLifePointGain(r) {
+    const main = `${LRNet.formatSigned(r.total)}pt`;
+    return r.bonus > 0 ? `${main}（子育てボーナス +${r.bonus}pt 込み）` : main;
+}
+// ▲▲▲ 子育てボーナスここまで ▲▲▲
+
+// ==========================================================
+// ▼▼▼ 子どもがいないと発生しないイベントカード ▼▼▼
+// 「子どもなし」世帯がこれらを引いた場合は、引き直し（スキップ）とする。
+// ※ 説明文に子どもが登場するだけで、子どもがいなくても起こりうるカード
+//   （例: L029 ぎっくり腰, L033 結婚記念日）は含めていません。
+// ==========================================================
+const CHILD_ONLY_CARD_IDS = [
+    'L001', 'L011', 'L012', 'L021', 'L022', 'L023', 'L024', 'L031', 'L034', 'L036',
+    'L040', 'L042', 'L046', 'L053', 'L056', 'L059', 'L061', 'L064', 'L075', 'L080',
+    'L084', 'L091', 'L098', 'L099'
+];
+
+function hasChildren() {
+    return ((gameState.children && gameState.children.count) || 0) > 0;
+}
+// ▲▲▲ ここまで ▲▲▲
 
 const GAME_STATE_KEY = 'lifeGameGameState';
 const BALANCE_HISTORY_KEY = 'lifeGameBalanceHistory';
@@ -1193,12 +1323,14 @@ function renderMakeStep() {
             titleEl.textContent = "プレイヤー1の作成";
             descEl.textContent = "あなたの名前と職業を選んでください。";
             contentArea.innerHTML += `<div class="make-input-group"><label>プレイヤー1の名前</label><input type="text" id="makeP1Name" value="${familyMakeState.p1Name || 'プレイヤー1'}" placeholder="名前を入力"></div>`;
+            contentArea.innerHTML += genderSelectorHtml('p1Gender');
             createSlider(contentArea, 'job', 'J001', 'p1JobId');
             break;
         case 1:
             titleEl.textContent = "プレイヤー2の作成";
             descEl.textContent = "パートナーの名前と職業を選んでください。";
             contentArea.innerHTML += `<div class="make-input-group"><label>プレイヤー2の名前</label><input type="text" id="makeP2Name" value="${familyMakeState.p2Name || 'プレイヤー2'}" placeholder="名前を入力"></div>`;
+            contentArea.innerHTML += genderSelectorHtml('p2Gender');
             createSlider(contentArea, 'job', 'J001', 'p2JobId');
             break;
         case 2:
@@ -1212,10 +1344,10 @@ function renderMakeStep() {
             if(childRouletteInterval) clearInterval(childRouletteInterval);
 
             titleEl.textContent = "子どもの人数";
-            descEl.innerHTML = `子どもは授かりもの。ルーレットで決めましょう！<br><small style="color:#e53e3e;">世帯年収ランク: ${rankText}</small>`;
-            
+            descEl.innerHTML = `子どもは授かりもの。ルーレットで決めましょう！<br><small style="color:#718096;">（「なし」＝子どもは授からない が出ることもあります）</small><br><small style="color:#e53e3e;">世帯年収ランク: ${rankText}</small>`;
+
             contentArea.innerHTML += `
-                <div class="child-roulette-display" id="childRouletteNum">1</div>
+                <div class="child-roulette-display" id="childRouletteNum" data-count="1">1</div>
                 <div id="childResultContainer" style="display:none; margin-bottom: 20px;">
                     <p id="childResultText" style="font-size: 1.5em; font-weight:bold; color:#FF7F50; margin-bottom:5px;"></p>
                     <p id="childCostText" style="font-size: 1.2em; font-weight:bold; color:#e53e3e; margin-bottom:10px;"></p>
@@ -1384,6 +1516,9 @@ function createSimpleSlider(container, items, defaultVal, stateKey) {
     container.appendChild(wrapper);
 }
 
+// 「子どもは授からない」が出たときの解説
+const NO_CHILD_EXPLANATION = `<h3>子どもを授からない人生</h3><p><strong>【特徴】</strong><br>夫婦2人で暮らすスタイル（DINKs）です。教育費や子どもの分の生活費がかからないため、資産を増やしやすいのが特徴です。一方で、子どもに関するライフイベント（成長の喜び・子どもの結婚・孫の誕生など）は発生しません。</p><p><strong>【ゲーム内のルール】</strong><br>・子どもに関するイベントカードを引いた場合は、引き直しになります。<br>・子どもがいる世帯は、ライフポイントが増えるときに「子育てボーナス」（1人: ×${CHILD_LP_BONUS_RATE[1]} / 2人: ×${CHILD_LP_BONUS_RATE[2]} / 3人: ×${CHILD_LP_BONUS_RATE[3]}）が付きます。</p><p><strong>【ゲーム内のデータ】</strong><br>子ども1人の教育費（幼稚園〜大学卒業）の目安は約1,000万〜2,200万円です（「子供 1人」カードの解説より）。この分を老後資金や投資に回せる一方、子育てならではの喜びのイベントはありません。</p>`;
+
 // ★★★ 子どもルーレット (修正版: メイン画面はシンプルに) ★★★
 function toggleChildRoulette() {
     const display = document.getElementById('childRouletteNum');
@@ -1401,15 +1536,46 @@ function toggleChildRoulette() {
         display.style.display = 'block';
         resContainer.style.display = 'none';
         
-        childRouletteInterval = setInterval(() => { 
-            display.textContent = Math.floor(Math.random() * 3) + 1; 
+        // 出目: 0(=子どもは授からない) / 1 / 2 / 3 を等確率で表示
+        childRouletteInterval = setInterval(() => {
+            const n = Math.floor(Math.random() * 4);
+            display.dataset.count = String(n);
+            display.textContent = (n === 0) ? 'なし' : n;
         }, 50);
     } else {
         isChildRouletteRunning = false;
         clearInterval(childRouletteInterval);
-        const count = parseInt(display.textContent);
+        const count = parseInt(display.dataset.count, 10) || 0;
         familyMakeState.childCount = count;
-        
+
+        // ▼▼▼ 「子どもは授からない」ルート: 子どもに関する処理（支援金画面・教育費など）はすべてスキップ ▼▼▼
+        if (count === 0) {
+            btn.style.cssText = infoButtonStyle;
+            btn.innerHTML = '<i class="fas fa-info-circle"></i> 解説を見る';
+            btn.className = '';
+            btn.disabled = false;
+            btn.onclick = function() { showLocalExplanation(null, NO_CHILD_EXPLANATION); };
+
+            nextBtn.style.display = 'inline-block';
+            nextBtn.onclick = function() {
+                nextBtn.onclick = nextMakeStep;
+                nextMakeStep();
+            };
+
+            resText.textContent = '子どもは授からなかった';
+            costText.innerHTML = `
+                <div style="font-size:0.9em; margin-bottom:5px; color:#2f855a; font-weight:bold;">教育費: 0万円/年</div>
+                <small style="color:#777; font-weight:normal; font-size:0.7em;">夫婦2人の暮らし。子どもに関するイベントは発生しません。<br>※子どもがいる世帯はライフポイント獲得時に「子育てボーナス」が付きます</small>
+            `;
+            resImg.removeAttribute('src');
+            resImg.style.display = 'none';
+            display.style.display = 'none';
+            resContainer.style.display = 'block';
+            return;
+        }
+        resImg.style.display = '';
+        // ▲▲▲ 子どもなしルートここまで ▲▲▲
+
         let childCardId = 'C001';
         if (count === 2) childCardId = 'C002';
         if (count === 3) childCardId = 'C003';
@@ -1469,6 +1635,8 @@ function finalizeFamilyMake() {
     gameState.players.player1.jobId = familyMakeState.p1JobId;
     gameState.players.player2.name = familyMakeState.p2Name;
     gameState.players.player2.jobId = familyMakeState.p2JobId;
+    gameState.players.player1.gender = familyMakeState.p1Gender;
+    gameState.players.player2.gender = familyMakeState.p2Gender;
     localStorage.setItem('gameStarted', 'true');
     initGameFromMake();
 }
@@ -1511,14 +1679,15 @@ function initGameFromMake() {
         lastProcessedEventTimestamp: Date.now(),
         currentAge: 30,
         players: {
-            player1: { name: '', job: '', income: 0, grossIncome: 0, jobId: null, needsNewJob: false, promotionSuccess: false },
-            player2: { name: '', job: '', income: 0, grossIncome: 0, jobId: null, needsNewJob: false, promotionSuccess: false }
+            player1: { name: '', gender: familyMakeState.p1Gender || 'male', job: '', income: 0, grossIncome: 0, jobId: null, needsNewJob: false, promotionSuccess: false },
+            player2: { name: '', gender: familyMakeState.p2Gender || 'female', job: '', income: 0, grossIncome: 0, jobId: null, needsNewJob: false, promotionSuccess: false }
         },
         totalAssets: 100, // 初期資産
-        happiness: 0, 
+        happiness: 0,
         annualExpense: 0,
         marriage: { type: '-', cost: 0, cardScanned: false },
-        children: { count: 0, annualCost: 0, cardId: null, cardScanned: false }, 
+        // 子どもの人数は最初に確定させる（以降のライフポイント加算で子育てボーナスを判定するため）
+        children: { count: familyMakeState.childCount || 0, annualCost: 0, cardId: null, cardScanned: false },
         house: { type: '-', annualCost: 0, cardId: null, cardScanned: false },
         car: { cards: [], annualCost: 0, cardScanned: false },
         insurance: { life: false, fire: false, auto: false, annualCost: 0, cardScanned: false },
@@ -1560,29 +1729,38 @@ function initGameFromMake() {
     const marCard = CARD_DATA[familyMakeState.marriageId];
     gameState.marriage.type = marCard.title;
     gameState.marriage.cardScanned = true;
-    if(marCard.life_point) gameState.happiness += marCard.life_point;
+    if(marCard.life_point) gainLifePoint(marCard.life_point);
 
-    gameState.children.count = familyMakeState.childCount;
-    let childId = 'C001';
-    if (familyMakeState.childCount === 2) childId = 'C002';
-    if (familyMakeState.childCount === 3) childId = 'C003';
-    gameState.children.cardId = childId;
+    gameState.children.count = familyMakeState.childCount || 0;
     gameState.children.cardScanned = true;
-    if(CARD_DATA[childId].life_point) gameState.happiness += CARD_DATA[childId].life_point;
+    if (gameState.children.count > 0) {
+        let childId = 'C001';
+        if (familyMakeState.childCount === 2) childId = 'C002';
+        if (familyMakeState.childCount === 3) childId = 'C003';
+        gameState.children.cardId = childId;
+        if(CARD_DATA[childId].life_point) gainLifePoint(CARD_DATA[childId].life_point);
+    } else {
+        // 子どもなし: 子どもカードは持たない（教育費・児童手当・出産による年収減はすべて発生しない）
+        gameState.children.cardId = null;
+        addEvent('子どもは授からず、夫婦2人の生活をスタート。');
+    }
 
     const houseCard = CARD_DATA[familyMakeState.houseId];
     gameState.house.type = houseCard.title;
     gameState.house.cardId = familyMakeState.houseId;
     gameState.house.cardScanned = true;
-    if(houseCard.life_point) gameState.happiness += houseCard.life_point;
+    if(houseCard.life_point) gainLifePoint(houseCard.life_point);
 
     // ▼▼▼ マイホーム判定: 一戸建て(H001-H003)・マンション(H004-H006)は持ち家、賃貸(H007-H009)は対象外 ▼▼▼
     const ownedHouseIds = ['H001', 'H002', 'H003', 'H004', 'H005', 'H006'];
     gameState.hasHome = ownedHouseIds.includes(familyMakeState.houseId);
     // ▲▲▲ hasHome 判定ここまで ▲▲▲
 
-    if(CARD_DATA[familyMakeState.p1JobId].life_point) gameState.happiness += CARD_DATA[familyMakeState.p1JobId].life_point;
-    if(CARD_DATA[familyMakeState.p2JobId].life_point) gameState.happiness += CARD_DATA[familyMakeState.p2JobId].life_point;
+    if(CARD_DATA[familyMakeState.p1JobId].life_point) gainLifePoint(CARD_DATA[familyMakeState.p1JobId].life_point);
+    if(CARD_DATA[familyMakeState.p2JobId].life_point) gainLifePoint(CARD_DATA[familyMakeState.p2JobId].life_point);
+    if (getChildLpMultiplier() > 1) {
+        addEvent(`子育てボーナス: ライフポイント獲得量 ×${getChildLpMultiplier()}（子ども${gameState.children.count}人）`);
+    }
 
     ['player1', 'player2'].forEach(key => {
         const p = gameState.players[key];
@@ -1884,7 +2062,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             const tId = 'R' + p.jobId.substring(1) + c.level;
             if (CARD_DATA[tId]) {
                 gameState.retirementBonus[pKey] = CARD_DATA[tId].amount;
-                if(CARD_DATA[tId].life_point) gameState.happiness += CARD_DATA[tId].life_point;
+                if(CARD_DATA[tId].life_point) gainLifePoint(CARD_DATA[tId].life_point);
             }
         }
         gameState.retirementBonus[pKey === 'player1' ? 'p1Scanned' : 'p2Scanned'] = true;
@@ -1903,9 +2081,10 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             grantLifePoint = !!gameState[c.lifePointRequireFlag];
         }
         if (grantLifePoint) {
-            gameState.happiness += c.life_point;
+            // プラスのときは子育てボーナスを適用（マイナスはそのまま）
+            const lpGain = gainLifePoint(c.life_point);
             // 負のライフポイントで「+-5pt」「アップ！」と表示されていたのを修正
-            addEvent(`${logPrefix}ライフポイント${c.life_point > 0 ? 'アップ！' : 'ダウン…'} (${LRNet.formatSigned(c.life_point)}pt)`);
+            addEvent(`${logPrefix}ライフポイント${c.life_point > 0 ? 'アップ！' : 'ダウン…'} (${formatLifePointGain(lpGain)})`);
         } else {
             addEvent(`${logPrefix}${c.title}：条件未達のためライフポイントの変化はありませんでした。`);
         }
@@ -2044,8 +2223,8 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                 if (c.life_point) {
                     gameState.happiness -= c.life_point; // 前段で減らした分を戻す
                 }
-                gameState.happiness += 5; // +5pt に上書き
-                addEvent(`${logPrefix}${c.title} 火災保険適用で自己負担0円！(+5pt)`);
+                const lpInsured = gainLifePoint(5); // +5pt に上書き（子育てボーナス対象）
+                addEvent(`${logPrefix}${c.title} 火災保険適用で自己負担0円！(${formatLifePointGain(lpInsured)})`);
                 LRNet.offset(ecBeforeInsurance, '火災保険適用のため');
                 updated = true;
                 break;
@@ -2515,8 +2694,10 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             stopScan(); 
             
             // 適用後のガイダンス画面を表示
-            const used = gameState.guidanceContextForApply || gameState.currentGuidance;
-            showGuidanceModal(used); 
+            // ※ 文脈が無い（ステータス画面から直接読み取った等）場合も 'freeScan' の結果画面を出し、
+            //   資産の増減アニメーションを必ず表示する（旧実装では null になり何も表示されなかった）
+            const used = gameState.guidanceContextForApply || gameState.currentGuidance || 'freeScan';
+            showGuidanceModal(used);
             
             // ガイダンス画面で資産変動アニメーションを実行
             // （増減0の場合も「0」と理由を表示）
@@ -2849,14 +3030,22 @@ function updateStateForNewTurn() {
 }
 
 // UI更新
+// 職業名の表示用: カードタイトル先頭の「職業: 」を除く（画面側に「職業:」ラベルがあるため二重表示になっていた）
+function formatJobLabel(job) {
+    return (job || '').replace(/^職業[:：]\s*/, '') || '-';
+}
+
 function updateDisplay() {
     document.querySelector('#player1 .player-name').textContent = gameState.players.player1.name || 'プレイヤー1';
-    document.getElementById('p1-job').textContent = gameState.players.player1.job || '-';
+    document.getElementById('p1-job').textContent = formatJobLabel(gameState.players.player1.job);
     document.getElementById('p1-income').textContent = gameState.players.player1.income || 0;
     document.querySelector('#player2 .player-name').textContent = gameState.players.player2.name || 'プレイヤー2';
-    document.getElementById('p2-job').textContent = gameState.players.player2.job || '-';
+    document.getElementById('p2-job').textContent = formatJobLabel(gameState.players.player2.job);
     document.getElementById('p2-income').textContent = gameState.players.player2.income || 0;
-    
+
+    // 年代・性別に合わせてアバターを切り替え
+    updatePlayerAvatars();
+
     document.getElementById('current-age').textContent = (gameState.currentAge < 70) ? (gameState.currentAge === 60 ? "60-64歳" : `${gameState.currentAge}代`) : "65歳～";
     
     const householdNetIncome = (gameState.players.player1.income || 0) + (gameState.players.player2.income || 0);
@@ -2923,19 +3112,6 @@ function updateChildrenCost() {
 
 function updateCarCost() {
     gameState.car.annualCost = gameState.car.cards.length * 30; // 簡易計算
-}
-
-function calculateLivingCost() {
-    const g = (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
-    if (g < 400) gameState.livingCost = 156;
-    else if (g < 500) gameState.livingCost = 168;
-    else if (g < 600) gameState.livingCost = 180;
-    else if (g < 700) gameState.livingCost = 198;
-    else if (g < 800) gameState.livingCost = 216;
-    else if (g < 900) gameState.livingCost = 240;
-    else if (g < 1000) gameState.livingCost = 264;
-    else if (g < 1250) gameState.livingCost = 300;
-    else gameState.livingCost = 360;
 }
 
 // 年間支出を再計算する関数（修正版：第3子増額対応）
@@ -3013,7 +3189,10 @@ function recalculateAnnualExpense() {
     const p1 = gameState.players.player1.grossIncome || 0;
     const p2 = gameState.players.player2.grossIncome || 0;
     const houseIncome = p1 + p2;
-    let baseLiving = 120 + (houseIncome * 0.1);
+    // 物価上昇を反映（2026年9月改定）: 消費者物価指数 2026年6月 = 113.6（2020年=100）→ 旧係数を +13.6%
+    //   旧: 120万 + 世帯額面年収×0.1 + 子ども1人あたり30万
+    //   新: 136万 + 世帯額面年収×0.114 + 子ども1人あたり34万
+    let baseLiving = 136 + (houseIncome * 0.114);
     
     let childCount = 0;
     if(gameState.children && gameState.children.cardId) {
@@ -3021,7 +3200,7 @@ function recalculateAnnualExpense() {
         if(gameState.children.cardId === 'C002') childCount = 2;
         if(gameState.children.cardId === 'C003') childCount = 3;
     }
-    baseLiving += (childCount * 30);
+    baseLiving += (childCount * 34);
     
     livingCost = Math.round(baseLiving);
     gameState.livingCost = livingCost;
@@ -3064,12 +3243,16 @@ function loadGameState() {
 
 function openMainScanButton() {
     const context = gameState.guidanceContextForApply || gameState.currentGuidance;
-    if (context) {
-        gameState.guidanceContextForApply = null; 
-        showGuidanceModal(context); 
+    if (context && context !== 'freeScan') {
+        gameState.guidanceContextForApply = null;
+        showGuidanceModal(context);
     } else if (gameState.isCareerChallengeActive) {
         alert("キャリアチャレンジを完了してください。");
     } else {
+        // ▼ バグ修正: ガイダンス外（ステータス画面）から読み取る場合も文脈を持たせる。
+        //   旧実装は文脈なしでカメラを開いていたため、適用後に showGuidanceModal(null) となり
+        //   「資産の増減画面」が表示されなかった。専用の 'freeScan' 文脈で通常と同じ結果画面に戻す。
+        gameState.guidanceContextForApply = 'freeScan';
         openCamera();
     }
 }
@@ -3254,7 +3437,7 @@ function handleQRCode(data) {
             if ((id === 'S013' && gameState.taxIncreased15 === true) ||
                 (id === 'S045' && gameState.socialInsuranceIncreased === true)) {
                 alert("すでにこの制度変更（増税・値上げ）は発生しています。別のカードを引いてください");
-                stopScan();
+                closeCameraAndReturn(); // 引き直し: ガイダンス画面に戻して再スキャンできるようにする
                 return;
             }
             // ▲▲▲ 恒久制度カード重複防止ここまで ▲▲▲
@@ -3276,7 +3459,7 @@ function handleQRCode(data) {
                     }
                     alert(message);
                     // スキャン画面を閉じて中断
-                    stopScan();
+                    closeCameraAndReturn(); // 引き直し: ガイダンス画面に戻して再スキャンできるようにする
                     return;
                 }
             }
@@ -3299,11 +3482,19 @@ function handleQRCode(data) {
                     }
                     alert(message);
                     // スキャン画面を閉じて中断
-                    stopScan();
+                    closeCameraAndReturn(); // 引き直し: ガイダンス画面に戻して再スキャンできるようにする
                     return;
                 }
             }
             // ▲▲▲ excludeFlag チェックここまで ▲▲▲
+
+            // ▼▼▼ 「子どもなし」世帯は、子どもがいないと起こらないイベントをスキップ（引き直し） ▼▼▼
+            if (!hasChildren() && CHILD_ONLY_CARD_IDS.includes(id)) {
+                alert("子どもがいない世帯のため、このイベントは発生しません。別のカードを引き直してください。");
+                closeCameraAndReturn(); // 引き直し: ガイダンス画面に戻して再スキャンできるようにする
+                return;
+            }
+            // ▲▲▲ 子どもなしスキップここまで ▲▲▲
 
             // 読み込み成功時は即座にカメラを停止
             stopScan();
@@ -3332,7 +3523,12 @@ function confirmStopScan() {
 function closeCameraAndReturn() {
     stopScan();
     const previousContext = gameState.guidanceContextForApply;
-    if (previousContext) {
+    if (previousContext === 'freeScan') {
+        // ステータス画面から開いたカメラを閉じた場合は、ステータス画面にそのまま戻る
+        gameState.guidanceContextForApply = null;
+        if (gameState.currentGuidance === 'freeScan') gameState.currentGuidance = null;
+        determineNextGuidance();
+    } else if (previousContext) {
         gameState.guidanceContextForApply = null;
         showGuidanceModal(previousContext);
     } else {
@@ -3422,8 +3618,10 @@ function showCardInfo(id) {
 
     if (c.life_point) {
         // L036 は火災保険加入時にライフポイントが +5pt へ上書きされる（applyCardEffect と同じ仕様）
-        const lpShown = (id === 'L036' && gameState.insurance && gameState.insurance.fire === true) ? 5 : c.life_point;
-        dEffect += `<br><span style="color:#e53e3e; font-weight:bold;">❤️ ライフポイント: ${LRNet.formatSigned(lpShown)}pt</span>`;
+        const lpBase = (id === 'L036' && gameState.insurance && gameState.insurance.fire === true) ? 5 : c.life_point;
+        // プラスの場合は子育てボーナス込みの実際の獲得量を表示
+        const lpShown = calcLifePointGain(lpBase);
+        dEffect += `<br><span style="color:#e53e3e; font-weight:bold;">❤️ ライフポイント: ${formatLifePointGain(lpShown)}</span>`;
     }
 
     titleEl.textContent = dTitle;
@@ -3551,15 +3749,24 @@ function showGuidanceModal(key) {
     const m = document.getElementById('guidanceModal'); 
     if (!key) { if (m) m.style.display = 'none'; return; }
     
-    const titles = { 'newJob': '転職活動', 'car': '自動車', 'insurance': '保険', 'turnEvent': 'イベント' };
+    const titles = { 'newJob': '転職活動', 'car': '自動車', 'insurance': '保険', 'turnEvent': 'イベント', 'freeScan': 'カード読み取り' };
     document.getElementById('guidance-title').textContent = titles[key] || 'カードスキャン';
     document.getElementById('guidance-text').textContent = getGuidanceText(key);
-    
+
+    // 子育て支援の解説表示(showChildSupportDetail)で変更された表示状態を元に戻す
+    m.style.zIndex = '';
+    const assetPanelContainer = document.getElementById('guidance-asset-panel-container');
+    if (assetPanelContainer) assetPanelContainer.style.display = 'block';
+
     // 資産パネル更新
     createGuidanceStats(gameState.totalAssets);
-    
-    const isMulti = ['car', 'insurance', 'turnEvent'].includes(key);
-    document.getElementById('guidance-done-button').style.display = isMulti ? 'inline-block' : 'none';
+
+    const isMulti = ['car', 'insurance', 'turnEvent', 'freeScan'].includes(key);
+    const doneBtnEl = document.getElementById('guidance-done-button');
+    doneBtnEl.style.display = isMulti ? 'inline-block' : 'none';
+    doneBtnEl.innerHTML = (key === 'freeScan')
+        ? '<i class="fas fa-times"></i> 閉じる'
+        : '完了して次へ <i class="fas fa-chevron-right"></i>';
     
     const backBtn = document.getElementById('guidance-back-button');
     if (backBtn) backBtn.style.display = (key === 'insurance' || key === 'turnEvent') ? 'inline-block' : 'none';
@@ -3591,6 +3798,7 @@ function showGuidanceModal(key) {
         if (key === 'car') gameState.car.cardScanned = true;
         if (key === 'insurance') gameState.insurance.cardScanned = true;
         if (key === 'turnEvent') gameState.turnEventCompleted = true;
+        if (key === 'freeScan') gameState.guidanceContextForApply = null;
         m.style.display = 'none';
         determineNextGuidance();
     };
@@ -3604,6 +3812,7 @@ function getGuidanceText(key) {
         case 'car': return '自動車を購入・乗り換える場合はスキャン(複数可)';
         case 'insurance': return '保険に加入・更新する場合はスキャン(複数可)';
         case 'turnEvent': return 'イベントカードを引いてスキャンしてください';
+        case 'freeScan': return '続けて読み取る場合は「スキャン画面へ」、終わったら「閉じる」を押してください';
         default: return '指示されたカードをスキャンしてください';
     }
 }
@@ -3788,7 +3997,7 @@ function showFinalAssets() { document.getElementById('investmentResultModal').st
 function showLifePlanKarte() {
     document.getElementById('karte-marriage').textContent = gameState.marriage.type;
     document.getElementById('karte-house').textContent = gameState.house.type;
-    document.getElementById('karte-children').textContent = gameState.children.count + "人";
+    document.getElementById('karte-children').textContent = (gameState.children.count > 0) ? (gameState.children.count + "人") : "なし（夫婦2人）";
     const carNames = gameState.car.cards.map(c => c.title.replace("自動車🚗 - ", "").replace("クラス", "")).join(", ");
     document.getElementById('karte-car').textContent = carNames || "なし";
     
@@ -3804,19 +4013,24 @@ function showLifePlanKarte() {
     let rankTitle = "";
     let advice = "";
 
-    if (totalScore >= 700) {
+    // ランク基準（2026年9月改定: 体験会でほぼ全員がSランクになったため引き上げ）
+    //   旧: S 700 / A 600 / B 400 / C 200 / D 100
+    //   新: S 2000 / A 1700 / B 1150 / C 550 / D 300（Sの倍率 2000÷700 に合わせて比例、50点単位で丸め）
+    const RANK_THRESHOLDS = { S: 2000, A: 1700, B: 1150, C: 550, D: 300 };
+
+    if (totalScore >= RANK_THRESHOLDS.S) {
         rankTitle = "Sランク: 伝説のライフプランナー";
         advice = "素晴らしい結果です！資産の確保と人生の充実（思い出作り）を極めて高いレベルで両立させました。";
-    } else if (totalScore >= 600) {
+    } else if (totalScore >= RANK_THRESHOLDS.A) {
         rankTitle = "Aランク: 理想的な人生設計";
         advice = "とても優秀なスコアです。老後の安心とお楽しみのバランスが良く取れています。";
-    } else if (totalScore >= 400) {
+    } else if (totalScore >= RANK_THRESHOLDS.B) {
         rankTitle = "Bランク: 堅実なバランス型";
         advice = "平均以上の良い結果です！大きな破綻なく、人生のイベントも楽しむことができました。";
-    } else if (totalScore >= 200) {
+    } else if (totalScore >= RANK_THRESHOLDS.C) {
         rankTitle = "Cランク: 平均的なプラン";
         advice = "まずまずの結果です。生活は守れましたが、少し「守り」に入りすぎたかもしれません。";
-    } else if (totalScore >= 100) {
+    } else if (totalScore >= RANK_THRESHOLDS.D) {
         rankTitle = "Dランク: これから伸びるタイプ";
         advice = "今回は少し厳しい結果になりました。シミュレーションで「何にお金がかかるか」を学べたのが最大の収穫です。";
     } else {
