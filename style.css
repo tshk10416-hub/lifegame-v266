@@ -667,3 +667,228 @@ details[open] .age-label::before { transform: rotate(90deg); }
 #explanationModal {
     z-index: 2000 !important;
 }
+/* ==========================================================
+   ▼▼▼ 2026-09 体験会フィードバック対応 (liferidge_ext.js 用) ▼▼▼
+   ========================================================== */
+
+/* ---------- 1. 最終増減値の表示（「0」を強調し、理由を下に補足） ---------- */
+.lr-net {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    line-height: 1.3;
+    text-align: center;
+}
+.lr-net__value {
+    font-size: 1.6em;
+    font-weight: bold;
+    font-family: monospace;
+    font-variant-numeric: tabular-nums;
+}
+.lr-net__unit {
+    font-size: 0.55em;
+    margin-left: 2px;
+    font-family: inherit;
+}
+.lr-net__label {
+    font-size: 0.75em;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+}
+.lr-net__reason {
+    font-size: 0.8em;
+    font-weight: bold;
+    margin-top: 4px;
+}
+.lr-net__detail {
+    font-size: 0.7em;
+    font-weight: normal;
+    opacity: 0.85;
+}
+
+.lr-net--plus .lr-net__value { color: #22543d; }
+.lr-net--minus .lr-net__value { color: #c53030; }
+.lr-net--zero .lr-net__value {
+    color: #2d3748;
+    font-size: 2.2em;
+    padding: 0 18px;
+    border-radius: 999px;
+    background: #edf2f7;
+    box-shadow: 0 0 0 3px #cbd5e0;
+    animation: lrZeroPop 0.6s ease-out;
+}
+.lr-net--zero .lr-net__label { color: #4a5568; }
+.lr-net--zero .lr-net__reason { color: #2b6cb0; }
+.lr-net--zero .lr-net__detail { color: #4a5568; }
+.lr-net--plus .lr-net__reason, .lr-net--minus .lr-net__reason { color: #4a5568; }
+.lr-net--plus .lr-net__detail, .lr-net--minus .lr-net__detail { color: #718096; }
+
+/* 暗い背景（ガイダンスの資産パネル）用 */
+.lr-net--dark .lr-net__value { font-size: 1em; }
+.lr-net--dark.lr-net--plus .lr-net__value { color: #68d391; }
+.lr-net--dark.lr-net--minus .lr-net__value { color: #fc8181; }
+.lr-net--dark.lr-net--zero .lr-net__value {
+    color: #ffffff;
+    font-size: 1.5em;
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
+}
+.lr-net--dark .lr-net__label { color: #e2e8f0; font-size: 0.55em; }
+.lr-net--dark .lr-net__reason { color: #90cdf4; font-size: 0.65em; }
+.lr-net--dark .lr-net__detail { color: #e2e8f0; font-size: 0.56em; }
+
+/* ソーシャルイベントの個別リザルト枠など狭い場所用 */
+.lr-net--compact .lr-net__value { font-size: 1.5em; }
+.lr-net--compact.lr-net--zero .lr-net__value { font-size: 1.7em; padding: 0 12px; }
+.lr-net--compact .lr-net__reason { font-size: 0.75em; }
+.lr-net--compact .lr-net__detail { font-size: 0.68em; }
+
+@keyframes lrZeroPop {
+    0% { transform: scale(0.6); opacity: 0; }
+    60% { transform: scale(1.12); opacity: 1; }
+    100% { transform: scale(1); }
+}
+
+/* ---------- 2. イベント演出（画面端パーティクル / 縁の発光 / アイコン） ---------- */
+#lrFxCanvas {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 3500;
+}
+
+#lrFxEdge {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3490;
+    opacity: 0;
+}
+#lrFxEdge.lr-edge { animation: lrEdgeGlow 1.6s ease-out forwards; }
+#lrFxEdge.lr-edge--plus { box-shadow: inset 0 0 70px 10px rgba(246, 199, 68, 0.75); }
+#lrFxEdge.lr-edge--minus { box-shadow: inset 0 0 70px 10px rgba(229, 62, 62, 0.6); }
+#lrFxEdge.lr-edge--zero { box-shadow: inset 0 0 60px 6px rgba(144, 164, 192, 0.6); }
+@keyframes lrEdgeGlow {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+#lrFxBadge {
+    position: fixed;
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    left: calc(10px + env(safe-area-inset-left, 0px));
+    z-index: 3600;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-weight: bold;
+    font-size: 0.95em;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+#lrFxBadge i { font-size: 1.3em; }
+#lrFxBadge .lr-badge__amount { font-family: monospace; font-size: 1.05em; }
+#lrFxBadge.lr-badge--show { opacity: 1; transform: translateY(0); }
+#lrFxBadge.lr-badge--plus { background: linear-gradient(135deg, #d69e2e, #f6c744); }
+#lrFxBadge.lr-badge--minus { background: linear-gradient(135deg, #c53030, #f56565); }
+#lrFxBadge.lr-badge--zero { background: linear-gradient(135deg, #4a5568, #718096); }
+#lrFxBadge.lr-badge--plus.lr-badge--show i { animation: lrBadgeBounce 0.7s ease-out 2; }
+#lrFxBadge.lr-badge--minus.lr-badge--show i { animation: lrBadgeDrop 0.8s ease-in 2; }
+#lrFxBadge.lr-badge--zero.lr-badge--show i { animation: lrBadgeSeesaw 1s ease-in-out 2; }
+
+@keyframes lrBadgeBounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    40% { transform: translateY(-8px) scale(1.2); }
+    70% { transform: translateY(0) scale(0.95); }
+}
+@keyframes lrBadgeDrop {
+    0% { transform: translateY(-6px); opacity: 1; }
+    70% { transform: translateY(6px); opacity: 0.4; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes lrBadgeSeesaw {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-14deg); }
+    75% { transform: rotate(14deg); }
+}
+
+/* 効果音のオン/オフ（画面左下） */
+.lr-mute-btn {
+    position: fixed;
+    left: calc(10px + env(safe-area-inset-left, 0px));
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    z-index: 3600;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(45, 55, 72, 0.7);
+    color: #fff;
+    font-size: 1em;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.lr-mute-btn:focus-visible { outline: 3px solid #90cdf4; outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+    #lrFxEdge.lr-edge { animation-duration: 0.01s; }
+    #lrFxBadge, #lrFxBadge i { transition: none; animation: none !important; }
+    .lr-net--zero .lr-net__value { animation: none; }
+}
+
+/* ---------- 3. ルーム同期状態（画面右上）とトースト ---------- */
+.lr-sync-pill {
+    position: fixed;
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    right: calc(10px + env(safe-area-inset-right, 0px));
+    z-index: 3600;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 999px;
+    font-size: 0.8em;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.lr-sync-pill:focus-visible { outline: 3px solid #90cdf4; outline-offset: 2px; }
+.lr-sync-pill--online { background: #c6f6d5; color: #22543d; }
+.lr-sync-pill--online i { font-size: 0.7em; color: #38a169; }
+.lr-sync-pill--pending { background: #fefcbf; color: #744210; }
+.lr-sync-pill--reconnecting { background: #feebc8; color: #7b341e; }
+.lr-sync-pill--offline, .lr-sync-pill--error { background: #fed7d7; color: #742a2a; }
+
+.lr-toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    z-index: 3700;
+    max-width: calc(100vw - 32px);
+    padding: 10px 18px;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 0.9em;
+    font-weight: bold;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, 20px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+.lr-toast--show { opacity: 1; transform: translate(-50%, 0); }
+.lr-toast--info { background: #2b6cb0; }
+.lr-toast--success { background: #2f855a; }
+.lr-toast--error { background: #c53030; }
+/* ▲▲▲ 2026-09 体験会フィードバック対応ここまで ▲▲▲ */
