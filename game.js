@@ -1345,16 +1345,24 @@ function renderMakeStep() {
             if(childRouletteInterval) clearInterval(childRouletteInterval);
 
             titleEl.textContent = "子どもの人数";
-            descEl.innerHTML = `子どもは授かりもの。ルーレットで決めましょう！<br><small style="color:#718096;">（「なし」＝子どもは授からない が出ることもあります）</small><br><small style="color:#e53e3e;">世帯年収ランク: ${rankText}</small>`;
+            descEl.innerHTML = `子どもを持つか、夫婦2人で暮らすかを選んでください。<br><small style="color:#718096;">「子どもを持つ」を選ぶと、人数（1〜3人）をルーレットで決めます。</small><br><small style="color:#e53e3e;">世帯年収ランク: ${rankText}</small>`;
 
+            // ▼▼▼ 子どもあり／なしは選択制。ルーレットは「子どもを持つ」を選んだときだけ（1〜3人） ▼▼▼
             contentArea.innerHTML += `
-                <div class="child-roulette-display" id="childRouletteNum" data-count="1">1</div>
+                <div id="childChoiceArea" style="display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:20px;">
+                    <button class="btn-primary" onclick="selectChildChoice(true)" style="width: 260px;"><i class="fas fa-baby"></i> 子どもを持つ</button>
+                    <button class="btn-secondary" onclick="selectChildChoice(false)" style="width: 260px;"><i class="fas fa-user-friends"></i> 子どもなし（夫婦2人）</button>
+                </div>
+                <div class="child-roulette-display" id="childRouletteNum" data-count="1" style="display:none;">1</div>
                 <div id="childResultContainer" style="display:none; margin-bottom: 20px;">
                     <p id="childResultText" style="font-size: 1.5em; font-weight:bold; color:#FF7F50; margin-bottom:5px;"></p>
                     <p id="childCostText" style="font-size: 1.2em; font-weight:bold; color:#e53e3e; margin-bottom:10px;"></p>
                     <img id="childResultImg" src="" alt="子供イラスト" style="max-width:250px; height:auto; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
                 </div>
-                <button id="childRouletteBtn" class="btn-primary" onclick="toggleChildRoulette()" style="width: 200px;"><i class="fas fa-play"></i> スタート</button>
+                <button id="childRouletteBtn" class="btn-primary" onclick="toggleChildRoulette()" style="width: 200px; display:none;"><i class="fas fa-play"></i> スタート</button>
+                <div id="childBackArea" style="display:none; margin-top:10px;">
+                    <button class="btn-secondary" onclick="renderMakeStep()" style="width: 200px;"><i class="fas fa-undo"></i> 選び直す</button>
+                </div>
             `;
             nextBtn.style.display = 'none'; 
             break;
@@ -1517,8 +1525,56 @@ function createSimpleSlider(container, items, defaultVal, stateKey) {
     container.appendChild(wrapper);
 }
 
-// 「子どもは授からない」が出たときの解説
-const NO_CHILD_EXPLANATION = `<h3>子どもを授からない人生</h3><p><strong>【特徴】</strong><br>夫婦2人で暮らすスタイル（DINKs）です。教育費や子どもの分の生活費がかからないため、資産を増やしやすいのが特徴です。一方で、子どもに関するライフイベント（成長の喜び・子どもの結婚・孫の誕生など）は発生しません。</p><p><strong>【ゲーム内のルール】</strong><br>・子どもに関するイベントカードを引いた場合は、引き直しになります。<br>・子どもがいる世帯は、ライフポイントが増えるときに「子育てボーナス」（1人: ×${CHILD_LP_BONUS_RATE[1]} / 2人: ×${CHILD_LP_BONUS_RATE[2]} / 3人: ×${CHILD_LP_BONUS_RATE[3]}）が付きます。</p><p><strong>【ゲーム内のデータ】</strong><br>子ども1人の教育費（幼稚園〜大学卒業）の目安は約1,000万〜2,200万円です（「子供 1人」カードの解説より）。この分を老後資金や投資に回せる一方、子育てならではの喜びのイベントはありません。</p>`;
+// 「子どもなし」を選んだときの解説
+const NO_CHILD_EXPLANATION = `<h3>子どもを持たない人生</h3><p><strong>【特徴】</strong><br>夫婦2人で暮らすスタイル（DINKs）です。教育費や子どもの分の生活費がかからないため、資産を増やしやすいのが特徴です。一方で、子どもに関するライフイベント（成長の喜び・子どもの結婚・孫の誕生など）は発生しません。</p><p><strong>【ゲーム内のルール】</strong><br>・子どもに関するイベントカードを引いた場合は、引き直しになります。<br>・子どもがいる世帯は、ライフポイントが増えるときに「子育てボーナス」（1人: ×${CHILD_LP_BONUS_RATE[1]} / 2人: ×${CHILD_LP_BONUS_RATE[2]} / 3人: ×${CHILD_LP_BONUS_RATE[3]}）が付きます。</p><p><strong>【ゲーム内のデータ】</strong><br>子ども1人の教育費（幼稚園〜大学卒業）の目安は約1,000万〜2,200万円です（「子供 1人」カードの解説より）。この分を老後資金や投資に回せる一方、子育てならではの喜びのイベントはありません。</p>`;
+
+// ▼▼▼ 子どもあり／なしの選択 ▼▼▼
+// wantChildren=true  : ルーレット（1〜3人）へ進む
+// wantChildren=false : 子どもなしで確定（支援金画面・教育費など子どもに関する処理はすべてスキップ）
+function selectChildChoice(wantChildren) {
+    const choiceArea = document.getElementById('childChoiceArea');
+    const display = document.getElementById('childRouletteNum');
+    const btn = document.getElementById('childRouletteBtn');
+    const backArea = document.getElementById('childBackArea');
+    const resContainer = document.getElementById('childResultContainer');
+    const resText = document.getElementById('childResultText');
+    const costText = document.getElementById('childCostText');
+    const resImg = document.getElementById('childResultImg');
+    const nextBtn = document.getElementById('makeNextBtn');
+
+    choiceArea.style.display = 'none';
+    backArea.style.display = 'block';
+
+    if (wantChildren) {
+        display.style.display = 'block';
+        btn.style.display = 'inline-block';
+        return;
+    }
+
+    familyMakeState.childCount = 0;
+
+    btn.style.cssText = infoButtonStyle;
+    btn.innerHTML = '<i class="fas fa-info-circle"></i> 解説を見る';
+    btn.className = '';
+    btn.onclick = function() { showLocalExplanation(null, NO_CHILD_EXPLANATION); };
+
+    nextBtn.style.display = 'inline-block';
+    nextBtn.onclick = function() {
+        nextBtn.onclick = nextMakeStep;
+        nextMakeStep();
+    };
+
+    resText.textContent = '子どもなし（夫婦2人の暮らし）';
+    costText.innerHTML = `
+        <div style="font-size:0.9em; margin-bottom:5px; color:#2f855a; font-weight:bold;">教育費: 0万円/年</div>
+        <small style="color:#777; font-weight:normal; font-size:0.7em;">夫婦2人の暮らし。子どもに関するイベントは発生しません。<br>※子どもがいる世帯はライフポイント獲得時に「子育てボーナス」が付きます</small>
+    `;
+    resImg.removeAttribute('src');
+    resImg.style.display = 'none';
+    display.style.display = 'none';
+    resContainer.style.display = 'block';
+}
+// ▲▲▲ 子どもあり／なしの選択ここまで ▲▲▲
 
 // ★★★ 子どもルーレット (修正版: メイン画面はシンプルに) ★★★
 function toggleChildRoulette() {
@@ -1536,46 +1592,22 @@ function toggleChildRoulette() {
         btn.className = 'btn-danger';
         display.style.display = 'block';
         resContainer.style.display = 'none';
-        
-        // 出目: 0(=子どもは授からない) / 1 / 2 / 3 を等確率で表示
+        // ルーレット開始後は選び直し不可
+        const backArea = document.getElementById('childBackArea');
+        if (backArea) backArea.style.display = 'none';
+
+        // 出目: 1 / 2 / 3 を等確率で表示（「子どもなし」は選択制のためルーレットには含めない）
         childRouletteInterval = setInterval(() => {
-            const n = Math.floor(Math.random() * 4);
+            const n = Math.floor(Math.random() * 3) + 1;
             display.dataset.count = String(n);
-            display.textContent = (n === 0) ? 'なし' : n;
+            display.textContent = n;
         }, 50);
     } else {
         isChildRouletteRunning = false;
         clearInterval(childRouletteInterval);
-        const count = parseInt(display.dataset.count, 10) || 0;
+        const count = parseInt(display.dataset.count, 10) || 1;
         familyMakeState.childCount = count;
-
-        // ▼▼▼ 「子どもは授からない」ルート: 子どもに関する処理（支援金画面・教育費など）はすべてスキップ ▼▼▼
-        if (count === 0) {
-            btn.style.cssText = infoButtonStyle;
-            btn.innerHTML = '<i class="fas fa-info-circle"></i> 解説を見る';
-            btn.className = '';
-            btn.disabled = false;
-            btn.onclick = function() { showLocalExplanation(null, NO_CHILD_EXPLANATION); };
-
-            nextBtn.style.display = 'inline-block';
-            nextBtn.onclick = function() {
-                nextBtn.onclick = nextMakeStep;
-                nextMakeStep();
-            };
-
-            resText.textContent = '子どもは授からなかった';
-            costText.innerHTML = `
-                <div style="font-size:0.9em; margin-bottom:5px; color:#2f855a; font-weight:bold;">教育費: 0万円/年</div>
-                <small style="color:#777; font-weight:normal; font-size:0.7em;">夫婦2人の暮らし。子どもに関するイベントは発生しません。<br>※子どもがいる世帯はライフポイント獲得時に「子育てボーナス」が付きます</small>
-            `;
-            resImg.removeAttribute('src');
-            resImg.style.display = 'none';
-            display.style.display = 'none';
-            resContainer.style.display = 'block';
-            return;
-        }
         resImg.style.display = '';
-        // ▲▲▲ 子どもなしルートここまで ▲▲▲
 
         let childCardId = 'C001';
         if (count === 2) childCardId = 'C002';
@@ -1745,7 +1777,7 @@ function initGameFromMake() {
     } else {
         // 子どもなし: 子どもカードは持たない（教育費・児童手当・出産による年収減はすべて発生しない）
         gameState.children.cardId = null;
-        addEvent('子どもは授からず、夫婦2人の生活をスタート。');
+        addEvent('子どもを持たず、夫婦2人の生活をスタート。');
     }
 
     const houseCard = CARD_DATA[familyMakeState.houseId];
