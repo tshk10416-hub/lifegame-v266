@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>ライフリッジゲーム ~Life & Marriage~</title>
-    <link rel="stylesheet" href="style.css?v=20260923h">
+    <link rel="stylesheet" href="style.css?v=20261007e">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap" rel="stylesheet">
@@ -287,7 +287,7 @@
         </div>
     </div>
     <div id="balanceModal" class="modal"><div class="modal-content"><h2 id="balance-modal-title">収支詳細</h2><table class="balance-table"><thead><tr><th>項目</th><th>金額 (万円)</th></tr></thead><tbody id="turnBreakdownTbody"></tbody></table><button onclick="closeBalanceModal()" class="btn-primary" style="margin-top:20px;">閉じる</button></div></div>
-    <div id="careerChallengeModal" class="modal"><div class="modal-content"><h2><i class="fas fa-briefcase"></i> キャリアチャレンジ</h2><p style="margin-bottom:20px;font-weight:bold;"><span id="career-challenge-player-name"></span> さんの番です</p><div class="modal-buttons" style="grid-template-columns:1fr;margin-top:20px;"><button onclick="handleCareerChoice('jobChange')" class="btn-primary">転職 (1, 6で成功)</button><button onclick="handleCareerChoice('promotion')" class="btn-success">昇格 (3, 5で成功)</button><button onclick="handleCareerChoice('skip')" class="btn-secondary">現状維持</button></div></div></div>
+    <div id="careerChallengeModal" class="modal"><div class="modal-content"><h2><i class="fas fa-briefcase"></i> キャリアチャレンジ</h2><p style="margin-bottom:10px;font-weight:bold;"><span id="career-challenge-player-name"></span> さんの番です</p><p id="career-challenge-status" style="margin-bottom:10px;color:#4a5568;font-size:0.95em;"></p><div class="modal-buttons" style="grid-template-columns:1fr;margin-top:20px;"><button id="career-jobchange-btn" onclick="handleCareerChoice('jobChange')" class="btn-primary">転職 (1, 6で成功)</button><button id="career-promotion-btn" onclick="handleCareerChoice('promotion')" class="btn-success">昇格</button><button onclick="handleCareerChoice('skip')" class="btn-secondary">現状維持</button></div></div></div>
     <div id="retirementBonusModal" class="modal"><div class="modal-content" style="text-align:center;"><h2 style="color:#FF7F50;font-size:1.8em;margin-bottom:20px;">退職金カードのスキャン</h2><div class="retirement-scan-area"><div class="retirement-player-card" id="retirement-p1-card"><h4><span id="retirement-p1-name">P1</span></h4><button id="retirement-p1-scan-btn" onclick="openRetirementBonusScan('player1')" class="btn-primary btn-small">スキャン</button><p class="scan-status-text" id="retirement-p1-status">未スキャン</p></div><div class="retirement-player-card" id="retirement-p2-card"><h4><span id="retirement-p2-name">P2</span></h4><button id="retirement-p2-scan-btn" onclick="openRetirementBonusScan('player2')" class="btn-primary btn-small">スキャン</button><p class="scan-status-text" id="retirement-p2-status">未スキャン</p></div></div><button onclick="showInvestmentRateModal()" class="btn-success" id="retirement-next-btn" style="width:100%;margin-top:20px;" disabled>適用して次へ</button></div></div>
     <div id="finalResultModal" class="modal"><div class="final-result-content"><h2>60代 終了！</h2><div id="lifeplanSummary"><p>お疲れ様でした！</p></div><button onclick="showInvestmentRateModal()" class="btn-primary" style="margin-top:20px;">投資結果計算へ</button></div></div>
     <div id="investmentRateModal" class="modal"><div class="modal-content" style="text-align:center;"><h2>投資利率の決定</h2><p>ルーレットで運用年利を決定します。</p><div id="rouletteContainer"><div id="rouletteDisplay">0%</div></div><button id="rouletteButton" class="btn-primary" onclick="toggleRoulette()" style="width:100%; margin-top:20px;"><i class="fas fa-play"></i> スタート</button></div></div>
@@ -339,10 +339,23 @@
                 <p style="font-weight:bold; color:#2f855a; margin-bottom:10px;">
                     ＼ アンケート回答で「診断シート」プレゼント！ ／
                 </p>
-                <a id="line-connect-btn" href="#" target="_blank" class="btn-success" style="display:inline-block; text-decoration:none; padding:15px 30px; font-size:1.1em; border-radius:50px; box-shadow: 0 4px 10px rgba(72, 187, 120, 0.4);">
+                <!-- 診断コード・保存状況（game.js の setupLineConnect で表示） -->
+                <div id="diagnosis-code-display" style="margin-bottom:10px;"></div>
+                <!-- JSの window.open ではなく普通のリンクにする（ポップアップブロックで開かない端末があったため） -->
+                <a id="line-connect-btn" href="https://line.me/R/ti/p/%40480gjare" target="_blank" rel="noopener" class="btn-success" style="display:inline-block; text-decoration:none; padding:15px 30px; font-size:1.1em; border-radius:50px; box-shadow: 0 4px 10px rgba(72, 187, 120, 0.4);">
                     <i class="fab fa-line" style="font-size:1.3em; margin-right:5px;"></i> LINEに登録してアンケートへ
                 </a>
                 <p style="font-size:0.8em; color:#666; margin-top:5px;">※リッチメニューから特典をお受け取りください</p>
+                <div style="margin-top:12px; padding:10px 12px; background:#fff; border:1px solid #c6f6d5; border-radius:8px; font-size:0.85em; color:#4a5568; text-align:left; line-height:1.6;">
+                    <strong>LINEが開かないときは</strong><br>
+                    LINEアプリの「ホーム」→「友だち追加」→「検索」→「ID」で
+                    <strong id="line-official-id" style="color:#2f855a;">@480gjare</strong> を検索して追加してください。
+                    <div style="text-align:center; margin-top:8px;">
+                        <button id="copy-line-id-btn" type="button" class="btn-secondary" style="padding:8px 18px; font-size:0.95em;">
+                            <i class="fas fa-copy"></i> IDをコピー
+                        </button>
+                    </div>
+                </div>
             </div>
             
             <div class="modal-buttons" style="margin-top:20px; margin-bottom:15px;">
@@ -401,7 +414,7 @@
     <!-- ▲▲▲ 事前同意モーダルここまで ▲▲▲ -->
 
     <!-- ?v= はスマホのキャッシュで新旧ファイルが混在しないためのバージョン番号（更新のたびに変更） -->
-    <script src="game.js?v=20260923h"></script>
+    <script src="game.js?v=20261007e"></script>
     <script src="liferidge_ext.js?v=20260923h"></script>
 </body>
-</html>
+</html>

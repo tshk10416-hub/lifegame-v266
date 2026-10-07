@@ -75,32 +75,36 @@ let currentRoomId = null;
 // ==========================================================
 const CARD_DATA = {
     // --- 職業カード ---
-    "J001": { 
-        title: "職業: 会社員", type: "job", image: "会社員.png", salary: { 30: 400, 40: 500, 50: 600, 60: 600 }, life_point: 5, 
-        explanation: "<h3>会社員</h3><p><strong>【特徴】</strong><br>最も標準的な職業です。給与は30代から60代にかけて緩やかに上昇し、退職金もしっかり出るため、長期的なライフプランが立てやすいのが魅力です。</p><p><strong>【現実のデータ】</strong><br>平均年収は約450万〜550万円ですが、業界や企業規模により大きく異なります。厚生年金や健康保険などの社会保障が手厚いのも大きなメリットです。</p>" 
+    // 年収（2026年10月改定）: 30代の年収はそのままに、40代以降は統計上の「30代比の伸び」を掛けて設定（10万円単位）
+    //   出典: 厚生労働省「令和7年賃金構造基本統計調査」職種・年齢階級別（年収 = きまって支給する現金給与額×12 + 年間賞与）
+    //         会社員は同調査の正社員（賞与分を加味した推計）、公務員は総務省「令和6年 地方公務員給与の実態」
+    //   60代は定年・再雇用を反映した60〜64歳の水準（医師のみ60代も上昇）
+    "J001": {
+        title: "職業: 会社員", type: "job", image: "会社員.png", salary: { 30: 400, 40: 470, 50: 510, 60: 400 }, life_point: 5,
+        explanation: "<h3>会社員</h3><p><strong>【特徴】</strong><br>最も標準的な職業です。給与は50代まで緩やかに上昇し、60代は定年後の再雇用などで下がります。退職金もしっかり出るため、長期的なライフプランが立てやすいのが魅力です。</p><p><strong>【現実のデータ】</strong><br>平均年収は約450万〜550万円ですが、業界や企業規模により大きく異なります。厚生年金や健康保険などの社会保障が手厚いのも大きなメリットです。</p>"
     },
-    "J002": { 
-        title: "職業: 公務員", type: "job", image: "公務員.png", salary: { 30: 500, 40: 600, 50: 700, 60: 700 }, life_point: 5, 
+    "J002": {
+        title: "職業: 公務員", type: "job", image: "公務員.png", salary: { 30: 500, 40: 640, 50: 720, 60: 560 }, life_point: 5,
         explanation: "<h3>公務員</h3><p><strong>【特徴】</strong><br>「安定」の代名詞。景気変動イベント（好景気・不景気）の影響を受けにくく、給与カットやリストラのリスクが極めて低いです。退職金も高水準で安定しています。</p><p><strong>【現実のデータ】</strong><br>地方公務員の平均年収は約600万円前後。民間企業の給与水準に連動して決まりますが、生涯賃金で見ると民間平均より高くなる傾向があります。</p>" 
     },
     "J003": { 
-        title: "職業: 料理人", type: "job", image: "料理人.png", salary: { 30: 250, 40: 300, 50: 400, 60: 400 }, life_point: 10, 
-        explanation: "<h3>料理人</h3><p><strong>【特徴】</strong><br>大器晩成型です。若い頃の給与は低いですが、技術を磨くことで50代以降に独立や料理長昇格などで収入を伸ばせる可能性があります。特定のイベントで臨時収入が発生することもあります。</p><p><strong>【現実のデータ】</strong><br>平均年収は350万〜450万円。厳しい修行期間がありますが、腕一本で世界を渡り歩けるスキルが身につく職業です。</p>" 
+        title: "職業: 料理人", type: "job", image: "料理人.png", salary: { 30: 250, 40: 270, 50: 260, 60: 230 }, life_point: 10,
+        explanation: "<h3>料理人</h3><p><strong>【特徴】</strong><br>腕を磨いて上を目指す職業です。年齢だけでは給与はあまり上がりませんが、料理長などへの昇格で大きく収入を伸ばせます。特定のイベントで臨時収入が発生することもあります。</p><p><strong>【現実のデータ】</strong><br>平均年収は350万〜450万円。厳しい修行期間がありますが、腕一本で世界を渡り歩けるスキルが身につく職業です。</p>" 
     },
     "J004": { 
-        title: "職業: 保育士", type: "job", image: "保育士.png", salary: { 30: 300, 40: 350, 50: 450, 60: 450 }, life_point: 10, 
+        title: "職業: 保育士", type: "job", image: "保育士.png", salary: { 30: 300, 40: 330, 50: 320, 60: 310 }, life_point: 10,
         explanation: "<h3>保育士</h3><p><strong>【特徴】</strong><br>子供の成長を見守る、やりがいに溢れた仕事です。給与水準は決して高くありませんが、職業特性として「ライフポイント（幸福度）」が高く設定されています。</p><p><strong>【現実のデータ】</strong><br>平均年収は約380万円前後。国による処遇改善が進んでいますが、責任の重さに対して給与が見合っていないという課題も指摘されています。</p>" 
     },
     "J005": { 
-        title: "職業: 医師", type: "job", image: "医師.png", salary: { 30: 1000, 40: 1500, 50: 1700, 60: 1700 }, life_point: 15, 
+        title: "職業: 医師", type: "job", image: "医師.png", salary: { 30: 1000, 40: 1350, 50: 1440, 60: 1550 }, life_point: 15,
         explanation: "<h3>医師</h3><p><strong>【特徴】</strong><br>圧倒的な高収入を誇ります。資金力で様々な問題を解決できますが、激務によるストレスや、高額な教育費などの支出も多くなる傾向があります。</p><p><strong>【現実のデータ】</strong><br>勤務医の平均年収は約1,200万〜1,500万円。高収入ですが、長時間労働や当直など、身体的な負担も大きい職業です。</p>" 
     },
     "J006": { 
-        title: "職業: 看護師", type: "job", image: "看護師.png", salary: { 30: 450, 40: 600, 50: 700, 60: 700 }, life_point: 10, 
+        title: "職業: 看護師", type: "job", image: "看護師.png", salary: { 30: 450, 40: 490, 50: 510, 60: 450 }, life_point: 10,
         explanation: "<h3>看護師</h3><p><strong>【特徴】</strong><br>高水準のバランス型です。一般的な会社員よりもベース給与が高く、かつ医師ほど極端ではないため、安定して高収入を得られます。景気に左右されにくいのも強みです。</p><p><strong>【現実のデータ】</strong><br>平均年収は約490万円。夜勤手当などが大きいため、若いうちから比較的高い年収を得ることができます。</p>" 
     },
     "J007": { 
-        title: "職業: 美容師", type: "job", image: "美容師.png", salary: { 30: 350, 40: 400, 50: 450, 60: 450 }, life_point: 10, 
+        title: "職業: 美容師", type: "job", image: "美容師.png", salary: { 30: 350, 40: 370, 50: 300, 60: 290 }, life_point: 10,
         explanation: "<h3>美容師</h3><p><strong>【特徴】</strong><br>センスと技術の世界。給与は控えめからのスタートですが、ライフポイント（やりがい・おしゃれ度）が高めです。退職金制度がない場合が多いため、自身での資産形成（iDeCoやつみたてNISAなど）が重要になります。</p><p><strong>【現実のデータ】</strong><br>平均年収は約330万円。独立開業して成功すれば年収1000万超えも夢ではありませんが、競争も激しい世界です。</p>" 
     },
     "J008": { 
@@ -656,6 +660,82 @@ const JOB_SUCCESS_RATE = {
     "J010": 10  // 専業主婦: 確実 (100%)
 };
 
+// ▼▼▼ 職業別の昇格内容（2026年10月追加） ▼▼▼
+// キャリアチャレンジの「昇格」に成功するたびに1段ずつ上がる。年収 = その年代の基本年収 × rate
+// rate の根拠（いずれも「同じ年齢で役職に就いていない人」との差。年齢による差は除いて算出）
+//   会社員     : 厚労省「令和7年賃金構造基本統計調査」役職別（課長級 1.62倍 / 部長級 1.91倍）
+//   公務員     : 栃木県人事委員会 令和7年モデル給与例（係長45歳 691万 → 課長55歳 905万 1.20倍 / 部長58歳 1,224万 1.57倍）
+//   医師・看護師・保育士・美容師・料理人:
+//                同調査 職種別の「役職者を含む／除く」平均の差から役職者の年収を算出
+//                （医師 1.35倍 / 看護師 1.23倍 / 保育士 1.37倍 / 理容・美容師 1.48倍 / 飲食物調理従事者 1.51倍）
+//   フリーター : 同調査 雇用形態別（30〜34歳の 正社員÷正社員以外 = 1.37倍）
+//   パート     : 時給 約1,560円（短時間労働者・女性30〜40代）× 週20時間 × 52週 ≒ 160万円
+//   2段目に統計がない職業は「1段目の約1.2倍」（民間の 部長級÷課長級 = 1.18倍 が目安）
+const PROMOTION_LADDER = {
+    "J001": [{ title: "課長", rate: 1.6 }, { title: "部長", rate: 1.9 }],
+    "J002": [{ title: "課長", rate: 1.2 }, { title: "部長", rate: 1.55 }],
+    "J003": [{ title: "料理長", rate: 1.5 }, { title: "総料理長", rate: 1.8 }],
+    "J004": [{ title: "主任保育士", rate: 1.35 }, { title: "園長", rate: 1.6 }],
+    "J005": [{ title: "診療部長", rate: 1.35 }, { title: "病院長", rate: 1.6 }],
+    "J006": [{ title: "看護師長", rate: 1.25 }, { title: "看護部長", rate: 1.5 }],
+    "J007": [{ title: "店長", rate: 1.45 }, { title: "独立開業（サロンオーナー）", rate: 1.75 }],
+    "J008": [{ title: "正社員登用", rate: 1.35 }, { title: "正社員（主任）", rate: 1.6 }],
+    "J009": [{ title: "勤務時間拡大（社会保険に加入）", rate: 1.6 }, { title: "パートリーダー", rate: 1.9 }],
+    "J010": []
+};
+// 昇格チャレンジの成功率（10段階, 2026年10月追加）
+// 倍率は統計どおりにしたうえで、年収の低い職業ほど昇格しやすくして職業間の差を縮める
+const PROMOTION_SUCCESS_RATE = {
+    "J003": 4, "J004": 4, "J007": 4, "J008": 4, "J009": 4, // 料理人・保育士・美容師・フリーター・パート: 40%
+    "J001": 2, "J002": 2, "J006": 2,                       // 会社員・公務員・看護師: 20%
+    "J005": 1                                              // 医師: 10%
+};
+
+function getPromotionSuccessRate(jobId) {
+    return PROMOTION_SUCCESS_RATE[jobId] || 2;
+}
+
+// 60代は役職定年・定年後の再雇用で役職の上乗せが小さくなるため、上乗せ分を半分にする
+// （再雇用時の給与は定年前の6〜7割程度とされる例が多いことを踏まえた目安）
+const PROMOTION_60S_FACTOR = 0.5;
+
+function getPromotionLadder(jobId) {
+    return PROMOTION_LADDER[jobId] || [];
+}
+
+// 現在の役職（未昇格なら null）
+function getPromotionStep(p) {
+    const level = (p && p.promotionLevel) || 0;
+    return level > 0 ? (getPromotionLadder(p.jobId)[level - 1] || null) : null;
+}
+
+// 次に目指せる役職（最上位・対象外なら null）
+function getNextPromotionStep(p) {
+    return getPromotionLadder(p.jobId)[(p.promotionLevel || 0)] || null;
+}
+
+// 年収に掛ける倍率
+function getPromotionRate(p, age) {
+    const step = getPromotionStep(p);
+    if (!step) return 1;
+    if (age >= 60) return 1 + (step.rate - 1) * PROMOTION_60S_FACTOR;
+    return step.rate;
+}
+
+// ▼▼▼ 医師の配偶者は専業主婦（主夫）のみ（2026年10月追加: 医師は年収が突出しているため） ▼▼▼
+const DOCTOR_JOB_ID = 'J005';
+const HOMEMAKER_JOB_ID = 'J010';
+
+function partnerKeyOf(key) {
+    return key === 'player1' ? 'player2' : 'player1';
+}
+
+function isJobAllowedWithPartner(jobId, partnerJobId) {
+    if (jobId === DOCTOR_JOB_ID) return partnerJobId === HOMEMAKER_JOB_ID;
+    if (partnerJobId === DOCTOR_JOB_ID) return jobId === HOMEMAKER_JOB_ID;
+    return true;
+}
+
 // ==========================================================
 // 2. ゲームの状態管理 & 定数
 // ==========================================================
@@ -664,7 +744,7 @@ const infoButtonStyle = "display:inline-block; margin-top:15px; font-size:1.1em;
 let gameState = {
     isRouletteSpinning: false,
     myPlayerId: null, lastProcessedEventTimestamp: 0, currentAge: 30,
-    players: { player1: { name: '', job: '', income: 0, grossIncome: 0, jobId: null, needsNewJob: false, promotionSuccess: false }, player2: { name: '', job: '', income: 0, grossIncome: 0, jobId: null, needsNewJob: false, promotionSuccess: false } },
+    players: { player1: { name: '', job: '', income: 0, grossIncome: 0, jobId: null, needsNewJob: false, promotionSuccess: false, promotionLevel: 0 }, player2: { name: '', job: '', income: 0, grossIncome: 0, jobId: null, needsNewJob: false, promotionSuccess: false, promotionLevel: 0 } },
     totalAssets: 100, happiness: 0, annualExpense: 0,
     marriage: { type: '-', cost: 0, cardScanned: false },
     children: { count: 0, annualCost: 0, cardId: null, cardScanned: false }, 
@@ -1292,12 +1372,32 @@ function proceedToFamilyMake() {
     renderMakeStep();
 }
 
+// 職業の解説に「年代別の年収」「昇格で目指せる役職」を追記する
+function buildJobCareerHtml(jobId) {
+    const card = CARD_DATA[jobId];
+    if (!card || !card.salary) return '';
+    const s = card.salary;
+    let html = `<p><strong>【ゲーム内の年収（額面）】</strong><br>30代 ${s[30]}万円 → 40代 ${s[40]}万円 → 50代 ${s[50]}万円 → 60代 ${s[60]}万円</p>`;
+    const ladder = getPromotionLadder(jobId);
+    if (ladder.length > 0) {
+        const steps = ladder.map(st => `「${st.title}」（年収×${st.rate}）`).join(' → ');
+        html += `<p><strong>【昇格チャレンジ（成功率${getPromotionSuccessRate(jobId) * 10}%）】</strong><br>成功するたびに ${steps} に昇格します。<br><small>※60代は役職定年・再雇用のため、昇格による上乗せは半分になります。</small></p>`;
+    } else {
+        html += `<p><strong>【昇格チャレンジ】</strong><br>この職業は昇格の対象外です。</p>`;
+    }
+    if (jobId === DOCTOR_JOB_ID) {
+        html += `<p style="color:#e53e3e;"><strong>【注意】</strong><br>医師を選んだ場合、パートナーの職業は専業主婦（主夫）になります。</p>`;
+    }
+    return html;
+}
+
 function showLocalExplanation(cardId, directHtml = null) {
     let explanationText = '解説はありません。';
     if (directHtml) { explanationText = directHtml.replace(/\n/g, '<br>'); } 
     else if (cardId && CARD_DATA[cardId]) {
         const card = CARD_DATA[cardId];
         if (card.explanation) { explanationText = card.explanation.replace(/\n/g, '<br>'); }
+        if (card.type === 'job') explanationText += buildJobCareerHtml(cardId);
     }
     const explanationEl = document.getElementById('card-explanation');
     const modalEl = document.getElementById('explanationModal');
@@ -1332,7 +1432,13 @@ function renderMakeStep() {
             descEl.textContent = "パートナーの名前と職業を選んでください。";
             contentArea.innerHTML += `<div class="make-input-group"><label>プレイヤー2の名前</label><input type="text" id="makeP2Name" value="${familyMakeState.p2Name || 'プレイヤー2'}" placeholder="名前を入力"></div>`;
             contentArea.innerHTML += genderSelectorHtml('p2Gender');
-            createSlider(contentArea, 'job', 'J001', 'p2JobId');
+            if (familyMakeState.p1JobId === DOCTOR_JOB_ID) {
+                // 医師の配偶者は専業主婦（主夫）のみ
+                descEl.innerHTML = `パートナーの名前を入力してください。<br><small style="color:#e53e3e;">プレイヤー1が医師のため、パートナーの職業は専業主婦（主夫）になります。</small>`;
+                createSlider(contentArea, 'job', HOMEMAKER_JOB_ID, 'p2JobId', [HOMEMAKER_JOB_ID]);
+            } else {
+                createSlider(contentArea, 'job', 'J001', 'p2JobId');
+            }
             break;
         case 2:
             titleEl.textContent = "結婚式のスタイル";
@@ -1397,10 +1503,13 @@ function renderMakeStep() {
     }
 }
 
-function createSlider(container, type, defaultId, stateKey) {
+function createSlider(container, type, defaultId, stateKey, allowedIds = null) {
     const sliderContainer = document.createElement('div');
     sliderContainer.className = 'slider-container';
-    const items = Object.keys(CARD_DATA).filter(k => CARD_DATA[k].type === type).map(k => ({id: k, ...CARD_DATA[k]}));
+    const items = Object.keys(CARD_DATA)
+        .filter(k => CARD_DATA[k].type === type)
+        .filter(k => !allowedIds || allowedIds.includes(k))
+        .map(k => ({id: k, ...CARD_DATA[k]}));
     let currentIndex = items.findIndex(i => i.id === (familyMakeState[stateKey] || defaultId));
     if (currentIndex === -1) currentIndex = 0;
 
@@ -1435,9 +1544,13 @@ function createSlider(container, type, defaultId, stateKey) {
         if (type === 'job') {
             const gross = item.salary[30];
             const net = getNetIncomeDetails(gross).net; 
+            const doctorNote = (item.id === DOCTOR_JOB_ID)
+                ? `<div style="color:#e53e3e; font-size:0.85em; margin-top:5px;">※医師を選ぶと、パートナーは専業主婦（主夫）になります</div>`
+                : '';
             infoText = `
                 <div style="color:#2b6cb0;">額面年収: ${gross}万円</div>
                 <div style="color:#48bb78; font-size:1.1em;">手取り: 約${net}万円</div>
+                ${doctorNote}
                 <button onclick="showLocalExplanation('${item.id}')" style="${infoButtonStyle}"><i class="fas fa-info-circle"></i> 解説を見る</button>
             `;
         } else if (type === 'marriage') {
@@ -1651,12 +1764,55 @@ function toggleChildRoulette() {
     }
 }
 
+// ▼▼▼ ファミリーメイクのページ切り替えエフェクト（2026年10月追加） ▼▼▼
+// 「次へを押しても決定されたか分かりにくい」という体験会の声を受けて、
+// 前のページをフェードアウトさせてから次のページをフェードインさせる（style.css の make-page-*）
+const MAKE_PAGE_LEAVE_MS = 300;
+const MAKE_PAGE_ENTER_MS = 350;
+let isMakePageTransitioning = false;
+
+function transitionMakePage(renderNext) {
+    const screen = document.getElementById('familyMakeScreen');
+    if (!screen) { renderNext(); return; }
+    isMakePageTransitioning = true;
+    screen.classList.remove('make-page-enter');
+    screen.classList.add('make-page-leave');
+    setTimeout(() => {
+        screen.classList.remove('make-page-leave');
+        try {
+            renderNext();
+        } finally {
+            if (screen.style.display !== 'none') {
+                // 下までスクロールして「次へ」を押した場合も、新しいページは先頭から見せる
+                const top = screen.getBoundingClientRect().top;
+                if (top < 0) window.scrollTo(0, window.pageYOffset + top - 10);
+                void screen.offsetWidth; // アニメーションを最初から再生させる
+                screen.classList.add('make-page-enter');
+            }
+            setTimeout(() => {
+                screen.classList.remove('make-page-enter');
+                isMakePageTransitioning = false;
+            }, MAKE_PAGE_ENTER_MS);
+        }
+    }, MAKE_PAGE_LEAVE_MS);
+}
+
 function nextMakeStep() {
+    if (isMakePageTransitioning) return; // 切り替え中の連打で2ページ進まないように
     if (familyMakeState.step === 0) { const n = document.getElementById('makeP1Name'); if(n) familyMakeState.p1Name = n.value || 'プレイヤー1'; }
-    else if (familyMakeState.step === 1) { const n = document.getElementById('makeP2Name'); if(n) familyMakeState.p2Name = n.value || 'プレイヤー2'; }
+    else if (familyMakeState.step === 1) {
+        const n = document.getElementById('makeP2Name'); if(n) familyMakeState.p2Name = n.value || 'プレイヤー2';
+        // プレイヤー2が医師なら、プレイヤー1は専業主婦（主夫）に変更
+        if (familyMakeState.p2JobId === DOCTOR_JOB_ID && familyMakeState.p1JobId !== HOMEMAKER_JOB_ID) {
+            if (!confirm(`プレイヤー2を医師にすると、プレイヤー1（${familyMakeState.p1Name || 'プレイヤー1'}）の職業は専業主婦（主夫）に変更されます。よろしいですか？`)) return;
+            familyMakeState.p1JobId = HOMEMAKER_JOB_ID;
+        }
+    }
     familyMakeState.step++;
-    if (familyMakeState.step > 5) finalizeFamilyMake();
-    else renderMakeStep();
+    transitionMakePage(() => {
+        if (familyMakeState.step > 5) finalizeFamilyMake();
+        else renderMakeStep();
+    });
 }
 
 function finalizeFamilyMake() {
@@ -1712,8 +1868,8 @@ function initGameFromMake() {
         lastProcessedEventTimestamp: Date.now(),
         currentAge: 30,
         players: {
-            player1: { name: '', gender: familyMakeState.p1Gender || 'male', job: '', income: 0, grossIncome: 0, jobId: null, needsNewJob: false, promotionSuccess: false },
-            player2: { name: '', gender: familyMakeState.p2Gender || 'female', job: '', income: 0, grossIncome: 0, jobId: null, needsNewJob: false, promotionSuccess: false }
+            player1: { name: '', gender: familyMakeState.p1Gender || 'male', job: '', income: 0, grossIncome: 0, jobId: null, needsNewJob: false, promotionSuccess: false, promotionLevel: 0 },
+            player2: { name: '', gender: familyMakeState.p2Gender || 'female', job: '', income: 0, grossIncome: 0, jobId: null, needsNewJob: false, promotionSuccess: false, promotionLevel: 0 }
         },
         totalAssets: 100, // 初期資産
         happiness: 0,
@@ -1760,6 +1916,8 @@ function initGameFromMake() {
     gameState.players.player1.jobId = familyMakeState.p1JobId;
     gameState.players.player2.name = familyMakeState.p2Name;
     gameState.players.player2.jobId = familyMakeState.p2JobId;
+    gameState.players.player1.gender = familyMakeState.p1Gender;
+    gameState.players.player2.gender = familyMakeState.p2Gender;
 
     const marCard = CARD_DATA[familyMakeState.marriageId];
     gameState.marriage.type = marCard.title;
@@ -2284,8 +2442,9 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             targetP.jobId = targetId; 
             targetP.job = c.title; 
             targetP.grossIncome = gross; 
-            targetP.income = netD.net; 
+            targetP.income = netD.net;
             targetP.needsNewJob = false;
+            targetP.promotionLevel = 0; // 職業が変わったら役職はリセット
 
             const diffIncome = targetP.income - oldIncome;
             const incomeChange = diffIncome * duration;
@@ -2377,7 +2536,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
                 const coverLE = getActiveInsuranceCover(targetId, c);
                 LRNet.offset(val, (coverLE ? coverLE.label : '保険') + '適用のため');
             }
-            
+
             if (cost > 0) { 
                 gameState.totalAssets -= cost; 
                 gameState.turnExpenses.life_event += cost; 
@@ -2512,7 +2671,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             // ▲▲▲ setFlag 処理ここまで ▲▲▲
 
             updated = true; break;
-            
+
         case 'social_event':
         case 'social_event_asset_change': {
             // ソーシャルイベント（旧S001〜S012 / 新S013〜）: 内訳を1回だけ計算し、その合計を資産に反映
@@ -2878,42 +3037,48 @@ function updateStateForNewTurn() {
     ['player1', 'player2'].forEach(key => {
         const p = gameState.players[key];
 
-        if (typeof p.promotionBonus === 'undefined') p.promotionBonus = 0;
+        // 旧セーブデータ（昇格ボーナス方式）からの移行: 昇格済みなら1段目扱い
+        if (typeof p.promotionLevel !== 'number') p.promotionLevel = (p.promotionBonus > 0) ? 1 : 0;
 
-        if (p.needsNewJob) { 
-            p.job = "求職中"; 
-            p.income = 0; 
-            p.grossIncome = 0; 
-            p.promotionBonus = 0; 
-        } 
+        if (p.needsNewJob) {
+            p.job = "求職中";
+            p.income = 0;
+            p.grossIncome = 0;
+            p.promotionLevel = 0;
+        }
         else if (p.jobId) {
-            // ▼ キャリア年齢ロジック
+            const salary = CARD_DATA[p.jobId] && CARD_DATA[p.jobId].salary;
+
+            // ▼ キャリア年齢ロジック（転職者は30代水準から再スタート）
             let wageAge = p.careerAge || gameState.currentAge;
-            
-            // ▼▼▼ 修正: 50代と60代の年収は変わらないようにする ▼▼▼
-            // 60歳以上でも「50代の給与テーブル」を参照するようにキャップをかけます
             if (wageAge >= 50) wageAge = 50;
             else if (wageAge >= 40) wageAge = 40;
             else wageAge = 30;
-            // ▲▲▲ 修正ここまで ▲▲▲
 
             // ▼ 1. 基本給を取得
-            let baseGross = CARD_DATA[p.jobId].salary[wageAge] || 0;
-            
-            if (baseGross === 0 && p.grossIncome > 0) {
-                baseGross = p.grossIncome - p.promotionBonus;
+            //   60代（2026年10月改定）: 定年・再雇用を反映した60代の年収表を使う。
+            //   ただし50代未満の水準で働いている転職者は、60代になっても上がらない（低い方を採用）
+            let baseGross;
+            if (!salary) {
+                baseGross = p.grossIncome || 0;
+            } else if (gameState.currentAge >= 60) {
+                baseGross = (wageAge >= 50) ? salary[60] : Math.min(salary[60], salary[wageAge]);
+            } else {
+                baseGross = salary[wageAge] || 0;
             }
 
-            // ▼ 2. 昇格成功時の計算
+            // ▼ 2. 昇格成功時: 職業ごとの役職を1段上げる
             if (p.promotionSuccess) {
-                let currentTotal = baseGross + p.promotionBonus;
-                let newTotal = Math.round(currentTotal * 1.1);
-                p.promotionBonus = newTotal - baseGross;
-                p.promotionSuccess = false; 
+                const next = getNextPromotionStep(p);
+                if (next) {
+                    p.promotionLevel += 1;
+                    addEvent(`${p.name}が「${next.title}」に昇格しました。（年収×${next.rate}）`);
+                }
+                p.promotionSuccess = false;
             }
 
             // ▼ 3. 最終的な年収
-            p.grossIncome = baseGross + p.promotionBonus;
+            p.grossIncome = Math.round(baseGross * getPromotionRate(p, gameState.currentAge));
             p.income = getNetIncomeDetails(p.grossIncome).net;
         }
     });
@@ -2932,12 +3097,18 @@ function formatJobLabel(job) {
     return (job || '').replace(/^職業[:：]\s*/, '') || '-';
 }
 
+// 職業名 + 昇格後の役職（例: 会社員（課長））
+function formatPlayerJobLabel(p) {
+    const step = getPromotionStep(p);
+    return formatJobLabel(p.job) + (step ? `（${step.title}）` : '');
+}
+
 function updateDisplay() {
     document.querySelector('#player1 .player-name').textContent = gameState.players.player1.name || 'プレイヤー1';
-    document.getElementById('p1-job').textContent = formatJobLabel(gameState.players.player1.job);
+    document.getElementById('p1-job').textContent = formatPlayerJobLabel(gameState.players.player1);
     document.getElementById('p1-income').textContent = gameState.players.player1.income || 0;
     document.querySelector('#player2 .player-name').textContent = gameState.players.player2.name || 'プレイヤー2';
-    document.getElementById('p2-job').textContent = formatJobLabel(gameState.players.player2.job);
+    document.getElementById('p2-job').textContent = formatPlayerJobLabel(gameState.players.player2);
     document.getElementById('p2-income').textContent = gameState.players.player2.income || 0;
 
     // 年代・性別に合わせてアバターを切り替え
@@ -3086,10 +3257,14 @@ function recalculateAnnualExpense() {
     const p1 = gameState.players.player1.grossIncome || 0;
     const p2 = gameState.players.player2.grossIncome || 0;
     const houseIncome = p1 + p2;
-    // 物価上昇を反映（2026年9月改定）: 消費者物価指数 2026年6月 = 113.6（2020年=100）→ 旧係数を +13.6%
-    //   旧: 120万 + 世帯額面年収×0.1 + 子ども1人あたり30万
-    //   新: 136万 + 世帯額面年収×0.114 + 子ども1人あたり34万
-    let baseLiving = 136 + (houseIncome * 0.114);
+    // 物価上昇を反映（2026年10月再改定）: 元データは2024年基準のため、2024年→2026年の上昇分のみ反映
+    //   消費者物価指数（総合・全国）: 2024年平均 108.5 / 2025年平均 111.9（2020年=100）
+    //                                2026年8月 102.2（2025年=100）→ 2020年基準換算 111.9×1.022 ≈ 114.4
+    //   上昇率: 114.4 ÷ 108.5 ≈ +5.4%
+    //   元(2024年): 120万 + 世帯額面年収×0.1 + 子ども1人あたり30万
+    //   新:         126万 + 世帯額面年収×0.105 + 子ども1人あたり32万
+    //   ※2026年9月改定では 2020年→2026年6月の +13.6% を掛けており、2024年までの上昇分を二重に計上していた
+    let baseLiving = 126 + (houseIncome * 0.105);
     
     let childCount = 0;
     if(gameState.children && gameState.children.cardId) {
@@ -3097,7 +3272,7 @@ function recalculateAnnualExpense() {
         if(gameState.children.cardId === 'C002') childCount = 2;
         if(gameState.children.cardId === 'C003') childCount = 3;
     }
-    baseLiving += (childCount * 34);
+    baseLiving += (childCount * 32);
     
     livingCost = Math.round(baseLiving);
     gameState.livingCost = livingCost;
@@ -3344,6 +3519,19 @@ function handleQRCode(data) {
                 return;
             }
             // ▲▲▲ 恒久制度カード重複防止ここまで ▲▲▲
+
+            // ▼▼▼ 職業カード: 医師と配偶者の組み合わせ制限 ▼▼▼
+            // （適用先は applyCardEffect の転職処理と同じく、求職中のプレイヤー or プレイヤー2）
+            if (scannedCard.type === 'job') {
+                const targetKey = gameState.players.player1.needsNewJob ? 'player1' : 'player2';
+                const partnerJobId = gameState.players[partnerKeyOf(targetKey)].jobId;
+                if (!isJobAllowedWithPartner(id, partnerJobId)) {
+                    alert("医師の配偶者は専業主婦（主夫）のみです。この組み合わせの職業カードは使えません。");
+                    closeCameraAndReturn();
+                    return;
+                }
+            }
+            // ▲▲▲ ここまで ▲▲▲
 
             // ▼▼▼ 条件付きカードの引き直しチェック (requireFlag) ▼▼▼
             if (scannedCard.requireFlag) {
@@ -3674,7 +3862,7 @@ function showGuidanceModal(key) {
     doneBtnEl.innerHTML = (key === 'freeScan')
         ? '<i class="fas fa-times"></i> 閉じる'
         : '完了して次へ <i class="fas fa-chevron-right"></i>';
-    
+
     const backBtn = document.getElementById('guidance-back-button');
     if (backBtn) backBtn.style.display = (key === 'insurance' || key === 'turnEvent') ? 'inline-block' : 'none';
 
@@ -3727,7 +3915,38 @@ function getGuidanceText(key) {
 // キャリアチャレンジ
 function showCareerChallenge(key) {
     gameState.currentPlayerChallenge = key;
-    document.getElementById('career-challenge-player-name').textContent = gameState.players[key].name;
+    const p = gameState.players[key];
+    document.getElementById('career-challenge-player-name').textContent = p.name;
+
+    // 現在の職業・役職と、昇格で目指せる役職を表示
+    const statusEl = document.getElementById('career-challenge-status');
+    if (statusEl) statusEl.textContent = `現在: ${formatPlayerJobLabel(p)}（額面年収 ${p.grossIncome || 0}万円）`;
+
+    const jobChangeBtn = document.getElementById('career-jobchange-btn');
+    const promotionBtn = document.getElementById('career-promotion-btn');
+    const setButton = (btn, html, enabled) => {
+        if (!btn) return;
+        btn.innerHTML = html;
+        btn.disabled = !enabled;
+        btn.style.opacity = enabled ? '' : '0.5';
+    };
+
+    const partnerIsDoctor = gameState.players[partnerKeyOf(key)].jobId === DOCTOR_JOB_ID;
+    if (partnerIsDoctor && p.jobId === HOMEMAKER_JOB_ID) {
+        setButton(jobChangeBtn, '転職<br><small>パートナーが医師のため選べません</small>', false);
+    } else {
+        setButton(jobChangeBtn, '転職 (1, 6で成功)', true);
+    }
+
+    const next = getNextPromotionStep(p);
+    if (next) {
+        setButton(promotionBtn, `昇格 (成功率${getPromotionSuccessRate(p.jobId) * 10}%)<br><small>成功で「${next.title}」へ（年収×${next.rate}）</small>`, true);
+    } else if (getPromotionLadder(p.jobId).length === 0) {
+        setButton(promotionBtn, '昇格<br><small>この職業は昇格の対象外です</small>', false);
+    } else {
+        setButton(promotionBtn, '昇格<br><small>すでに最上位の役職です</small>', false);
+    }
+
     document.getElementById('careerChallengeModal').style.display = 'flex';
 }
 function handleCareerChoice(choice) {
@@ -3738,11 +3957,14 @@ function handleCareerChoice(choice) {
         return;
     }
 
-    if (p.needsNewJob && choice !== 'skip') { 
+    if (p.needsNewJob && choice !== 'skip') {
         alert("現在求職中のため、スキップされます");
         proceedToNextPlayerOrEnd();
         return;
     }
+
+    const nextStep = getNextPromotionStep(p);
+    if (choice === 'promotion' && !nextStep) return; // ボタンは無効化済み（念のため）
 
     document.getElementById('careerChallengeModal').style.display = 'none';
 
@@ -3750,12 +3972,12 @@ function handleCareerChoice(choice) {
         // ★変更点: まず職業選択画面を開く (isChallengeモード = true)
         alert("【転職チャレンジ】\n目指す職業を選択してください。\n職業の難易度（年収）に応じて成功率が変わります！");
         openJobSelectionModal(true); // true = チャレンジモード
-        
+
     } else if (choice === 'promotion') {
-        // 昇格は従来通り (30%成功固定)
-        showRoulette("昇格チャレンジ", "緑のエリア(成功)に止まれば、来期の年収がアップします！", 3, function(isSuccess) {
+        // 成功率は職業ごと（PROMOTION_SUCCESS_RATE）。成功すると職業ごとの役職に1段上がる
+        showRoulette("昇格チャレンジ", `緑のエリア(成功)に止まれば「${nextStep.title}」に昇格！ 来期の年収が×${nextStep.rate}になります`, getPromotionSuccessRate(p.jobId), function(isSuccess) {
             if (isSuccess) {
-                alert("【成功！】おめでとうございます！\n昇格が決まりました。");
+                alert(`【成功！】おめでとうございます！\n「${nextStep.title}」への昇格が決まりました。`);
                 p.promotionSuccess = true;
             } else {
                 alert("【失敗...】\n残念ながら現状維持となります。");
@@ -3948,114 +4170,12 @@ function showLifePlanKarte() {
     document.getElementById('karte-rank-title').textContent = rankTitle;
     document.getElementById('karte-advice-text').innerHTML = advice;
    
-    // 1. 診断コードの準備（生成だけして、まだ保存はしません）
-    const diagnosisId = Math.floor(100000 + Math.random() * 900000);
+    // 1. 診断コードの準備（保存は、参加者がLINEボタンかコピーボタンを押したときに行う）
+    const diagnosisId = String(Math.floor(100000 + Math.random() * 900000));
 
-    // 2. LINEボタン設定（クリック時に初めて保存を実行）
+    // 2. LINEボタン設定
     try {
-        const lineBtn = document.getElementById('line-connect-btn');
-        if (lineBtn) {
-            // ★公式LINEのURL
-            const lineUrl = "https://line.me/R/ti/p/@480gjare"; 
-
-            // ボタンの初期状態: リンクを無効化しておく
-            lineBtn.href = "javascript:void(0)"; 
-            lineBtn.target = ""; 
-            
-            // ★クリックイベント（ここに全ての処理を集約）
-            lineBtn.onclick = function(e) {
-                e.preventDefault(); // 画面遷移を一旦止める
-
-                // ボタンの連打防止と見た目変更
-                if (lineBtn.getAttribute('data-processing') === 'true') return;
-                lineBtn.setAttribute('data-processing', 'true');
-                const originalText = lineBtn.innerHTML;
-                lineBtn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> 保存中...";
-                lineBtn.style.opacity = "0.7";
-
-                // --- 保存処理の関数 ---
-                const performSave = () => {
-                    return new Promise((resolve) => {
-                        try {
-                            // タイムスタンプ取得
-                            let ts = Date.now();
-                            if(typeof firebase !== 'undefined' && firebase.database && firebase.database.ServerValue) {
-                                ts = firebase.database.ServerValue.TIMESTAMP;
-                            }
-
-                            // 保存データ作成
-                            const exportData = {
-                                players: gameState.players,
-                                balanceHistory: gameState.balanceHistory,
-                                marriage: gameState.marriage,
-                                children: gameState.children,
-                                house: gameState.house,
-                                car: gameState.car,
-                                insurance: gameState.insurance,
-                                totalAssets: gameState.totalAssets,
-                                currentAge: gameState.currentAge,
-                                retirementBonus: gameState.retirementBonus,
-                                roomId: (typeof roomIdInput !== 'undefined' && roomIdInput) ? roomIdInput.value : "unknown",
-                                timestamp: ts
-                            };
-
-                            // Firebaseへ保存
-                            if(typeof database !== 'undefined' && database) {
-                                database.ref('diagnosis/' + diagnosisId).set(exportData)
-                                    .then(() => resolve(true))
-                                    .catch((err) => {
-                                        console.error("Save Error:", err);
-                                        resolve(false); // エラーでも進む
-                                    });
-                            } else {
-                                resolve(false); // DBなし
-                            }
-                        } catch(e) {
-                            console.error("Logic Error:", e);
-                            resolve(false);
-                        }
-                    });
-                };
-
-                // --- 保存実行後の処理 ---
-                performSave().then((success) => {
-                    // IDをクリップボードにコピー
-                    if(navigator.clipboard) {
-                        navigator.clipboard.writeText(diagnosisId).catch(() => {});
-                    }
-                    
-                    // ローカルストレージにバックアップ
-                    localStorage.setItem('lifeGame_lastDiagnosisId', diagnosisId);
-
-                    // 完了アラート
-                    alert("【診断コード: " + diagnosisId + "】\n\nデータを保存し、IDをコピーしました！\nLINE登録後の診断シートで「貼り付け」てください。");
-
-                    // LINEへ移動
-                    window.open(lineUrl, '_blank');
-
-                    // ボタンを元に戻す
-                    lineBtn.innerHTML = originalText;
-                    lineBtn.style.opacity = "1";
-                    lineBtn.removeAttribute('data-processing');
-                });
-            };
-            
-            // コード表示エリアの更新（案内文）
-            const btnContainer = lineBtn.parentNode;
-            const existingCode = document.getElementById('diagnosis-code-display');
-            if(existingCode) existingCode.remove();
-
-            const codeDiv = document.createElement('div');
-            codeDiv.id = 'diagnosis-code-display';
-            codeDiv.style.marginBottom = '10px';
-            codeDiv.innerHTML = `
-                <p style="font-size:0.8em; color:#666;">
-                    診断コード: <strong style="font-size:1.2em; color:#e53e3e;">${diagnosisId}</strong><br>
-                    (ボタンを押すとデータが保存されます)
-                </p>
-            `;
-            btnContainer.insertBefore(codeDiv, lineBtn);
-        }
+        setupLineConnect(diagnosisId);
     } catch(e) {
         console.error("Button Setup Error:", e);
     }
@@ -4084,6 +4204,7 @@ function showExplanation() {
     if (lastScannedCardId && CARD_DATA[lastScannedCardId]) {
         const c = CARD_DATA[lastScannedCardId];
         t = c.explanation || '解説なし';
+        if (c.type === 'job') t += buildJobCareerHtml(lastScannedCardId);
 
         // ★退職金トリガーの場合は、対象者の詳細カードの解説を見に行く
         if (c.type === 'retirement_trigger') {
@@ -4555,11 +4676,16 @@ function openJobSelectionModal(isChallenge = false) {
     
     if(!container) return;
     container.innerHTML = '';
-    
-    // 専業主婦(J010)も含める
+
+    // 専業主婦(J010)も含める。ただし医師と、その配偶者の職業の組み合わせ制限を満たすものだけ
+    const partnerJobId = gameState.players[partnerKeyOf(getJobChangeTargetKey())].jobId;
     const jobs = Object.keys(CARD_DATA)
-        .filter(key => CARD_DATA[key].type === 'job') 
+        .filter(key => CARD_DATA[key].type === 'job')
+        .filter(key => isJobAllowedWithPartner(key, partnerJobId))
         .map(key => ({ id: key, ...CARD_DATA[key] }));
+    const doctorNote = (partnerJobId !== HOMEMAKER_JOB_ID && partnerJobId !== DOCTOR_JOB_ID)
+        ? `<div style="font-size:0.8em; color:#718096; margin-top:5px;">※医師はパートナーが専業主婦（主夫）の場合のみ選べます</div>`
+        : '';
 
     let currentIndex = 0;
     tempSelectedNewJobId = jobs[0].id;
@@ -4625,6 +4751,7 @@ function openJobSelectionModal(isChallenge = false) {
             <div style="color:#48bb78; font-size:1.1em;">手取り: 約${net}万円</div>
             <div style="font-size:0.8em; color:#666; margin-bottom:5px;">(※30代水準から再スタート)</div>
             ${rateInfo}
+            ${doctorNote}
             <button onclick="showLocalExplanation('${item.id}')" style="${infoButtonStyle}">
                 <i class="fas fa-info-circle"></i> 解説を見る
             </button>
@@ -4656,9 +4783,16 @@ function openJobSelectionModal(isChallenge = false) {
     modal.style.display = 'flex';
 }
 
+// 転職するプレイヤー: キャリアチャレンジ中はチャレンジ中の本人、それ以外は求職中のプレイヤー
+// （旧実装は求職中フラグだけで判定していたため、プレイヤー1の転職がプレイヤー2に適用されていた）
+function getJobChangeTargetKey() {
+    if (gameState.isCareerChallengeActive && gameState.currentPlayerChallenge) return gameState.currentPlayerChallenge;
+    return gameState.players.player1.needsNewJob ? 'player1' : 'player2';
+}
+
 // 転職実行処理
 function executeJobChange() {
-    const pKey = gameState.players.player1.needsNewJob ? 'player1' : 'player2';
+    const pKey = getJobChangeTargetKey();
     const p = gameState.players[pKey];
     const newJobId = tempSelectedNewJobId;
     const jobData = CARD_DATA[newJobId];
@@ -4673,8 +4807,8 @@ function executeJobChange() {
     // 2. ★重要: キャリア年齢を30歳にセット
     p.careerAge = 30;
 
-    // ▼▼▼ 追加: 転職したら過去の昇格ボーナスはリセット ▼▼▼
-    p.promotionBonus = 0; 
+    // ▼▼▼ 追加: 転職したら役職はリセット ▼▼▼
+    p.promotionLevel = 0;
     // ▲▲▲ 追加ここまで ▲▲▲
 
     // 3. 給与を30代水準で適用
@@ -4835,13 +4969,170 @@ function showChildSupportDetail() {
     modal.style.display = 'flex';
 }
 // ==========================================================
-// ▼▼▼ 修正版: 公式LINE登録リンク生成 (データ送信なし) ▼▼▼
+// ▼▼▼ 公式LINE登録ボタン（2026年10月改修） ▼▼▼
+// 旧実装は「Firebase保存の完了を待つ → alert → window.open でLINEを開く」の順だったため、
+//   ・iPhone(Safari)は、タップした瞬間以外の window.open をポップアップとしてブロックする（初期設定でON）
+//   ・Android(Chrome)も、タップから約5秒を過ぎた window.open はブロックする（alertを読んでいる間に経過）
+//   ・電波が悪いと Firebase の保存が終わらず「保存中...」のまま止まる
+// といった理由で、端末や通信状況によってLINEが開かなかった。
+// 改修後はボタンを普通のリンク(<a href>)にして、タップと同時にブラウザ自身がLINEを開く。
+// データ保存と診断コードのコピーは画面遷移を止めずに行う。
 // ==========================================================
-function prepareLineDiagnosisData() {
-    // ★重要: ここをご自身の公式LINEのID（@...）に変更してください
-    const lineId = "@480gjare"; 
+// ★公式LINEのID・友だち追加URL（変更時は index.html の line-connect-btn / line-official-id も合わせる）
+//   URLはLINE公式の推奨形式（@ を %40 にエンコード）。
+//   LINE公式アカウントマネージャーの「友だち追加ガイド」で発行できる https://lin.ee/... に差し替えても可。
+const LINE_OFFICIAL_ID = '@480gjare';
+const LINE_ADD_FRIEND_URL = 'https://line.me/R/ti/p/%40480gjare';
+const DIAGNOSIS_SAVE_SLOW_MS = 8000;
 
-    // 友だち追加画面を開くURL (https://line.me/R/ti/p/{LINE_ID})
-    // ※ID検索用URLスキームを使用
-    return `https://line.me/R/ti/p/@480gjare`;
+function prepareLineDiagnosisData() {
+    return LINE_ADD_FRIEND_URL;
+}
+
+// テキストをクリップボードへコピーする。タップの処理中に同期的に呼ぶこと
+// （古いAndroid・iPhoneでも動く execCommand を先に試し、だめなら Clipboard API）
+function copyTextToClipboard(text) {
+    const s = String(text);
+    let copied = false;
+    try {
+        const ta = document.createElement('textarea');
+        ta.value = s;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '0';
+        ta.style.left = '0';
+        ta.style.opacity = '0';
+        ta.style.fontSize = '16px'; // iPhoneで画面が拡大されないように
+        document.body.appendChild(ta);
+        ta.select();
+        ta.setSelectionRange(0, s.length); // iPhone対策
+        copied = document.execCommand('copy');
+        document.body.removeChild(ta);
+    } catch (e) {
+        copied = false;
+    }
+    if (!copied && navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(s).catch(() => {});
+        copied = true; // 非同期のため成否は確定しないが、コードは画面にも表示している
+    }
+    return copied;
+}
+
+function showLineNotice(message, kind) {
+    if (typeof lrShowToast === 'function') lrShowToast(message, kind || 'success');
+}
+
+// 診断データの保存状況: idle(未保存) / saving / slow(通信待ち) / saved / failed
+let diagnosisSave = { id: null, status: 'idle' };
+
+function updateDiagnosisSaveStatus() {
+    const el = document.getElementById('diagnosis-save-status');
+    if (!el) return;
+    const texts = {
+        idle: ['#718096', '（LINEボタンかコピーボタンを押すと、診断シート用のデータが保存されます）'],
+        saving: ['#718096', 'データを保存しています…'],
+        slow: ['#c05621', '通信に時間がかかっています。この画面は閉じずにお待ちください（LINEは先に開いて大丈夫です）'],
+        saved: ['#2f855a', '✓ 診断シート用のデータを保存しました'],
+        failed: ['#e53e3e', '保存できませんでした。電波の良い場所で「コードをコピー」をもう一度押してください']
+    };
+    const t = texts[diagnosisSave.status] || texts.idle;
+    el.style.color = t[0];
+    el.textContent = t[1];
+}
+
+// 診断シート用データを Firebase に保存する（画面遷移は待たない）
+function saveDiagnosisData(diagnosisId) {
+    if (diagnosisSave.id === diagnosisId && ['saving', 'saved'].includes(diagnosisSave.status)) return;
+    diagnosisSave = { id: diagnosisId, status: 'saving' };
+    updateDiagnosisSaveStatus();
+    try { localStorage.setItem('lifeGame_lastDiagnosisId', diagnosisId); } catch (e) {}
+
+    const setStatus = (status) => {
+        if (diagnosisSave.id !== diagnosisId || diagnosisSave.status === 'saved') return;
+        diagnosisSave.status = status;
+        updateDiagnosisSaveStatus();
+    };
+
+    if (typeof database === 'undefined' || !database) { setStatus('failed'); return; }
+
+    let ts = Date.now();
+    if (typeof firebase !== 'undefined' && firebase.database && firebase.database.ServerValue) {
+        ts = firebase.database.ServerValue.TIMESTAMP;
+    }
+    const exportData = {
+        players: gameState.players,
+        balanceHistory: gameState.balanceHistory,
+        marriage: gameState.marriage,
+        children: gameState.children,
+        house: gameState.house,
+        car: gameState.car,
+        insurance: gameState.insurance,
+        totalAssets: gameState.totalAssets,
+        currentAge: gameState.currentAge,
+        retirementBonus: gameState.retirementBonus,
+        roomId: (typeof roomIdInput !== 'undefined' && roomIdInput) ? roomIdInput.value : "unknown",
+        timestamp: ts
+    };
+
+    // 電波が悪いと set() がなかなか完了しないため、一定時間で「通信待ち」と表示（書き込み自体は続く）
+    setTimeout(() => { if (diagnosisSave.id === diagnosisId && diagnosisSave.status === 'saving') setStatus('slow'); }, DIAGNOSIS_SAVE_SLOW_MS);
+    try {
+        database.ref('diagnosis/' + diagnosisId).set(exportData)
+            .then(() => setStatus('saved'))
+            .catch((err) => { console.error("Save Error:", err); setStatus('failed'); });
+    } catch (e) {
+        console.error("Save Error:", e);
+        setStatus('failed');
+    }
+}
+
+// 結果画面（カルテ）のLINE登録エリアを設定する
+function setupLineConnect(diagnosisId) {
+    diagnosisSave = { id: null, status: 'idle' };
+
+    const codeEl = document.getElementById('diagnosis-code-display');
+    if (codeEl) {
+        codeEl.innerHTML = `
+            <p style="font-size:0.85em; color:#4a5568; margin-bottom:6px;">
+                診断コード: <strong style="font-size:1.4em; color:#e53e3e; letter-spacing:2px;">${diagnosisId}</strong>
+                <button id="copy-diagnosis-code-btn" type="button" class="btn-secondary" style="padding:6px 14px; font-size:0.85em; margin-left:6px;">
+                    <i class="fas fa-copy"></i> コードをコピー
+                </button>
+            </p>
+            <p style="font-size:0.8em; color:#666; margin-bottom:4px;">LINE登録後の診断シートで、このコードを貼り付けてください</p>
+            <p id="diagnosis-save-status" style="font-size:0.8em; margin-bottom:6px;"></p>
+        `;
+        document.getElementById('copy-diagnosis-code-btn').onclick = function() {
+            const copied = copyTextToClipboard(diagnosisId);
+            saveDiagnosisData(diagnosisId);
+            showLineNotice(copied ? `診断コード ${diagnosisId} をコピーしました` : 'コピーできませんでした。コードをメモしてください', copied ? 'success' : 'error');
+        };
+    }
+
+    const lineBtn = document.getElementById('line-connect-btn');
+    if (lineBtn) {
+        // 普通のリンクとして開く（window.open は使わない）
+        lineBtn.href = LINE_ADD_FRIEND_URL;
+        lineBtn.target = '_blank';
+        lineBtn.rel = 'noopener';
+        lineBtn.onclick = function() {
+            // ※ preventDefault しない: このあとブラウザがそのままLINEを開く
+            //   alert も出さない（タップ直後の遷移を妨げないため）
+            const copied = copyTextToClipboard(diagnosisId);
+            saveDiagnosisData(diagnosisId);
+            if (copied) showLineNotice(`診断コード ${diagnosisId} をコピーしました`);
+        };
+    }
+
+    const idEl = document.getElementById('line-official-id');
+    if (idEl) idEl.textContent = LINE_OFFICIAL_ID;
+    const idBtn = document.getElementById('copy-line-id-btn');
+    if (idBtn) {
+        idBtn.onclick = function() {
+            const copied = copyTextToClipboard(LINE_OFFICIAL_ID);
+            showLineNotice(copied ? `ID ${LINE_OFFICIAL_ID} をコピーしました。LINEの「ID検索」に貼り付けてください` : 'コピーできませんでした。IDを入力してください', copied ? 'success' : 'error');
+        };
+    }
+
+    updateDiagnosisSaveStatus();
 }

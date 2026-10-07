@@ -260,6 +260,20 @@ h1 {
 .make-input-group input { width: 100%; padding: 10px; border: 2px solid #ccc; border-radius: 8px; font-size: 1em; }
 .child-roulette-display { font-size: 5em; font-weight: bold; color: #48bb78; margin: 20px 0; font-family: 'M PLUS Rounded 1c', sans-serif; }
 .make-controls { margin-top: 30px; padding-bottom: 40px; }
+
+/* --- ファミリーメイク: ページ切り替え（前のページをフェードアウト → 次のページをフェードイン） --- */
+/*     白いカード(.container)は残し、中身だけを切り替える。切り替え中は操作できないようにする */
+#familyMakeScreen.make-page-leave > * { animation: makePageLeave 0.3s ease forwards; pointer-events: none; }
+#familyMakeScreen.make-page-enter > * { animation: makePageEnter 0.35s ease both; }
+@keyframes makePageLeave { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-30px); } }
+@keyframes makePageEnter { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes makePageFadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes makePageFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+    /* 動きを減らす設定の端末では、横移動なしのフェードだけにする */
+    #familyMakeScreen.make-page-leave > * { animation-name: makePageFadeOut; }
+    #familyMakeScreen.make-page-enter > * { animation-name: makePageFadeIn; }
+}
 .job-image { width: 100%; max-width: 180px; height: 150px; object-fit: contain; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
 
 /* --- Balance Detail Card (Smart Accordion) --- */
