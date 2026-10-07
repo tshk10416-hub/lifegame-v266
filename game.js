@@ -113,7 +113,7 @@ const CARD_DATA = {
     },
     "J009": { 
         title: "職業: パート従業員", type: "job", image: "パート.png", salary: { 30: 100, 40: 100, 50: 100, 60: 100 }, life_point: 5, 
-        explanation: "<h3>パート従業員</h3><p><strong>【特徴】</strong><br>家庭との両立を重視する働き方です。主に配偶者（プレイヤー2）が選択します。世帯収入を底上げしつつ、無理のない範囲で働きます。</p><p><strong>【現実のデータ】</strong><br>年収103万円や130万円の壁を意識して働くケースが多いです。短時間勤務で家計を補助する重要な役割を果たします。</p>" 
+        explanation: "<h3>パート従業員</h3><p><strong>【特徴】</strong><br>家庭との両立を重視する働き方です。主に配偶者（プレイヤー2）が選択します。世帯収入を底上げしつつ、無理のない範囲で働きます。</p><p><strong>【現実のデータ】</strong><br>年収110万円（住民税）や130万円（社会保険の扶養）の壁を意識して働くケースが多いです。扶養内で働く場合、ゲームでも税金・社会保険料はほぼかからず、額面がそのまま手取りになります。短時間勤務で家計を補助する重要な役割を果たします。</p>" 
     },
     "J010": { 
         title: "職業: 専業主婦（主夫）", type: "job", image: "専業主婦.png", salary: { 30: 0, 40: 0, 50: 0, 60: 0 }, life_point: 10, 
@@ -921,18 +921,32 @@ let isChildRouletteRunning = false;
 // 3. ヘルパー関数
 // ==========================================================
 
+// ▼ 年収の壁（2026年10月追加: 配偶者の扶養内で働くパートの手取り）
+//   年収130万円未満は社会保険料がかからない（配偶者の扶養内）。所得税は令和7年度改正で年収160万円まで非課税、
+//   住民税（所得割）は年収110万円以下で非課税。→ 110万円以下は手取り=額面、110〜130万円未満は住民税のみ。
+//   旧実装は年収100万円のパートからも2割（20万円）を差し引いていた。
+const DEPENDENT_SOCIAL_INSURANCE_LIMIT = 130;
+const RESIDENT_TAX_FREE_LIMIT = 110;
+
 function getNetIncomeDetails(grossIncome) {
     let net = 0;
     if (grossIncome <= 2000) net = Math.round(grossIncome * 0.64);
     if (grossIncome <= 1000) net = Math.round(grossIncome * 0.735);
     if (grossIncome <= 600) net = Math.round(grossIncome * 0.77);
     if (grossIncome <= 400) net = Math.round(grossIncome * 0.80);
+    const isDependent = grossIncome > 0 && grossIncome < DEPENDENT_SOCIAL_INSURANCE_LIMIT;
+    if (isDependent) {
+        // 住民税（所得割）10%: 課税所得 = 年収 − 110万円（給与所得控除65万 + 住民税の基礎控除43万 などの目安）
+        net = Math.round(grossIncome - Math.max(0, grossIncome - RESIDENT_TAX_FREE_LIMIT) * 0.1);
+    }
     const totalDeduction = grossIncome - net;
-    const deductions = { 
-        health: Math.round(totalDeduction * 0.4), 
-        pension: Math.round(totalDeduction * 0.4), 
-        employment: Math.round(totalDeduction * 0.05), 
-        incomeTax: Math.round(totalDeduction * 0.1), 
+    const deductions = isDependent
+        ? { health: 0, pension: 0, employment: 0, incomeTax: 0, residentTax: totalDeduction, total: totalDeduction }
+        : {
+        health: Math.round(totalDeduction * 0.4),
+        pension: Math.round(totalDeduction * 0.4),
+        employment: Math.round(totalDeduction * 0.05),
+        incomeTax: Math.round(totalDeduction * 0.1),
         residentTax: Math.round(totalDeduction * 0.05),
         total: totalDeduction
     };
@@ -1093,6 +1107,29 @@ function getTempHouseholdGross() {
     return salary1 + salary2;
 }
 
+// ▼▼▼ 世帯年収に応じた費用（2026年10月改定） ▼▼▼
+// 旧: 世帯年収 600万円未満=low / 1,000万円未満=mid / それ以上=high の3段階。
+//     600万円・1,000万円を少し超えただけで費用が跳ね上がり、収入が増えたのに収支が悪化していた。
+// 新: 500万円以下は low、800万円で mid、1,000万円以上は high の金額とし、その間は年収に応じて直線的に変化させる。
+//     （high の境目は旧仕様と同じ1,000万円のまま。高年収世帯の負担が下がらないようにするため）
+const COST_INCOME_ANCHORS = { low: 500, mid: 800, high: 1000 };
+
+function valueByIncome(low, mid, high, gross) {
+    const g = Number(gross) || 0;
+    const A = COST_INCOME_ANCHORS;
+    if (g <= A.low) return low;
+    if (g < A.mid) return low + (mid - low) * (g - A.low) / (A.mid - A.low);
+    if (g < A.high) return mid + (high - mid) * (g - A.mid) / (A.high - A.mid);
+    return high;
+}
+
+// costsByIncome { low, mid, high } から、世帯年収に応じた金額（万円・整数）を求める
+function costByIncome(costs, gross) {
+    if (!costs) return 0;
+    return Math.round(valueByIncome(costs.low, costs.mid, costs.high, gross));
+}
+
+// 画面表示用の目安ランク（費用の計算には使わない）
 function getCostRank(gross) {
     if (gross < 600) return 'low';
     if (gross < 1000) return 'mid';
@@ -1416,8 +1453,6 @@ function renderMakeStep() {
     contentArea.innerHTML = ''; 
     
     const currentGross = getTempHouseholdGross();
-    const rank = getCostRank(currentGross);
-    const rankText = rank === 'low' ? '～600万' : (rank === 'mid' ? '600～1000万' : '1000万～');
 
     switch(familyMakeState.step) {
         case 0:
@@ -1451,7 +1486,7 @@ function renderMakeStep() {
             if(childRouletteInterval) clearInterval(childRouletteInterval);
 
             titleEl.textContent = "子どもの人数";
-            descEl.innerHTML = `子どもを持つか、夫婦2人で暮らすかを選んでください。<br><small style="color:#718096;">「子どもを持つ」を選ぶと、人数（1〜3人）をルーレットで決めます。</small><br><small style="color:#e53e3e;">世帯年収ランク: ${rankText}</small>`;
+            descEl.innerHTML = `子どもを持つか、夫婦2人で暮らすかを選んでください。<br><small style="color:#718096;">「子どもを持つ」を選ぶと、人数（1〜3人）をルーレットで決めます。</small><br><small style="color:#e53e3e;">現在の世帯年収(30代予測): ${currentGross}万円（教育費は世帯年収に応じて変わります）</small>`;
 
             // ▼▼▼ 子どもあり／なしは選択制。ルーレットは「子どもを持つ」を選んだときだけ（1〜3人） ▼▼▼
             contentArea.innerHTML += `
@@ -1555,8 +1590,7 @@ function createSlider(container, type, defaultId, stateKey, allowedIds = null) {
             `;
         } else if (type === 'marriage') {
             const householdGross = getTempHouseholdGross();
-            const rank = getCostRank(householdGross);
-            const cost = item.costsByIncome[rank];
+            const cost = costByIncome(item.costsByIncome, householdGross);
             infoText = `
                 <div style="color:#e53e3e; font-size:1.2em;">費用: ${cost}万円</div>
                 <div style="font-size:0.8em; color:#718096;">(世帯年収連動)</div>
@@ -1607,14 +1641,13 @@ function createSimpleSlider(container, items, defaultVal, stateKey) {
         let infoContent = "";
         if (stateKey === 'houseLevel') {
             const householdGross = getTempHouseholdGross();
-            const rank = getCostRank(householdGross);
             const typeIndex = familyMakeState.houseType || 0;
             const levelIndex = item.id;
             const cardIdNum = (typeIndex * 3) + levelIndex + 1;
             const cardId = 'H00' + cardIdNum;
             const cardData = CARD_DATA[cardId];
             if (cardData && cardData.costsByIncome) {
-                const cost = cardData.costsByIncome[rank];
+                const cost = costByIncome(cardData.costsByIncome, householdGross);
                 infoContent += `<div style="color:#e53e3e; font-size:1.2em;">住居費: ${cost}万円/年</div>`;
             }
         }
@@ -1741,9 +1774,8 @@ function toggleChildRoulette() {
 
         const imgMap = { 1: "子1.png", 2: "子２.png", 3: "子３.png" };
         const householdGross = getTempHouseholdGross();
-        const rank = getCostRank(householdGross);
-        
-        const baseCost = CARD_DATA[childCardId].costsByIncome[rank];
+
+        const baseCost = costByIncome(CARD_DATA[childCardId].costsByIncome, householdGross);
         const cost30 = Math.round(baseCost * 0.6); 
         const cost40 = Math.round(baseCost * 1.4); 
 
@@ -1964,10 +1996,7 @@ function initGameFromMake() {
     });
 
     const totalIncome = gameState.players.player1.grossIncome + gameState.players.player2.grossIncome;
-    let mCost = 0;
-    if (totalIncome < 600) mCost = marCard.costsByIncome.low;
-    else if (totalIncome < 1000) mCost = marCard.costsByIncome.mid;
-    else mCost = marCard.costsByIncome.high;
+    const mCost = costByIncome(marCard.costsByIncome, totalIncome);
     
     gameState.marriage.cost = mCost;
     
@@ -2097,8 +2126,7 @@ function getHouseholdGross() {
 // 世帯年収ランク（～600万 / 600～1000万 / 1000万～）に応じたカードの基準額
 function getCostByIncomeRank(card) {
     if (!card.costsByIncome) return 0;
-    const g = getHouseholdGross();
-    return (g < 600) ? card.costsByIncome.low : (g < 1000 ? card.costsByIncome.mid : card.costsByIncome.high);
+    return costByIncome(card.costsByIncome, getHouseholdGross());
 }
 
 function getPlayerLabel(playerKey) {
@@ -2174,7 +2202,7 @@ function computeSocialEventBreakdown(card, id) {
         // --- 給付金 & 増税 ---
         case 'S007': {
             const g = getHouseholdGross();
-            const taxIncrease = (g < 600) ? 0.6 : (g < 1000 ? 1.2 : 3.6);
+            const taxIncrease = LRNet.round1(valueByIncome(0.6, 1.2, 3.6, g));
             const totalTax = LRNet.round1(taxIncrease * duration);
             add('household', -10, '給付金');
             add('household', totalTax, `増税（年間${taxIncrease.toFixed(1)}万円 × ${duration}年）`);
@@ -2369,6 +2397,8 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
 
     // 収支表示用: 最終増減値と理由（保険適用・相殺など）の記録を開始
     LRNet.begin(targetId, c);
+    // ライフポイントの増減表示用（ライフポイントは資産より先に加算されるため、ここで記録）
+    const oldLifePoint = gameState.happiness || 0;
 
     // 履歴に追加
     if (!gameState.scannedCards) gameState.scannedCards = [];
@@ -2461,18 +2491,14 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             // ガイダンス画面に戻してからアニメーション
             const ctx = gameState.guidanceContextForApply || gameState.currentGuidance;
             showGuidanceModal(ctx);
-            animateAssetChange(oldAssets, gameState.totalAssets);
+            animateAssetChange(oldAssets, gameState.totalAssets, null, { start: oldLifePoint, end: gameState.happiness || 0 });
             return;
         
         case 'car':
             // ★修正: 自動車は「一括購入」として扱い、期間倍しない
             let carCost = 0;
             const gIncome = gameState.players.player1.grossIncome + gameState.players.player2.grossIncome;
-            if (c.costsByIncome) {
-                 if (gIncome < 600) carCost = c.costsByIncome.low;
-                 else if (gIncome < 1000) carCost = c.costsByIncome.mid;
-                 else carCost = c.costsByIncome.high;
-            }
+            if (c.costsByIncome) carCost = costByIncome(c.costsByIncome, gIncome);
             
             // 資産から引く
             gameState.totalAssets -= carCost;
@@ -2551,7 +2577,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             let ec = val;
             if (c.costsByIncome) {
                 const g = gameState.players.player1.grossIncome + gameState.players.player2.grossIncome;
-                ec = (g < 600) ? c.costsByIncome.low : (g < 1000 ? c.costsByIncome.mid : c.costsByIncome.high);
+                ec = costByIncome(c.costsByIncome, g);
             }
             const ecBeforeInsurance = ec; // 保険適用前の本来の支出（理由表示用）
 
@@ -2757,7 +2783,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             
             // ガイダンス画面で資産変動アニメーションを実行
             // （増減0の場合も「0」と理由を表示）
-            animateAssetChange(oldAssets, gameState.totalAssets, netResult);
+            animateAssetChange(oldAssets, gameState.totalAssets, netResult, { start: oldLifePoint, end: gameState.happiness || 0 });
 
             gameState.guidanceContextForApply = null;
         }
@@ -2778,9 +2804,39 @@ function createGuidanceStats(assetValue) {
                     <span style="font-size:0.6em; color:white;">万円</span>
                 </div>
                 <div id="guidanceAssetDiff" style="min-height:30px; font-weight:bold; font-size:1.5em; margin-top:5px; opacity:0; transition:opacity 0.4s;"></div>
+                ${lifePointPanelHtml('guidance')}
             </div>
         `;
     }
+}
+
+// ▼▼▼ ライフポイント欄（2026年10月追加: QR読み取り時に総資産とライフポイントの両方の増減を確認できるように） ▼▼▼
+// prefix: 'guidance'（読み取り後の結果画面） / 'scan'（カメラ画面）
+function lifePointPanelHtml(prefix) {
+    return `
+        <div class="lp-panel">
+            <div style="font-size:0.9em; color:#ccc;"><i class="fas fa-heart" style="color:#FF8FAB;"></i> 現在のライフポイント</div>
+            <div class="lp-panel__value">
+                <span id="${prefix}LpValue">${(gameState.happiness || 0).toLocaleString()}</span><span class="lp-panel__unit">pt</span>
+            </div>
+            <div id="${prefix}LpDiff" class="lp-panel__diff"></div>
+        </div>
+    `;
+}
+
+// ライフポイントの増減を表示する（lp: { start, end }）
+function showLifePointChange(prefix, lp, keepVisible) {
+    const diffEl = document.getElementById(prefix + 'LpDiff');
+    if (!diffEl || !lp) return;
+    const diff = lp.end - lp.start;
+    const sign = diff > 0 ? 'plus' : (diff < 0 ? 'minus' : 'zero');
+    diffEl.className = 'lp-panel__diff lp-panel__diff--' + sign + ' lp-panel__diff--show';
+    diffEl.textContent = diff === 0 ? '±0pt（変化なし）' : LRNet.formatSigned(diff) + 'pt';
+    clearTimeout(showLifePointChange['_' + prefix]);
+    if (!keepVisible) {
+        showLifePointChange['_' + prefix] = setTimeout(() => diffEl.classList.remove('lp-panel__diff--show'), 3000);
+    }
+    if (diff !== 0) animateValue(prefix + 'LpValue', lp.start, lp.end, 1500);
 }
 
 // カメラ画面用サブ画面（カメラ使用時のリアルタイム確認用として残す）
@@ -2803,8 +2859,9 @@ function createScanOverlay() {
             <span style="font-size:0.6em; color:white;">万円</span>
         </div>
         <div id="scanAssetDiff" style="height:30px; font-weight:bold; font-size:1.5em; margin-top:5px;"></div>
+        ${lifePointPanelHtml('scan')}
     `;
-    
+
     const cameraModalContent = document.querySelector('#cameraModal .modal-content');
     if (cameraModalContent) {
         const cameraView = cameraModalContent.querySelector('.camera-view');
@@ -2840,9 +2897,19 @@ function animateValue(id, start, end, duration) {
 
 // 資産変動アニメーション（ラッパー）
 // netResult: LRNet.finish() の戻り値（省略可）。指定時は増減0でも「0」と理由を表示する。
-function animateAssetChange(startVal, endVal, netResult) {
+// lp: ライフポイントの { start, end }（省略可）。指定時はライフポイントの増減も表示する。
+function animateAssetChange(startVal, endVal, netResult, lp) {
     const diff = LRNet.round1(endVal - startVal);
-    if (diff === 0 && !netResult) return;
+    const lpChanged = !!lp && lp.end !== lp.start;
+    if (diff === 0 && !netResult && !lpChanged) return;
+
+    // ライフポイント（お金の表示と同じく、理由つき・増減0のときは消さずに残す）
+    const lpKeep = !netResult || netResult.sign === 'zero' || !!netResult.reason;
+    if (lp) {
+        showLifePointChange('guidance', lp, lpKeep);
+        if (document.getElementById('cameraModal').style.display !== 'none') showLifePointChange('scan', lp, false);
+    }
+    if (diff === 0 && !netResult) return; // お金の増減なし（ライフポイントだけ変化）
 
     const result = netResult || { diff: diff, sign: LRNet.signOf(diff), reason: '', detail: '' };
     // 理由・内訳つき（保険適用・相殺・増減0など）の場合は、読み終わるまで消さずに表示を残す
@@ -2985,10 +3052,7 @@ function nextTurn() {
 
         // 消費税15%の恒久負担
         if (gameState.taxIncreased15) {
-            let taxCost = 0;
-            if (householdGrossIncome < 600) { taxCost = 150; }
-            else if (householdGrossIncome < 1000) { taxCost = 200; }
-            else { taxCost = 250; }
+            const taxCost = Math.round(valueByIncome(150, 200, 250, householdGrossIncome));
 
             gameState.totalAssets -= taxCost;
             addEvent(`【恒久負担】消費税15%の影響により10年分の負担増：-${taxCost}万円`);
@@ -2996,10 +3060,7 @@ function nextTurn() {
 
         // 社会保険料引き上げの恒久負担
         if (gameState.socialInsuranceIncreased) {
-            let siCost = 0;
-            if (householdGrossIncome < 600) { siCost = 100; }
-            else if (householdGrossIncome < 1000) { siCost = 150; }
-            else { siCost = 200; }
+            const siCost = Math.round(valueByIncome(100, 150, 200, householdGrossIncome));
 
             gameState.totalAssets -= siCost;
             addEvent(`【恒久負担】社会保険料引き上げの影響により10年分の負担増：-${siCost}万円`);
@@ -3167,7 +3228,7 @@ function updateHouseCost() {
     const c = CARD_DATA[gameState.house.cardId];
     if (!c || !c.costsByIncome) { gameState.house.annualCost = 0; return; }
     const g = (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
-    gameState.house.annualCost = (g < 600) ? c.costsByIncome.low : (g < 1000 ? c.costsByIncome.mid : c.costsByIncome.high);
+    gameState.house.annualCost = costByIncome(c.costsByIncome, g);
 }
 
 function updateChildrenCost() {
@@ -3175,7 +3236,7 @@ function updateChildrenCost() {
     const c = CARD_DATA[gameState.children.cardId];
     if (!c || !c.costsByIncome) { gameState.children.annualCost = 0; return; }
     const g = (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
-    gameState.children.annualCost = (g < 600) ? c.costsByIncome.low : (g < 1000 ? c.costsByIncome.mid : c.costsByIncome.high);
+    gameState.children.annualCost = costByIncome(c.costsByIncome, g);
 }
 
 function updateCarCost() {
@@ -3198,11 +3259,7 @@ function recalculateAnnualExpense() {
         const p2Income = gameState.players.player2.grossIncome || 0;
         const householdIncome = p1Income + p2Income;
         
-        let rank = 'mid';
-        if (householdIncome < 600) rank = 'low';
-        else if (householdIncome >= 1000) rank = 'high';
-
-        const baseCost = CARD_DATA[gameState.children.cardId].costsByIncome[rank];
+        const baseCost = costByIncome(CARD_DATA[gameState.children.cardId].costsByIncome, householdIncome);
 
         // 子どもの人数を取得
         let childCount = 0;
@@ -3302,7 +3359,13 @@ function recalculateAnnualExpense() {
     updateDisplay();
 }
 
+// リセット・タイトルへ戻る処理中フラグ（2026年10月追加）
+// ページを再読み込みする瞬間に「画面が裏に回った時の自動保存」(liferidge_ext.js) が動き、
+// 消したばかりのゲームを保存し直していたため、1回目のリセットでタイトルに戻れなかった。
+let isLeavingGame = false;
+
 function saveGameState() {
+    if (isLeavingGame) return;
     try { localStorage.setItem(GAME_STATE_KEY, JSON.stringify(gameState)); localStorage.setItem(BALANCE_HISTORY_KEY, JSON.stringify(gameState.balanceHistory)); } catch (e) { console.error(e); }
 }
 
@@ -3681,10 +3744,7 @@ function showCardInfo(id) {
         } else { dEffect = "対象不明"; showBtn = false; }
     } else if (c.costsByIncome) {
         const g = (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
-        let cost = 0;
-        if (g < 600) cost = c.costsByIncome.low;
-        else if (g < 1000) cost = c.costsByIncome.mid;
-        else cost = c.costsByIncome.high;
+        let cost = costByIncome(c.costsByIncome, g);
         
         let unit = (c.type === 'car') ? '万円 (一括)' : (['house','children'].includes(c.type)) ? '万円/年' : '万円 (一括)';
         dEffect = `${cost}${unit} (世帯年収連動)`;
@@ -3696,7 +3756,7 @@ function showCardInfo(id) {
         let grossCost = 0;
         if (c.costsByIncome) {
             const gI = (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
-            grossCost = (gI < 600) ? c.costsByIncome.low : (gI < 1000 ? c.costsByIncome.mid : c.costsByIncome.high);
+            grossCost = costByIncome(c.costsByIncome, gI);
             if (c.conditionPenalty) grossCost = resolveSocialFlag(c.conditionPenalty.flag) ? c.conditionPenalty.amount : 0;
         } else {
             grossCost = parseNumber(c.effect);
@@ -4236,8 +4296,16 @@ function showNetIncomeModal(p,g,d) { document.getElementById('net-income-player-
 
 function showDeductionDetailsModal() { const d = gameState.tempDeductions; if(!d)return; document.getElementById('deduction-health').textContent = `-${d.health}万円`; document.getElementById('deduction-pension').textContent = `-${d.pension}万円`; document.getElementById('deduction-employment').textContent = `-${d.employment}万円`; document.getElementById('deduction-income-tax').textContent = `-${d.incomeTax}万円`; document.getElementById('deduction-resident-tax').textContent = `-${d.residentTax}万円`; document.getElementById('deduction-total').textContent = `-${d.total}万円`; document.getElementById('deductionDetailsModal').style.display='flex'; }
 function closeDeductionDetailsModal() { document.getElementById('deductionDetailsModal').style.display='none'; }
-function resetGame() { if(confirm("リセットしますか？\n現在の進行状況は失われます。")) { localStorage.clear(); location.reload(); } }
-function saveAndExitGame() { saveToHallOfFame(); RoomSync.disconnect(); localStorage.removeItem('gameStarted'); localStorage.removeItem(BALANCE_HISTORY_KEY); localStorage.removeItem(GAME_STATE_KEY); alert("保存しました。タイトルに戻ります。"); location.reload(); }
+// 進行中のゲームのデータだけを消してタイトルへ戻る
+// （旧実装は localStorage.clear() で、タイトル画面の「セーブデータ」まで消していた）
+function leaveGameToTitle() {
+    isLeavingGame = true; // 以降の自動保存と「ページを離れますか？」の確認を止める
+    try { RoomSync.disconnect(); } catch (e) { console.error(e); }
+    ['gameStarted', GAME_STATE_KEY, BALANCE_HISTORY_KEY].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+    location.reload();
+}
+function resetGame() { if(confirm("リセットしますか？\n現在の進行状況は失われます。")) { leaveGameToTitle(); } }
+function saveAndExitGame() { saveToHallOfFame(); alert("保存しました。タイトルに戻ります。"); leaveGameToTitle(); }
 function saveToHallOfFame() { if(!gameState.finalInvestmentResult) return; const e = { id: new Date().toISOString(), timestamp: new Date().toLocaleString('ja-JP'), finalAssets: gameState.totalAssets, happiness: gameState.happiness, player1Name: gameState.players.player1.name, player2Name: gameState.players.player2.name, marriage: gameState.marriage.type, children: gameState.children.count, house: gameState.house.type, balanceHistory: gameState.balanceHistory, finalInvestmentResult: gameState.finalInvestmentResult }; try { const d = localStorage.getItem(HALL_OF_FAME_KEY); let l = d ? JSON.parse(d) : []; l.push(e); l.sort((a,b)=>b.finalAssets-a.finalAssets); localStorage.setItem(HALL_OF_FAME_KEY, JSON.stringify(l.slice(0,10))); } catch(e){} }
 function showHallOfFame() { const m = document.getElementById('hallOfFameModal'); const c = document.getElementById('hallOfFameContainer'); c.innerHTML = ''; try { const d = localStorage.getItem(HALL_OF_FAME_KEY); const l = d ? JSON.parse(d) : []; if(l.length===0) c.innerHTML = '<p style="text-align:center">データなし</p>'; l.forEach(e => { c.innerHTML += `<div class="hof-entry"><div class="assets">${Math.round(e.finalAssets)}<span>万円</span><br><small style="color:#e53e3e">❤️${e.happiness||0}</small></div><div class="details"><p>${e.timestamp}</p><p>${e.player1Name}, ${e.player2Name}</p></div><div class="hof-controls"><button class="btn-secondary btn-small" onclick="showSavedBalanceDetails('${e.id}')">詳細</button><button class="btn-danger btn-small" onclick="deleteSavedEntry('${e.id}')">削除</button></div></div>`; }); } catch(e){} m.style.display = 'flex'; }
 function deleteSavedEntry(id) { if(!confirm("削除しますか？")) return; const l = JSON.parse(localStorage.getItem(HALL_OF_FAME_KEY)||'[]').filter(e=>e.id!==id); localStorage.setItem(HALL_OF_FAME_KEY, JSON.stringify(l)); showHallOfFame(); }
@@ -4323,6 +4391,7 @@ function showFinalBalanceDetails(historyOverride) {
                             ${e.oneTimeExpenses > 0 ? '-' : '+'}${Math.abs(e.oneTimeExpenses).toLocaleString()}
                         </span>
                     </div>
+                    ${buildBalanceBreakdownHtml(e)}
                     <div class="balance-row main-row" style="border-top:2px solid #eee; margin-top:5px; padding-top:10px;">
                         <span class="label">終了時資産</span>
                         <span class="value">${Math.round(e.assetsAtEnd).toLocaleString()}万円</span>
@@ -4336,6 +4405,39 @@ function showFinalBalanceDetails(historyOverride) {
     m.style.display = 'flex';
 }
 // ▲▲▲ 修正ここまで ▲▲▲
+
+// 旧ボタン（index.html の古いキャッシュ）から呼ばれても動くように残す
+function showBalance() { showFinalBalanceDetails(null); }
+
+// 年代ごとの内訳（年額の収入・固定費、その年代の一時的な支出）
+function buildBalanceBreakdownHtml(e) {
+    const d = e.details;
+    if (!d) return '';
+    const row = (label, value, cls) => value
+        ? `<div class="balance-row"><span class="label">${label}</span><span class="value ${cls}">${cls === 'val-income' ? '+' : '-'}${Math.abs(Math.round(value)).toLocaleString()}</span></div>`
+        : '';
+    const annual = [
+        row('プレイヤー1 手取り', d.p1Income, 'val-income'),
+        row('プレイヤー2 手取り', d.p2Income, 'val-income'),
+        row('住宅費', d.houseCost, 'val-expense'),
+        row('教育費', d.childCost, 'val-expense'),
+        row('生活費', d.livingCost, 'val-expense'),
+        row('車の維持費', d.carCost, 'val-expense'),
+        row('保険料', d.insuranceCost, 'val-expense'),
+        row('積立投資', d.tsumitate, 'val-expense')
+    ].join('');
+    const oneTime = [
+        row('結婚式', d.marriage, 'val-expense'),
+        row('車の購入', d.carCost_init, 'val-expense'),
+        row('ライフイベント', d.life_event, d.life_event < 0 ? 'val-income' : 'val-expense'),
+        row('社会イベント', d.social_event, d.social_event < 0 ? 'val-income' : 'val-expense'),
+        row('一括投資', d.investment_ikkatsu, 'val-expense')
+    ].join('');
+    let html = '';
+    if (annual) html += `<div style="margin-top:8px; font-size:0.85em; color:#718096; font-weight:bold;">年間の内訳（万円/年）</div>${annual}`;
+    if (oneTime) html += `<div style="margin-top:8px; font-size:0.85em; color:#718096; font-weight:bold;">一時的な収支の内訳（万円）</div>${oneTime}`;
+    return html;
+}
 function closeFinalBalanceModal() { document.getElementById('finalBalanceModal').style.display='none'; }
 function showHistoryGraph() { 
     const m = document.getElementById('finalGraphModal'); 
@@ -4520,6 +4622,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ▼ タブを閉じる/リロード時の警告（誤操作対策）
     window.addEventListener('beforeunload', (e) => {
+        if (isLeavingGame) return; // リセット・タイトルへ戻るときは確認を出さない
         const mainGame = document.getElementById('mainGameContainer');
         const inGame = mainGame && mainGame.style.display !== 'none';
         if (inGame && gameState && gameState.currentAge && gameState.currentAge < 70) {

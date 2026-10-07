@@ -143,7 +143,7 @@
             },
             "J009": { 
                 title: "職業: パート従業員", type: "job", salary: { 30: 100, 40: 100, 50: 100, 60: 100 }, 
-                explanation: "家計のサポーター。主に「プレイヤー2（配偶者）」が選択することを想定しています。無理のない範囲で働き、世帯収入を堅実に底上げします。\n　現実の平均年収は約100万〜130万円です。いわゆる「年収の壁（103万、130万など）」を意識して調整して働く人が多いため、この金額帯に集中します。(出典：厚生労働省「毎月勤労統計調査」パートタイム労働者より)" 
+                explanation: "家計のサポーター。主に「プレイヤー2（配偶者）」が選択することを想定しています。無理のない範囲で働き、世帯収入を堅実に底上げします。\n　現実の平均年収は約100万〜130万円です。いわゆる「年収の壁（住民税の110万、社会保険の130万など。所得税は2025年の改正で160万まで非課税）」を意識して調整して働く人が多いため、この金額帯に集中します。扶養内なら額面がほぼそのまま手取りになります。(出典：厚生労働省「毎月勤労統計調査」パートタイム労働者より)" 
             },
             "J010": { 
                 title: "職業: 専業主婦（主夫）", type: "job", salary: { 30: 0, 40: 0, 50: 0, 60: 0 }, 
@@ -742,16 +742,19 @@
                     unit = '万円 (一括支出)';
                 }
 
-                if (householdGrossIncome < 600) {
-                    currentCost = card.costsByIncome.low;
-                    incomeLevelText = `(世帯年収 ～599万円)`;
-                } else if (householdGrossIncome < 1000) {
-                    currentCost = card.costsByIncome.mid;
-                    incomeLevelText = `(世帯年収 600～999万円)`;
-                } else {
-                    currentCost = card.costsByIncome.high;
-                    incomeLevelText = `(世帯年収 1000万円～)`;
-                }
+                // 世帯年収に応じて少しずつ変わる（game.js の costByIncome と同じ計算）
+                //   500万円以下=low、800万円=mid、1,000万円以上=high、その間は直線的に変化
+                const ci = card.costsByIncome;
+                const g = householdGrossIncome;
+                let v;
+                if (g <= 500) v = ci.low;
+                else if (g < 800) v = ci.low + (ci.mid - ci.low) * (g - 500) / 300;
+                else if (g < 1000) v = ci.mid + (ci.high - ci.mid) * (g - 800) / 200;
+                else v = ci.high;
+                currentCost = Math.round(v);
+                incomeLevelText = gameState
+                    ? `(現在の世帯年収 ${g}万円の場合)`
+                    : `(世帯年収 500万円以下: ${ci.low}万円 / 800万円: ${ci.mid}万円 / 1,000万円以上: ${ci.high}万円)`;
 
                 // ▼▼▼ マイナス値: 臨時収入/節約効果として緑色で表示 ▼▼▼
                 if (currentCost < 0) {

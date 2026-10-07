@@ -261,6 +261,16 @@ h1 {
 .child-roulette-display { font-size: 5em; font-weight: bold; color: #48bb78; margin: 20px 0; font-family: 'M PLUS Rounded 1c', sans-serif; }
 .make-controls { margin-top: 30px; padding-bottom: 40px; }
 
+/* --- 資産パネルのライフポイント欄（QR読み取り時に総資産と並べて増減を表示） --- */
+.lp-panel { margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255, 255, 255, 0.3); }
+.lp-panel__value { font-size: 1.8em; font-weight: bold; color: #FF8FAB; font-family: monospace; line-height: 1.2; }
+.lp-panel__unit { font-size: 0.6em; color: white; margin-left: 4px; }
+.lp-panel__diff { min-height: 1.6em; font-weight: bold; font-size: 1.2em; margin-top: 3px; opacity: 0; transition: opacity 0.4s; }
+.lp-panel__diff--show { opacity: 1; }
+.lp-panel__diff--plus { color: #68d391; }
+.lp-panel__diff--minus { color: #fc8181; }
+.lp-panel__diff--zero { color: #cbd5e0; font-size: 1em; }
+
 /* --- ファミリーメイク: ページ切り替え（前のページをフェードアウト → 次のページをフェードイン） --- */
 /*     白いカード(.container)は残し、中身だけを切り替える。切り替え中は操作できないようにする */
 #familyMakeScreen.make-page-leave > * { animation: makePageLeave 0.3s ease forwards; pointer-events: none; }
