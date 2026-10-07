@@ -421,14 +421,14 @@ const CARD_DATA = {
     "T012": { title: "一括投資カード (200万円)", type: "investment", effect: "投資金額: 200万円 (一括支出)", life_point: 0, explanation: "最大限の投資効果を狙う。" },
    // --- 退職金: 会社員 (J001) ---
     "R001S": { 
-        title: "退職金: 会社員 (少)", type: "retirement", jobId: "J001", amount: 1100, life_point: 10,
+        title: "退職金: 会社員 (少)", type: "retirement", jobId: "J001", amount: 1150, life_point: 10,
         explanation: `<h3>中小企業または転職あり</h3>
-<p><strong>【判定：1,100万円】</strong><br>
+<p><strong>【判定：1,150万円】</strong><br>
 中小規模の企業での定年退職、または何度か転職を経験した場合の金額です。</p>
 <p><strong>【現実のデータ】</strong><br>
-東京都の調査によると、中小企業のモデル退職金（大卒・自己都合以外）は<strong>約1,091万円</strong>です。<br>
-大企業との格差は約2倍あり、ピーク時と比較しても約300万円減少しています。老後資金としては心許ないため、再雇用での労働が必須となる水準です。</p>
-<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～東京都産業労働局「中小企業の賃金・退職金事情(令和4年版)」より</p>`
+東京都の調査によると、中小企業のモデル退職金（大卒・定年）は<strong>約1,150万円</strong>です。<br>
+大企業（約2,200万円）との格差は約2倍あります。老後資金としては心許ないため、再雇用での労働が必須となる水準です。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～東京都産業労働局「中小企業の賃金・退職金事情(令和6年版)」より</p>`
     },
     "R001M": { 
         title: "退職金: 会社員 (普)", type: "retirement", jobId: "J001", amount: 2200, life_point: 15,
@@ -458,29 +458,29 @@ const CARD_DATA = {
 <p><strong>【判定：1,500万円】</strong><br>
 自己都合での早期退職や、中途採用などで勤続年数がフル（35年以上）に満たない場合です。</p>
 <p><strong>【現実のデータ】</strong><br>
-公務員の退職金は「勤続年数」が命です。定年まで勤めれば約2,100万円ですが、例えば勤続25年程度で早期退職すると、支給率は大きく下がります。<br>
+公務員の退職金は「勤続年数」が命です。定年まで勤めれば約2,150万円ですが、例えば勤続25年程度で早期退職すると、支給率は大きく下がります。<br>
 それでも民間の中小企業平均よりは高い水準が保証されています。</p>
 <p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～内閣官房「国家公務員退職手当実態調査」より</p>`
     },
     "R002M": { 
-        title: "退職金: 公務員 (普)", type: "retirement", jobId: "J002", amount: 2100, life_point: 15,
+        title: "退職金: 公務員 (普)", type: "retirement", jobId: "J002", amount: 2150, life_point: 15,
         explanation: `<h3>定年退職（標準）</h3>
-<p><strong>【判定：2,100万円】</strong><br>
+<p><strong>【判定：2,150万円】</strong><br>
 新卒から定年まで勤め上げた、公務員の王道パターンです。</p>
 <p><strong>【現実のデータ】</strong><br>
-国家公務員（行政職）の定年退職金平均は<strong>約2,106万円</strong>です。<br>
+国家公務員（行政職）の定年退職金平均は<strong>約2,149万円</strong>です（地方公務員の都道府県職員も約2,030万〜2,310万円）。<br>
 かつては3,000万円近くありましたが、「官民格差」を是正するために民間企業（大企業）の水準に合わせて約10年ごとに引き下げ改定が行われています。それでも、倒産リスクがなく確実に貰える点は最強のメリットです。</p>
-<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～内閣官房「退職手当の支給状況(令和4年度)」より</p>`
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～内閣官房「退職手当の支給状況(令和6年度)」より</p>`
     },
     "R002H": { 
         title: "退職金: 公務員 (多)", type: "retirement", jobId: "J002", amount: 2500, life_point: 20,
-        explanation: `<h3>事務次官・局長級</h3>
+        explanation: `<h3>部長級などの管理職で定年</h3>
 <p><strong>【判定：2,500万円】</strong><br>
-激務に耐え、本省の局長や事務次官などの指定職まで上り詰めた場合です。</p>
+課長・部長などの管理職まで昇進して定年を迎えた場合です。</p>
 <p><strong>【現実のデータ】</strong><br>
-指定職（幹部）の平均退職金額は、一般職より高く設定されています。<br>
-ただし、いわゆる「天下り」規制が厳しくなったため、退職後の渡り歩きによる生涯収入は昔ほど青天井ではありません。純粋に現役時代の激務への対価と言えます。</p>
-<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～内閣官房「国家公務員退職手当実態調査」指定職データより</p>`
+公務員の退職手当は「退職時の給料×勤続年数に応じた支給率」に、管理職だった期間に応じた<strong>調整額</strong>が加算されます。<br>
+そのため、管理職で定年を迎えると一般職員の定年平均（約2,150万円）より数百万円高くなります。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～内閣官房「退職手当の支給状況」・国家公務員退職手当法（調整額）より</p>`
     },
 
     // --- 退職金: 料理人 (J003) ---
@@ -517,32 +517,32 @@ const CARD_DATA = {
 
     // --- 退職金: 保育士 (J004) ---
     "R004S": { 
-        title: "退職金: 保育士 (少)", type: "retirement", jobId: "J004", amount: 300, life_point: 5,
-        explanation: `<h3>私立園（小規模）</h3>
-<p><strong>【判定：300万円】</strong><br>
-小規模な社会福祉法人が運営する園で、退職金共済のみの支給の場合です。</p>
+        title: "退職金: 保育士 (少)", type: "retirement", jobId: "J004", amount: 570, life_point: 5,
+        explanation: `<h3>私立園（勤続20年程度）</h3>
+<p><strong>【判定：570万円】</strong><br>
+私立園で、途中で転職したなどにより同じ法人での勤続が20年程度の場合です。</p>
 <p><strong>【現実のデータ】</strong><br>
-私立保育園の場合、園独自の制度はなく、福祉医療機構の「退職手当共済」のみというケースが多々あります。<br>
-この場合、30年勤続しても受取額は<strong>約600万円以下</strong>になることが多く、公立保育士との格差（官民格差）が大きな問題となっています。</p>
+私立保育園の多くは、福祉医療機構の「退職手当共済」に加入しています。この共済は勤続年数が長いほど有利な仕組みで、勤続20年の支給例は<strong>約572万円</strong>です。<br>
+転職して勤続年数がリセットされると、受取額は大きく下がります。</p>
 <p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～福祉医療機構「退職手当共済事業」給付実績より</p>`
     },
     "R004M": { 
-        title: "退職金: 保育士 (普)", type: "retirement", jobId: "J004", amount: 900, life_point: 10,
-        explanation: `<h3>私立園（中堅・制度あり）</h3>
-<p><strong>【判定：900万円】</strong><br>
-退職金制度が整備された私立園で、園長クラスまで勤めた場合です。</p>
+        title: "退職金: 保育士 (普)", type: "retirement", jobId: "J004", amount: 1300, life_point: 10,
+        explanation: `<h3>私立園で定年まで勤続</h3>
+<p><strong>【判定：1,300万円】</strong><br>
+同じ私立園（社会福祉法人）で定年まで勤め上げた場合です。</p>
 <p><strong>【現実のデータ】</strong><br>
-私立でも、複数の園を運営する大規模法人などでは独自の上乗せ制度がある場合があります。<br>
-それでも全産業平均（約1,100万〜2,200万）と比較すると低い水準にあり、現役時代の「処遇改善手当」をいかに貯蓄に回せたかが重要になります。</p>
-<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～厚生労働省「幼稚園・保育所等の経営実態調査」より</p>`
+退職手当共済の支給例は、勤続30年で<strong>約1,083万円</strong>、勤続40年で<strong>約1,583万円</strong>です（勤続35年で約1,300万円）。<br>
+それでも公立保育士（地方公務員・約2,150万円）とは大きな差があり、現役時代の「処遇改善手当」をいかに貯蓄に回せたかが重要になります。</p>
+<p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～福祉医療機構「社会福祉施設職員等退職手当共済制度」支給例より</p>`
     },
     "R004H": { 
-        title: "退職金: 保育士 (多)", type: "retirement", jobId: "J004", amount: 2100, life_point: 15,
+        title: "退職金: 保育士 (多)", type: "retirement", jobId: "J004", amount: 2150, life_point: 15,
         explanation: `<h3>公立保育士（公務員）</h3>
-<p><strong>【判定：2,100万円】</strong><br>
+<p><strong>【判定：2,150万円】</strong><br>
 公立保育園に採用され、地方公務員として定年まで勤め上げた場合です。</p>
 <p><strong>【現実のデータ】</strong><br>
-公立保育士は身分が「地方公務員」であるため、退職金も<strong>公務員規定（約2,100万円）</strong>が適用されます。<br>
+公立保育士は身分が「地方公務員」であるため、退職金も<strong>公務員規定（約2,150万円）</strong>が適用されます。<br>
 同じ仕事内容でも、勤務先が公立か私立かで老後資金に1,000万円以上の差がつくのが、保育業界の隠れた実態です。</p>
 <p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～総務省「地方公務員給与実態調査」より</p>`
     },
@@ -601,9 +601,9 @@ const CARD_DATA = {
 <p class="source-text" style="font-size:0.8em; color:#666; text-align:right;">～医療経済実態調査データより</p>`
     },
     "R006H": { 
-        title: "退職金: 看護師 (多)", type: "retirement", jobId: "J006", amount: 2100, life_point: 20,
+        title: "退職金: 看護師 (多)", type: "retirement", jobId: "J006", amount: 2150, life_point: 20,
         explanation: `<h3>公立・国立病院</h3>
-<p><strong>【判定：2,100万円】</strong><br>
+<p><strong>【判定：2,150万円】</strong><br>
 国立病院機構や県立病院などに勤務し、公務員（準公務員）扱いとなった場合です。</p>
 <p><strong>【現実のデータ】</strong><br>
 ここでも「公務員規定」の強さが発揮されます。<br>
@@ -720,6 +720,40 @@ function getPromotionRate(p, age) {
     if (!step) return 1;
     if (age >= 60) return 1 + (step.rate - 1) * PROMOTION_60S_FACTOR;
     return step.rate;
+}
+
+// ▼▼▼ 退職金の勤続年数による調整（2026年10月追加） ▼▼▼
+// 退職金カードの金額は「30歳から65歳まで同じ職業（勤続35年）」の場合。転職すると今の職業での勤続年数が短くなり減額する。
+// 割合は福祉医療機構「社会福祉施設職員等退職手当共済」（国家公務員の退職手当に準じた制度）の支給例を
+// 勤続35年=100%として換算: 5年 49.6万 / 10年 114.8万 / 15年 269.7万 / 20年 572.5万 / 30年 1,083万 / 40年 1,583万
+const RETIREMENT_AGE = 65;
+const FULL_TENURE_YEARS = 35;
+const TENURE_RATE_POINTS = [[0, 0], [5, 0.037], [10, 0.086], [15, 0.202], [20, 0.429], [30, 0.812], [35, 1]];
+
+function getTenureRate(years) {
+    const y = Math.max(0, Math.min(FULL_TENURE_YEARS, years));
+    for (let i = 1; i < TENURE_RATE_POINTS.length; i++) {
+        const [y0, r0] = TENURE_RATE_POINTS[i - 1];
+        const [y1, r1] = TENURE_RATE_POINTS[i];
+        if (y <= y1) return r0 + (r1 - r0) * (y - y0) / (y1 - y0);
+    }
+    return 1;
+}
+
+// 今の職業に就いた年齢（旧セーブデータは careerAge から逆算: 転職直後30 → 以降10ずつ増え、60代では据え置き）
+function getJobStartAge(p) {
+    if (typeof p.jobStartAge === 'number') return p.jobStartAge;
+    if (p.careerAge) return Math.max(30, 80 - p.careerAge);
+    return 30;
+}
+
+function getRetirementTenure(p) {
+    return RETIREMENT_AGE - getJobStartAge(p);
+}
+
+// 退職金カードの金額を、勤続年数に応じて調整した金額（万円）
+function getAdjustedRetirementAmount(p, baseAmount) {
+    return Math.round(baseAmount * getTenureRate(getRetirementTenure(p)));
 }
 
 // ▼▼▼ 医師の配偶者は専業主婦（主夫）のみ（2026年10月追加: 医師は年収が突出しているため） ▼▼▼
@@ -1991,6 +2025,7 @@ function initGameFromMake() {
         const p = gameState.players[key];
         const card = CARD_DATA[p.jobId];
         p.job = card.title;
+        p.jobStartAge = 30;
         p.grossIncome = card.salary[30];
         p.income = getNetIncomeDetails(p.grossIncome).net;
     });
@@ -2023,9 +2058,12 @@ function initGameFromMake() {
     // 表示更新
     updateDisplay();
     addEvent("ファミリーメイク完了！30代の生活がスタートします。");
-    
+
     determineNextGuidance();
     saveGameState();
+
+    // ファミリーメイク中に他の人から共有されたイベントは、ここ（ゲーム開始後）で適用する
+    setTimeout(() => { if (typeof RoomSync !== 'undefined') RoomSync.applyDeferred(); }, 800);
 }
 // game.js - 修正版 v13.0 (Part 2/2)
 
@@ -2423,7 +2461,14 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
         } else {
             const tId = 'R' + p.jobId.substring(1) + c.level;
             if (CARD_DATA[tId]) {
-                gameState.retirementBonus[pKey] = CARD_DATA[tId].amount;
+                // 転職していれば、今の職業での勤続年数に応じて減額する
+                const base = CARD_DATA[tId].amount;
+                const tenure = getRetirementTenure(p);
+                const amount = getAdjustedRetirementAmount(p, base);
+                gameState.retirementBonus[pKey] = amount;
+                if (tenure < FULL_TENURE_YEARS) {
+                    addEvent(`${p.name}の退職金: ${base}万円 × 勤続${tenure}年分（${Math.round(getTenureRate(tenure) * 100)}%）= ${amount}万円（転職により減額）`);
+                }
                 if(CARD_DATA[tId].life_point) gainLifePoint(CARD_DATA[tId].life_point);
             }
         }
@@ -2475,6 +2520,7 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             targetP.income = netD.net;
             targetP.needsNewJob = false;
             targetP.promotionLevel = 0; // 職業が変わったら役職はリセット
+            targetP.jobStartAge = gameState.currentAge; // 退職金の勤続年数の起点
 
             const diffIncome = targetP.income - oldIncome;
             const incomeChange = diffIncome * duration;
@@ -2984,10 +3030,12 @@ function nextTurn() {
 
     // フロー収支 (10年間の収入 - 固定費)
     const flowDiff = (ai - ae) * years;
-    
-    // ★ totalAssets への反映は「フロー収支」のみ行う
-    // (一時支出は applyCardEffect ですでに減算済みのため)
-    gameState.totalAssets += flowDiff;
+
+    // ★ totalAssets への反映はここでは行わない（2026年10月修正）
+    //   年代の収支は年代の開始時に startTurnIncomeAndExpense() で先取りして資産に反映済み。
+    //   保険料・積立投資・社会保障費増大(S005)・サブスク解約も、カード読み込み時に残り期間分を反映済み。
+    //   旧実装はここでも flowDiff を加算していたため、30〜50代の収支と、保険料・積立額が二重に計上されていた。
+    //   flowDiff は下の履歴（収支詳細・グラフ）の表示にだけ使う。
 
    // --- 履歴には全収支を記録 ---
     const oneTimeExpenses = Object.values(gameState.turnExpenses).reduce((a, b) => a + b, 0);
@@ -3087,10 +3135,13 @@ function nextTurn() {
     } else if (gameState.currentAge === 40 || gameState.currentAge === 50) { 
         gameState.isCareerChallengeActive = true; 
         showCareerChallenge('player1'); 
-    } else { 
-        updateStateForNewTurn(); 
-        updateDisplay(); 
-        showTurnStartModal(gameState.currentAge - 10, false); 
+    } else {
+        updateStateForNewTurn();
+        // 60代（5年間）の収支も、ほかの年代と同じく開始時に先取りして反映する
+        startTurnIncomeAndExpense(gameState.currentAge);
+        updateDisplay();
+        saveGameState();
+        showTurnStartModal(gameState.currentAge - 10, false);
     }
 }
 
@@ -4151,33 +4202,47 @@ function toggleRoulette() {
     }
 }
 
+// ▼▼▼ 投資の最終評価額（2026年10月改定） ▼▼▼
+// 積立: カードの年額を12等分し、その年代の間「毎月はじめ」に積み立て、65歳まで月複利で運用する
+//       （旧実装は「10年分をまとめて年代の真ん中で投資した」とみなす近似だった）
+// 一括: 投資した年代のはじめに全額を投資し、65歳まで年複利で運用する
+const INVESTMENT_END_AGE = 65;
+
+function calcTsumitateValue(log, rate) {
+    const months = Math.round((log.endAge - log.startAge) * 12);
+    const monthlyAmount = log.amount / 12;
+    const principal = log.amount * (log.endAge - log.startAge);
+    if (rate === 0) return { principal, value: principal };
+    const monthlyRate = Math.pow(1 + rate, 1 / 12) - 1;
+    const totalMonths = Math.round((INVESTMENT_END_AGE - log.startAge) * 12);
+    let value = 0;
+    for (let t = 0; t < months; t++) value += monthlyAmount * Math.pow(1 + monthlyRate, totalMonths - t);
+    return { principal, value };
+}
+
+function calcIkkatsuValue(log, rate) {
+    return { principal: log.amount, value: log.amount * Math.pow(1 + rate, INVESTMENT_END_AGE - log.startAge) };
+}
+
 function calculateInvestmentResult(ratePercent) {
     const rate = ratePercent / 100;
-    let fv = 0, prin = 0;
-    gameState.investment.tsumitateLog.forEach(l => { 
-        const y = l.endAge - l.startAge; const p = l.amount * y; prin += p; 
-        const yearsToInvest = 65 - l.startAge - (y / 2);
-        let val = p;
-        if (rate !== 0) val = p * Math.pow(1 + rate, yearsToInvest);
-        fv += val; 
-    });
-    gameState.investment.ikkatsuLog.forEach(l => { 
-        prin += l.amount; let val = l.amount;
-        const years = 65 - l.startAge;
-        if (rate !== 0) val = l.amount * Math.pow(1 + rate, years);
-        fv += val; 
-    });
-    fv = Math.round(fv);
+    const sum = (logs, fn) => logs.reduce((acc, l) => { const r = fn(l, rate); acc.principal += r.principal; acc.value += r.value; return acc; }, { principal: 0, value: 0 });
+    const tsumitate = sum(gameState.investment.tsumitateLog || [], calcTsumitateValue);
+    const ikkatsu = sum(gameState.investment.ikkatsuLog || [], calcIkkatsuValue);
+    tsumitate.value = Math.round(tsumitate.value);
+    ikkatsu.value = Math.round(ikkatsu.value);
+    const prin = Math.round(tsumitate.principal + ikkatsu.principal);
+    let fv = tsumitate.value + ikkatsu.value;
     const bef = gameState.totalAssets;
     gameState.totalAssets = bef + fv; 
-    gameState.finalInvestmentResult = { rate: ratePercent, principal: prin, fv, gain: fv - prin, assetsBefore: bef, finalAssets: gameState.totalAssets };
+    gameState.finalInvestmentResult = { rate: ratePercent, principal: prin, fv, gain: fv - prin, assetsBefore: bef, finalAssets: gameState.totalAssets, tsumitate, ikkatsu };
     document.getElementById('investmentRateModal').style.display = 'none';
     const resDiv = document.getElementById('investmentResultSummary');
     if(resDiv) {
         const diff = fv - prin;
         const diffClass = diff >= 0 ? 'invest-val-gain' : 'invest-val-loss';
         const diffSign = diff >= 0 ? '+' : '';
-        resDiv.innerHTML = `<div class="investment-summary-container"><div class="invest-rate-header"><span class="invest-rate-label">運用年利</span><span class="invest-rate-value">${ratePercent}%</span></div><div class="invest-row"><span class="invest-label">投資元本</span><span class="invest-val">${prin.toLocaleString()}万円</span></div><div class="invest-row"><span class="invest-label">最終評価額</span><span class="invest-val">${fv.toLocaleString()}万円</span></div><div class="invest-row total-row"><span class="invest-label">運用損益</span><span class="${diffClass}">${diffSign}${diff.toLocaleString()}万円</span></div></div>`;
+        resDiv.innerHTML = `<div class="investment-summary-container"><div class="invest-rate-header"><span class="invest-rate-label">運用年利</span><span class="invest-rate-value">${ratePercent}%</span></div><div class="invest-row"><span class="invest-label">積立投資（元本 → 評価額）</span><span class="invest-val">${tsumitate.principal.toLocaleString()} → ${tsumitate.value.toLocaleString()}万円</span></div><div class="invest-row"><span class="invest-label">一括投資（元本 → 評価額）</span><span class="invest-val">${ikkatsu.principal.toLocaleString()} → ${ikkatsu.value.toLocaleString()}万円</span></div><div class="invest-row"><span class="invest-label">投資元本（合計）</span><span class="invest-val">${prin.toLocaleString()}万円</span></div><div class="invest-row"><span class="invest-label">最終評価額</span><span class="invest-val">${fv.toLocaleString()}万円</span></div><div class="invest-row total-row"><span class="invest-label">運用損益</span><span class="${diffClass}">${diffSign}${diff.toLocaleString()}万円</span></div></div>`;
     }
     document.getElementById('investmentResultModal').style.display = 'flex';
 }
@@ -4282,6 +4347,11 @@ function showExplanation() {
                     const tId = 'R' + p.jobId.substring(1) + c.level;
                     if (CARD_DATA[tId] && CARD_DATA[tId].explanation) {
                         t = CARD_DATA[tId].explanation; // 詳細解説に上書き
+                        const tenure = getRetirementTenure(p);
+                        if (tenure < FULL_TENURE_YEARS) {
+                            t += `<p style="color:#c05621;"><strong>【転職による減額】</strong><br>今の職業での勤続は${tenure}年です。退職金は勤続年数が長いほど多くなる仕組みのため、` +
+                                 `${CARD_DATA[tId].amount}万円 × ${Math.round(getTenureRate(tenure) * 100)}% = <strong>${getAdjustedRetirementAmount(p, CARD_DATA[tId].amount)}万円</strong>になります。</p>`;
+                        }
                     }
                 }
             }
@@ -4502,6 +4572,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ▼ スマホOSによるタブ破棄→自動再読み込み後も、保存済みのルームへ自動で再接続・再リスンする
         //   （旧実装ではここで currentRoomId が null のままになり、送受信が両方止まっていた）
         RoomSync.resume();
+        setTimeout(() => RoomSync.applyDeferred(), 800);
         if(gameState.currentAge >= 70) {
             if (!gameState.finalInvestmentResult) showRetirementBonusModal();
             else showLifePlanKarte();
@@ -4909,6 +4980,7 @@ function executeJobChange() {
 
     // 2. ★重要: キャリア年齢を30歳にセット
     p.careerAge = 30;
+    p.jobStartAge = gameState.currentAge; // 退職金の勤続年数の起点
 
     // ▼▼▼ 追加: 転職したら役職はリセット ▼▼▼
     p.promotionLevel = 0;

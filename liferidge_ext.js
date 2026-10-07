@@ -3,6 +3,7 @@
 //   1. LRNet    : 収支の「最終増減値」表示と内訳・理由の補足
 //   2. LRFx     : イベント適用時の効果音(Web Audio API)・画面端パーティクル・アイコン演出
 //   3. RoomSync : ルーム同期（自動再接続・再リスン・送信キュー・リロード復帰）
+//   4. LRRipple : ボタン押下時の波紋（リップル）エフェクト
 // ※ game.js の後に読み込むこと（game.js のグローバル関数/変数を参照する）
 // ==========================================================
 
@@ -746,6 +747,8 @@ const RoomSync = (() => {
                     if (v && typeof v.ts === 'number') baseline = v.ts;
                 });
                 state.cursorTs = baseline;
+                // 参加時点の基準。これ以前のイベント（前回のゲームなど）は、再リスン時にさかのぼっても適用しない
+                state.joinFloorTs = baseline;
                 state.needsBaseline = false;
                 persist();
             })
@@ -791,6 +794,14 @@ const RoomSync = (() => {
             return;
         }
         markProcessed(key);
+
+        // ▼ 参加前のイベントは適用しない（2026年10月修正）
+        //   旧実装は再リスン時に5分さかのぼるため、同じルームで直前に遊んだ前回ゲームのイベントが
+        //   新しいゲームのファミリーメイク中に適用されていた。
+        if (typeof data.ts === 'number' && typeof state.joinFloorTs === 'number' && data.ts <= state.joinFloorTs) {
+            persist();
+            return;
+        }
         persist();
 
         // 自分が送ったイベントは送信時に適用済み
@@ -801,12 +812,41 @@ const RoomSync = (() => {
             return;
         }
 
+        // ▼ ゲーム本編が始まる前（ファミリーメイク中など）に届いたイベントは保留し、開始後に適用する
+        if (!isGameScreenActive()) {
+            state.deferred = state.deferred || [];
+            state.deferred.push(data.cardId);
+            persist();
+            return;
+        }
+
+        applyReceived(data.cardId);
+    }
+
+    function isGameScreenActive() {
+        const main = document.getElementById('mainGameContainer');
+        return !!main && main.style.display === 'block';
+    }
+
+    function applyReceived(cardId) {
         try {
-            applyCardEffect(data.cardId, true);
+            applyCardEffect(cardId, true);
         } catch (e) {
             console.error('[RoomSync] 受信イベントの適用に失敗:', e);
             lrShowToast('共有イベントの反映中にエラーが発生しました', 'error');
         }
+    }
+
+    // ゲーム本編の開始後に、保留していた共有イベントを適用する（game.js の initGameFromMake から呼ぶ）
+    function applyDeferred() {
+        if (!state || !state.deferred || !state.deferred.length) return;
+        const list = state.deferred.slice();
+        state.deferred = [];
+        persist();
+        list.forEach(cardId => {
+            if (typeof CARD_DATA !== 'undefined' && CARD_DATA[cardId]) applyReceived(cardId);
+        });
+        lrShowToast(`ファミリーメイク中に共有されたイベント ${list.length}件 を反映しました`, 'info');
     }
 
     // ------------------------------
@@ -1039,6 +1079,7 @@ const RoomSync = (() => {
         resume,
         disconnect,
         publish,
+        applyDeferred,
         forceReconnect: reason => { lastForceAt = 0; forceReconnect(reason || '外部要求'); },
         getStatus: () => ({ roomId, status, connected, pending: state ? state.outbox.length : 0, cursorTs: state ? state.cursorTs : 0 })
     };
