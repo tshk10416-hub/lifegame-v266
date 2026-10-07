@@ -722,6 +722,104 @@ function getPromotionRate(p, age) {
     return step.rate;
 }
 
+// ▼▼▼ 継続支出（2026年10月追加） ▼▼▼
+// カード上は「一時支出」でも、実際には毎年お金がかかり続けるイベント。
+// 読み込んだ年代の残り期間分を即時負担し、以降の年代も年代開始時に（その時点の世帯年収に応じた額で）負担する。
+// 年額は世帯年収に応じて変わり（costByIncome: 500万円以下=low / 800万円=mid / 1,000万円以上=high）、高収入ほど大きい。
+//   years: 続く年数（null = 65歳まで）  group: 同じグループは重複しない（例: ペットは1匹分）
+//   金額の目安:
+//     ペット飼育費: アニコム損保「家庭どうぶつ白書」犬 年約37万円 / 猫 年約16万円
+//     親の介護: 生命保険文化センター 平均介護期間 約5年・月額 約9万円（一部負担として設定）
+//     美容・趣味・ジム・会員権など: 家計調査の理美容・教養娯楽費（年収が高い世帯ほど多い）と一般的な相場から設定
+const RECURRING_EVENT_COSTS = {
+    // 美容（長く続く）
+    "L009": { label: '自分磨き（エステ・スクール）', costs: { low: 6, mid: 12, high: 30 }, years: null },
+    "L041": { label: '白髪染め・スキンケア', costs: { low: 3, mid: 6, high: 12 }, years: null },
+    "L067": { label: '美容医療のメンテナンス', costs: { low: 10, mid: 20, high: 50 }, years: null },
+    // 健康・食習慣
+    "L045": { label: 'パーソナルジムの月会費', costs: { low: 6, mid: 15, high: 36 }, years: 10 },
+    "L030": { label: 'フードデリバリーの習慣', costs: { low: 6, mid: 12, high: 30 }, years: 10 },
+    // 趣味・会員権・乗り物の維持費
+    "L010": { label: '趣味の継続費用', costs: { low: 5, mid: 10, high: 30 }, years: null },
+    "L047": { label: '大人の趣味の継続費用', costs: { low: 5, mid: 12, high: 36 }, years: null },
+    "L055": { label: '推し活の遠征費', costs: { low: 5, mid: 12, high: 30 }, years: 10 },
+    "L073": { label: 'ゴルフ会員権の年会費・プレー代', costs: { low: 12, mid: 24, high: 60 }, years: null },
+    "L070": { label: '大型バイクの維持費（税・保険・整備）', costs: { low: 6, mid: 10, high: 15 }, years: null },
+    "L095": { label: 'キャンピングカーの維持費（税・保険・駐車場）', costs: { low: 15, mid: 25, high: 40 }, years: null },
+    // 子ども・家族
+    "L034": { label: '子どもの習い事の月謝', costs: { low: 6, mid: 15, high: 36 }, years: 10 },
+    "L017": { label: 'ペットの飼育費（フード・医療・トリミング）', costs: { low: 15, mid: 25, high: 40 }, years: 15, group: 'pet' },
+    "L018": { label: 'ペットの飼育費（フード・医療・トリミング）', costs: { low: 15, mid: 25, high: 40 }, years: 15, group: 'pet' },
+    "L066": { label: 'ペットの飼育費（フード・医療・トリミング）', costs: { low: 15, mid: 25, high: 40 }, years: 15, group: 'pet' },
+    "L060": { label: '親の介護施設の費用（一部負担）', costs: { low: 12, mid: 24, high: 60 }, years: 5 },
+    // 社会の値上げ（一度上がった料金は下がらない）
+    "S030": { label: 'サブスクの値上げ分', costs: { low: 1, mid: 2, high: 4 }, years: null },
+    "S056": { label: '通信・デジタルサービスの値上げ分', costs: { low: 1, mid: 2, high: 3 }, years: null }
+};
+
+function recurringKey(cardId) {
+    const r = RECURRING_EVENT_COSTS[cardId];
+    return (r && r.group) || cardId;
+}
+
+function getHouseholdGrossNow() {
+    return (gameState.players.player1.grossIncome || 0) + (gameState.players.player2.grossIncome || 0);
+}
+
+// 指定年代の期間（age 〜 age+duration）に、継続支出が何年かかるか
+function recurringYearsInPeriod(item, age, duration) {
+    return Math.max(0, Math.min(age + duration, item.endAge) - Math.max(age, item.startAge));
+}
+
+// 年額の合計（表示用: 今の年代に有効なもの）
+function getRecurringAnnualTotal() {
+    const g = getHouseholdGrossNow();
+    return (gameState.recurringCosts || [])
+        .filter(it => it.endAge > gameState.currentAge)
+        .reduce((s, it) => s + costByIncome(RECURRING_EVENT_COSTS[it.cardId].costs, g), 0);
+}
+
+// 年代開始時（先取り）に負担する継続支出の合計
+function getRecurringCostForPeriod(age, duration) {
+    const g = getHouseholdGrossNow();
+    return (gameState.recurringCosts || []).reduce((s, it) => {
+        const def = RECURRING_EVENT_COSTS[it.cardId];
+        return s + (def ? costByIncome(def.costs, g) * recurringYearsInPeriod(it, age, duration) : 0);
+    }, 0);
+}
+
+// カード読み込み時: 継続支出を登録し、今の年代の残り期間分を即時負担
+function startRecurringCost(cardId, logPrefix) {
+    const def = RECURRING_EVENT_COSTS[cardId];
+    if (!def) return;
+    if (!gameState.recurringCosts) gameState.recurringCosts = [];
+    const key = recurringKey(cardId);
+    if (gameState.recurringCosts.some(it => recurringKey(it.cardId) === key && it.endAge > gameState.currentAge)) {
+        LRNet.note('継続支出は同じ内容がすでに続いているため追加なし', '', false);
+        return;
+    }
+    const age = gameState.currentAge;
+    const duration = calcTurnDuration(age);
+    const item = { cardId: cardId, startAge: age, endAge: def.years ? age + def.years : RETIREMENT_AGE };
+    gameState.recurringCosts.push(item);
+    const annual = costByIncome(def.costs, getHouseholdGrossNow());
+    const years = recurringYearsInPeriod(item, age, duration);
+    const cost = annual * years;
+    gameState.totalAssets -= cost;
+    gameState.turnExpenses.recurring = (gameState.turnExpenses.recurring || 0) + cost;
+    const until = def.years ? `${def.years}年間` : `${RETIREMENT_AGE}歳まで`;
+    LRNet.note(`継続支出: ${def.label}（${until}続く）`, `年${annual}万円 × ${years}年 = -${cost}万円（次の年代以降も年代開始時に負担）`, false);
+    addEvent(`${logPrefix || ''}【継続支出】${def.label}: 年${annual}万円 × ${years}年 = -${cost}万円（${until}続きます）`);
+}
+
+// ペットとのお別れ（L071）: 次の年代からペットの飼育費はかからない
+function endRecurringGroup(group) {
+    const periodEnd = gameState.currentAge + calcTurnDuration(gameState.currentAge);
+    (gameState.recurringCosts || []).forEach(it => {
+        if (recurringKey(it.cardId) === group) it.endAge = Math.min(it.endAge, periodEnd);
+    });
+}
+
 // ▼▼▼ 退職金の勤続年数による調整（2026年10月追加） ▼▼▼
 // 退職金カードの金額は「30歳から65歳まで同じ職業（勤続35年）」の場合。転職すると今の職業での勤続年数が短くなり減額する。
 // 割合は福祉医療機構「社会福祉施設職員等退職手当共済」（国家公務員の退職手当に準じた制度）の支給例を
@@ -1006,9 +1104,14 @@ function startTurnIncomeAndExpense(age) {
     const annualIncome = (gameState.players.player1.income || 0) + (gameState.players.player2.income || 0);
     const annualFixedExpense = gameState.annualExpense;
     
+    // 継続支出（美容・ペット・趣味・介護など）: この年代にかかる年数分を負担
+    const recurringCost = getRecurringCostForPeriod(age, duration);
+    gameState.periodRecurringCost = recurringCost; // 収支詳細（履歴）の表示用
+
     // 期間収支の計算
-    const periodNetFlow = (annualIncome - annualFixedExpense) * duration;
+    const periodNetFlow = (annualIncome - annualFixedExpense) * duration - recurringCost;
     gameState.totalAssets += periodNetFlow;
+    if (recurringCost > 0) addEvent(`継続支出（美容・ペット・趣味など）: -${recurringCost.toLocaleString()}万円`);
     
     // --- イベントログ詳細化 ---
     const totalIncome = annualIncome * duration;
@@ -1961,9 +2064,10 @@ function initGameFromMake() {
         tempDeductions: null,
         finalInvestmentResult: null, 
         tempInvestmentResult: null,
-        turnExpenses: { marriage: 0, car: 0, life_event: 0, social_event: 0, investment_ikkatsu: 0 },
+        turnExpenses: { marriage: 0, car: 0, life_event: 0, social_event: 0, investment_ikkatsu: 0, recurring: 0 },
         retirementBonus: { player1: 0, player2: 0, p1Scanned: false, p2Scanned: false },
         lastTurnData: null,
+        recurringCosts: [],     // 継続支出（美容・ペット・趣味・介護など）
         // ▼▼▼ 条件付きカード(requireFlag/setFlag/excludeFlag)用フラグ ▼▼▼
         hasPet: false,
         childMarried: false,
@@ -2785,6 +2889,10 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
 
     }
 
+    // ▼ 継続支出（美容・ペット・趣味・介護など）: 一時支出に加えて、以降も毎年かかり続ける
+    if (updated && RECURRING_EVENT_COSTS[targetId]) startRecurringCost(targetId, logPrefix);
+    if (updated && targetId === 'L071') endRecurringGroup('pet');
+
     // 最終的な資産増減値と理由（保険適用・相殺など）を確定
     const netResult = LRNet.finish(oldAssets, gameState.totalAssets);
 
@@ -3028,8 +3136,8 @@ function nextTurn() {
         houseCost: gameState.house.annualCost
     };
 
-    // フロー収支 (10年間の収入 - 固定費)
-    const flowDiff = (ai - ae) * years;
+    // フロー収支 (10年間の収入 - 固定費 - 年代開始時に負担した継続支出)
+    const flowDiff = (ai - ae) * years - (gameState.periodRecurringCost || 0);
 
     // ★ totalAssets への反映はここでは行わない（2026年10月修正）
     //   年代の収支は年代の開始時に startTurnIncomeAndExpense() で先取りして資産に反映済み。
@@ -3062,6 +3170,7 @@ function nextTurn() {
             insuranceCost: gameState.insurance.annualCost,
             livingCost: gameState.livingCost,
             tsumitate: gameState.investment.tsumitateTotal,
+            recurringAnnual: getRecurringAnnualTotal(),
             marriage: gameState.turnExpenses.marriage || 0,
             life_event: gameState.turnExpenses.life_event || 0,
             social_event: gameState.turnExpenses.social_event || 0,
@@ -3231,7 +3340,8 @@ function updateDisplay() {
     const householdNetIncome = (gameState.players.player1.income || 0) + (gameState.players.player2.income || 0);
     document.getElementById('household-income').textContent = householdNetIncome;
     document.getElementById('total-assets').textContent = Math.round(gameState.totalAssets).toLocaleString();
-    document.getElementById('annual-expense').textContent = gameState.annualExpense.toLocaleString();
+    // 年間支出の表示には継続支出（美容・ペット・趣味など）も含める
+    document.getElementById('annual-expense').textContent = (gameState.annualExpense + getRecurringAnnualTotal()).toLocaleString();
     
     document.getElementById('current-happiness').textContent = gameState.happiness || 0;
 
@@ -3271,7 +3381,7 @@ function addEvent(message) {
 }
 
 function resetTurnExpenses() {
-    gameState.turnExpenses = { marriage: 0, car: 0, life_event: 0, social_event: 0, investment_ikkatsu: 0 };
+    gameState.turnExpenses = { marriage: 0, car: 0, life_event: 0, social_event: 0, investment_ikkatsu: 0, recurring: 0 };
 }
 
 function updateHouseCost() {
@@ -4267,10 +4377,13 @@ function showLifePlanKarte() {
     let rankTitle = "";
     let advice = "";
 
-    // ランク基準（2026年9月改定: 体験会でほぼ全員がSランクになったため引き上げ）
-    //   旧: S 700 / A 600 / B 400 / C 200 / D 100
-    //   新: S 2000 / A 1700 / B 1150 / C 550 / D 300（Sの倍率 2000÷700 に合わせて比例、50点単位で丸め）
-    const RANK_THRESHOLDS = { S: 2000, A: 1700, B: 1150, C: 550, D: 300 };
+    // ランク基準
+    //   2026年9月: 体験会でほぼ全員がSランクになったため S 700 → 2000 に引き上げ
+    //   2026年10月: 収支の二重計上を修正して資産水準が下がり、Sが約2%しか出なくなったため再設定。
+    //     自動プレイ1,000回（職業・家族構成・カードはランダム、イベント1年代2〜4枚）のスコア分布から
+    //     S≒上位10% / A≒上位25% / B≒中央値 / C≒下位25% / D≒下位10% となるよう設定（50点単位）
+    //     → 結果の割合: S 11% / A 15% / B 23% / C 26% / D 15% / E 10%
+    const RANK_THRESHOLDS = { S: 1550, A: 1300, B: 1000, C: 650, D: 300 };
 
     if (totalScore >= RANK_THRESHOLDS.S) {
         rankTitle = "Sランク: 伝説のライフプランナー";
@@ -4330,6 +4443,12 @@ function showExplanation() {
         const c = CARD_DATA[lastScannedCardId];
         t = c.explanation || '解説なし';
         if (c.type === 'job') t += buildJobCareerHtml(lastScannedCardId);
+        const rec = RECURRING_EVENT_COSTS[lastScannedCardId];
+        if (rec) {
+            t += `<p style="color:#c05621;"><strong>【継続支出】</strong><br>${rec.label}が${rec.years ? rec.years + '年間' : RETIREMENT_AGE + '歳まで'}続きます。` +
+                 `年額は世帯年収で変わります（500万円以下: ${rec.costs.low}万円 / 800万円: ${rec.costs.mid}万円 / 1,000万円以上: ${rec.costs.high}万円）。` +
+                 `読み込んだ年代の残り期間分をすぐに負担し、次の年代以降も年代のはじめに負担します。</p>`;
+        }
 
         // ★退職金トリガーの場合は、対象者の詳細カードの解説を見に行く
         if (c.type === 'retirement_trigger') {
@@ -4494,7 +4613,8 @@ function buildBalanceBreakdownHtml(e) {
         row('生活費', d.livingCost, 'val-expense'),
         row('車の維持費', d.carCost, 'val-expense'),
         row('保険料', d.insuranceCost, 'val-expense'),
-        row('積立投資', d.tsumitate, 'val-expense')
+        row('積立投資', d.tsumitate, 'val-expense'),
+        row('継続支出（美容・ペット・趣味など）', d.recurringAnnual, 'val-expense')
     ].join('');
     const oneTime = [
         row('結婚式', d.marriage, 'val-expense'),

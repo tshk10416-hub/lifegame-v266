@@ -146,6 +146,8 @@ const LRFx = (() => {
     // ------------------------------
     let audioCtx = null;
     let master = null;
+    // 2.0 で旧設定(0.35)の約5〜6倍（+13〜16dB）。最大値 0.83 程度で音割れなし（オフライン再生で確認）
+    const MASTER_VOLUME = 2.0;
 
     function ensureAudio() {
         if (audioCtx) return audioCtx;
@@ -154,8 +156,17 @@ const LRFx = (() => {
         try {
             audioCtx = new AC();
             master = audioCtx.createGain();
-            master.gain.value = 0.35;
-            master.connect(audioCtx.destination);
+            // 音量（2026年10月改定: 体験会で「小さい」との声 → 0.35 から引き上げ）
+            master.gain.value = MASTER_VOLUME;
+            // 音を大きくすると和音が重なる部分で音割れするため、リミッター（コンプレッサー）を通してから出力する
+            const limiter = audioCtx.createDynamicsCompressor();
+            limiter.threshold.value = -3;
+            limiter.knee.value = 6;
+            limiter.ratio.value = 12;
+            limiter.attack.value = 0.003;
+            limiter.release.value = 0.15;
+            master.connect(limiter);
+            limiter.connect(audioCtx.destination);
         } catch (e) {
             console.warn('AudioContext の生成に失敗:', e);
             audioCtx = null;

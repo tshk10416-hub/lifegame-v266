@@ -100,6 +100,28 @@
             "J009": [{ title: "勤務時間拡大（社会保険に加入）", rate: 1.6 }, { title: "パートリーダー", rate: 1.9 }],
             "J010": []
         };
+        // 継続支出（game.js の RECURRING_EVENT_COSTS と同じ値。根拠は game.js のコメント参照）
+        const RECURRING_EVENT_COSTS = {
+            "L009": { label: '自分磨き（エステ・スクール）', costs: { low: 6, mid: 12, high: 30 }, years: null },
+            "L041": { label: '白髪染め・スキンケア', costs: { low: 3, mid: 6, high: 12 }, years: null },
+            "L067": { label: '美容医療のメンテナンス', costs: { low: 10, mid: 20, high: 50 }, years: null },
+            "L045": { label: 'パーソナルジムの月会費', costs: { low: 6, mid: 15, high: 36 }, years: 10 },
+            "L030": { label: 'フードデリバリーの習慣', costs: { low: 6, mid: 12, high: 30 }, years: 10 },
+            "L010": { label: '趣味の継続費用', costs: { low: 5, mid: 10, high: 30 }, years: null },
+            "L047": { label: '大人の趣味の継続費用', costs: { low: 5, mid: 12, high: 36 }, years: null },
+            "L055": { label: '推し活の遠征費', costs: { low: 5, mid: 12, high: 30 }, years: 10 },
+            "L073": { label: 'ゴルフ会員権の年会費・プレー代', costs: { low: 12, mid: 24, high: 60 }, years: null },
+            "L070": { label: '大型バイクの維持費（税・保険・整備）', costs: { low: 6, mid: 10, high: 15 }, years: null },
+            "L095": { label: 'キャンピングカーの維持費（税・保険・駐車場）', costs: { low: 15, mid: 25, high: 40 }, years: null },
+            "L034": { label: '子どもの習い事の月謝', costs: { low: 6, mid: 15, high: 36 }, years: 10 },
+            "L017": { label: 'ペットの飼育費（フード・医療・トリミング）', costs: { low: 15, mid: 25, high: 40 }, years: 15 },
+            "L018": { label: 'ペットの飼育費（フード・医療・トリミング）', costs: { low: 15, mid: 25, high: 40 }, years: 15 },
+            "L066": { label: 'ペットの飼育費（フード・医療・トリミング）', costs: { low: 15, mid: 25, high: 40 }, years: 15 },
+            "L060": { label: '親の介護施設の費用（一部負担）', costs: { low: 12, mid: 24, high: 60 }, years: 5 },
+            "S030": { label: 'サブスクの値上げ分', costs: { low: 1, mid: 2, high: 4 }, years: null },
+            "S056": { label: '通信・デジタルサービスの値上げ分', costs: { low: 1, mid: 2, high: 3 }, years: null }
+        };
+
         // 昇格チャレンジの成功率（10段階。game.js の PROMOTION_SUCCESS_RATE と同じ値）
         const PROMOTION_SUCCESS_RATE = {
             "J003": 4, "J004": 4, "J007": 4, "J008": 4, "J009": 4,
@@ -900,7 +922,14 @@
             else {
                 effectText = card.effect || '効果なし';
             }
-            
+
+            // 継続支出（game.js の RECURRING_EVENT_COSTS と同じ内容）
+            const rec = RECURRING_EVENT_COSTS[cardId];
+            if (rec) {
+                effectText += `<br><span style="color:#c05621; font-weight:bold;">＋継続支出: ${rec.label}（${rec.years ? rec.years + '年間' : '65歳まで'}続く）</span>` +
+                    `<span style="font-size:0.8em; color:#666; display:block; margin-top:3px;">年額: 世帯年収500万円以下 ${rec.costs.low}万円 / 800万円 ${rec.costs.mid}万円 / 1,000万円以上 ${rec.costs.high}万円</span>`;
+            }
+
             display.innerHTML = `
                 <div class="card-header">
                     <h2>${displayTitle}</h2>
