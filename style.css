@@ -199,6 +199,12 @@ h1 {
 .retirement-player-card .btn-small { padding: 8px 12px; font-size: 0.9em; width: 100%; }
 .scan-status-text { margin-top: 15px; margin-bottom: 0 !important; font-weight: bold; font-size: 1em !important; min-height: 0 !important; color: #e53e3e; }
 .scan-status-text.scanned { color: #48bb78; }
+/* 退職金ルーレット（1・2=少 / 3・4=普通 / 5・6=多） */
+.retire-roll { margin-bottom: 10px; }
+.retire-roll:empty { display: none; }
+.retire-roll-num { width: 64px; height: 64px; margin: 0 auto; border-radius: 12px; background: #fff; border: 3px solid #FF7F50; color: #FF7F50; font-size: 2.2em; font-weight: bold; line-height: 58px; }
+.retire-roll-num.done { background: #FF7F50; color: #fff; }
+.retire-roll-label { margin-top: 6px; font-size: 0.85em; font-weight: bold; color: #c05621; }
 #retirement-next-btn:disabled { background: #a0aec0; cursor: not-allowed; opacity: 0.7; }
 .retirement-player-card.no-bonus .btn-primary { display: none; }
 

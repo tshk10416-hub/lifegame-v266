@@ -2560,7 +2560,13 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
         const guid = gameState.guidanceContextForApply || gameState.currentGuidance;
         let pKey = (guid === 'retirement_p1') ? 'player1' : 'player2';
         const p = gameState.players[pKey];
-        if (!p.jobId || ['J008','J009','J010'].includes(p.jobId)) {
+        const isTargetJob = p.jobId && !['J008','J009','J010'].includes(p.jobId);
+        // ルーレットの出目と違う退職金カードは適用しない（表示側でもボタンを隠している）
+        if (isTargetJob && retirementRollMismatch(pKey, c)) {
+            closeCardInfoModal();
+            return;
+        }
+        if (!isTargetJob) {
             gameState.retirementBonus[pKey] = 0;
         } else {
             const tId = 'R' + p.jobId.substring(1) + c.level;
@@ -3895,7 +3901,9 @@ function showCardInfo(id) {
         let pKey = (guid === 'retirement_p1') ? 'player1' : (guid === 'retirement_p2' ? 'player2' : null);
         if (pKey) {
             const p = gameState.players[pKey];
+            const mismatch = retirementRollMismatch(pKey, c);
             if (!p.jobId || ['J008','J009','J010'].includes(p.jobId)) { dEffect = `【${p.name}】は退職金対象外です。`; showBtn = false; }
+            else if (mismatch) { dTitle = `【${p.name}】${c.title}`; dEffect = `⚠️ ${mismatch}`; showBtn = false; }
             else {
                 const tId = 'R' + p.jobId.substring(1) + c.level;
                 const tCard = CARD_DATA[tId];
@@ -4245,22 +4253,39 @@ function showRetirementBonusModal() {
         const scanBtn = document.getElementById(`retirement-${key === 'player1' ? 'p1' : 'p2'}-scan-btn`);
         const nameEl = document.getElementById(`retirement-${key === 'player1' ? 'p1' : 'p2'}-name`);
 
+        const rollEl = document.getElementById(`retirement-${key === 'player1' ? 'p1' : 'p2'}-roll`);
+        const roll = getRetirementRoll(key);
+
         if (nameEl) nameEl.textContent = player.name;
         cardEl.classList.remove('scanned', 'no-bonus');
         statusEl.classList.remove('scanned');
-        scanBtn.style.display = 'inline-block'; 
+        scanBtn.style.display = 'inline-block';
+        scanBtn.disabled = false;
+        scanBtn.className = 'btn-primary btn-small';
+        if (rollEl) rollEl.innerHTML = '';
 
         if (!isTarget) {
             cardEl.classList.add('no-bonus', 'scanned');
             statusEl.innerHTML = '<i class="fas fa-minus-circle"></i> 対象外';
-            statusEl.classList.add('scanned'); 
-            scanBtn.style.display = 'none'; 
+            statusEl.classList.add('scanned');
+            scanBtn.style.display = 'none';
         } else if (gameState.retirementBonus[scanKey]) {
             cardEl.classList.add('scanned');
+            if (rollEl && roll) rollEl.innerHTML = retirementRollResultHtml(roll);
             statusEl.innerHTML = `<i class="fas fa-check-circle"></i> ${gameState.retirementBonus[key]}万円`;
             statusEl.classList.add('scanned');
-            scanBtn.style.display = 'none'; 
+            scanBtn.style.display = 'none';
+        } else if (!roll) {
+            // まだルーレットを回していない → ルーレットボタンを表示
+            if (rollEl) rollEl.innerHTML = `<div class="retire-roll-num" id="retire-roll-num-${key}">?</div>`;
+            scanBtn.innerHTML = '<i class="fas fa-sync-alt"></i> ルーレット';
+            scanBtn.onclick = function() { toggleRetirementRoulette(key); };
+            statusEl.innerHTML = '<i class="fas fa-times-circle"></i> 未スキャン';
         } else {
+            // ルーレット済み → 出た目のカードを読み込む
+            if (rollEl) rollEl.innerHTML = retirementRollResultHtml(roll);
+            scanBtn.innerHTML = `<i class="fas fa-qrcode"></i> （${RETIREMENT_LEVEL_LABEL[roll.level]}）を読み込む`;
+            scanBtn.onclick = function() { openRetirementBonusScan(key); };
             statusEl.innerHTML = '<i class="fas fa-times-circle"></i> 未スキャン';
         }
     });
@@ -4268,6 +4293,65 @@ function showRetirementBonusModal() {
     const nextBtn = document.getElementById('retirement-next-btn');
     if (gameState.retirementBonus.p1Scanned && gameState.retirementBonus.p2Scanned) { nextBtn.disabled = false; } else { nextBtn.disabled = true; }
     saveGameState();
+}
+
+// ▼▼▼ 退職金ルーレット（ボードのサイコロの代わり）: 1・2=少 / 3・4=普通 / 5・6=多 ▼▼▼
+//   ルーレットの結果は保存し、出た目の退職金カード（RT_S / RT_M / RT_H）以外は読み込めないようにする
+const RETIREMENT_LEVEL_LABEL = { S: '少', M: '普通', H: '多' };
+let retirementRouletteTimer = null;
+let retirementRouletteKey = null;
+
+function retirementLevelFromNumber(n) { return n <= 2 ? 'S' : (n <= 4 ? 'M' : 'H'); }
+
+function getRetirementRoll(key) {
+    const rolls = gameState.retirementBonus.roll || {};
+    return rolls[key] || null;
+}
+
+function retirementRollResultHtml(roll) {
+    return `<div class="retire-roll-num done">${roll.num}</div>` +
+           `<div class="retire-roll-label">退職金カード（${RETIREMENT_LEVEL_LABEL[roll.level]}）</div>`;
+}
+
+function toggleRetirementRoulette(key) {
+    const numEl = document.getElementById(`retire-roll-num-${key}`);
+    const btn = document.getElementById(`retirement-${key === 'player1' ? 'p1' : 'p2'}-scan-btn`);
+    if (!numEl || !btn || getRetirementRoll(key)) return;
+    // もう一方のプレイヤーのルーレットが回っている間は開始しない
+    if (retirementRouletteTimer && retirementRouletteKey !== key) return;
+
+    if (!retirementRouletteTimer) {
+        retirementRouletteKey = key;
+        btn.innerHTML = '<i class="fas fa-stop"></i> ストップ';
+        btn.className = 'btn-danger btn-small';
+        retirementRouletteTimer = setInterval(() => {
+            numEl.textContent = Math.floor(Math.random() * 6) + 1;
+        }, 60);
+        return;
+    }
+
+    clearInterval(retirementRouletteTimer);
+    retirementRouletteTimer = null;
+    retirementRouletteKey = null;
+    const num = Math.floor(Math.random() * 6) + 1;
+    numEl.textContent = num;
+    if (!gameState.retirementBonus.roll) gameState.retirementBonus.roll = {};
+    gameState.retirementBonus.roll[key] = { num: num, level: retirementLevelFromNumber(num) };
+    btn.className = 'btn-primary btn-small';
+    btn.disabled = true;
+    saveGameState();
+    addEvent(`${gameState.players[key].name}の退職金ルーレット: ${num} → 退職金カード（${RETIREMENT_LEVEL_LABEL[retirementLevelFromNumber(num)]}）`);
+    setTimeout(showRetirementBonusModal, 700);
+}
+
+// 読み込んだ退職金カードがルーレットの結果と違う場合のメッセージ（一致していれば null）
+function retirementRollMismatch(pKey, card) {
+    const roll = getRetirementRoll(pKey);
+    if (!roll) return '先に退職金ルーレットを回してください。';
+    if (card.level !== roll.level) {
+        return `ルーレットの結果は「${roll.num}」なので、退職金カード（${RETIREMENT_LEVEL_LABEL[roll.level]}）を読み込んでください。`;
+    }
+    return null;
 }
 
 function openRetirementBonusScan(k) { gameState.guidanceContextForApply = (k==='player1')?'retirement_p1':'retirement_p2'; document.getElementById('retirementBonusModal').style.display='none'; openCamera(); }
