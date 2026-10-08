@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>ライフリッジゲーム ~Life & Marriage~</title>
-    <link rel="stylesheet" href="style.css?v=20261008a">
+    <link rel="stylesheet" href="style.css?v=20261008b">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap" rel="stylesheet">
@@ -257,6 +257,19 @@
             <button id="startRouletteBtn">START</button>
         </div>
     </div>
+    <!-- 退職金ルーレット（6分割の回転盤: 1・2=少 / 3・4=普通 / 5・6=多） -->
+    <div id="retireRouletteModal" class="modal">
+        <div class="modal-content roulette-container">
+            <h2 id="retireRouletteTitle">退職金ルーレット</h2>
+            <p style="font-size:0.85em; color:#4a5568;">1・2：少 ／ 3・4：普通 ／ 5・6：多</p>
+            <div class="roulette-wrapper">
+                <div class="roulette-arrow">▼</div>
+                <div id="retireWheel" class="retire-wheel"></div>
+            </div>
+            <p id="retireRouletteResult" class="retire-wheel-result"></p>
+            <button id="retireRouletteBtn" class="btn-primary">START</button>
+        </div>
+    </div>
     <div id="jobSelectionModal" class="modal">
         <div class="modal-content" style="text-align:center;">
             <h2 style="color:#2b6cb0; margin-bottom:10px;">新しい職業を選択</h2>
@@ -414,7 +427,7 @@
     <!-- ▲▲▲ 事前同意モーダルここまで ▲▲▲ -->
 
     <!-- ?v= はスマホのキャッシュで新旧ファイルが混在しないためのバージョン番号（更新のたびに変更） -->
-    <script src="game.js?v=20261008a"></script>
+    <script src="game.js?v=20261008b"></script>
     <script src="liferidge_ext.js?v=20261007n"></script>
 </body>
 </html>

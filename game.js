@@ -4279,7 +4279,7 @@ function showRetirementBonusModal() {
             // まだルーレットを回していない → ルーレットボタンを表示
             if (rollEl) rollEl.innerHTML = `<div class="retire-roll-num" id="retire-roll-num-${key}">?</div>`;
             scanBtn.innerHTML = '<i class="fas fa-sync-alt"></i> ルーレット';
-            scanBtn.onclick = function() { toggleRetirementRoulette(key); };
+            scanBtn.onclick = function() { openRetirementRoulette(key); };
             statusEl.innerHTML = '<i class="fas fa-times-circle"></i> 未スキャン';
         } else {
             // ルーレット済み → 出た目のカードを読み込む
@@ -4298,8 +4298,9 @@ function showRetirementBonusModal() {
 // ▼▼▼ 退職金ルーレット（ボードのサイコロの代わり）: 1・2=少 / 3・4=普通 / 5・6=多 ▼▼▼
 //   ルーレットの結果は保存し、出た目の退職金カード（RT_S / RT_M / RT_H）以外は読み込めないようにする
 const RETIREMENT_LEVEL_LABEL = { S: '少', M: '普通', H: '多' };
-let retirementRouletteTimer = null;
-let retirementRouletteKey = null;
+const RETIRE_WHEEL_COLORS = { S: '#90cdf4', M: '#f6e05e', H: '#f6ad55' };
+const RETIRE_WHEEL_SPIN_MS = 4000;
+let retireWheelSpinning = false;
 
 function retirementLevelFromNumber(n) { return n <= 2 ? 'S' : (n <= 4 ? 'M' : 'H'); }
 
@@ -4313,35 +4314,69 @@ function retirementRollResultHtml(roll) {
            `<div class="retire-roll-label">退職金カード（${RETIREMENT_LEVEL_LABEL[roll.level]}）</div>`;
 }
 
-function toggleRetirementRoulette(key) {
-    const numEl = document.getElementById(`retire-roll-num-${key}`);
-    const btn = document.getElementById(`retirement-${key === 'player1' ? 'p1' : 'p2'}-scan-btn`);
-    if (!numEl || !btn || getRetirementRoll(key)) return;
-    // もう一方のプレイヤーのルーレットが回っている間は開始しない
-    if (retirementRouletteTimer && retirementRouletteKey !== key) return;
-
-    if (!retirementRouletteTimer) {
-        retirementRouletteKey = key;
-        btn.innerHTML = '<i class="fas fa-stop"></i> ストップ';
-        btn.className = 'btn-danger btn-small';
-        retirementRouletteTimer = setInterval(() => {
-            numEl.textContent = Math.floor(Math.random() * 6) + 1;
-        }, 60);
-        return;
+// 6分割の回転盤（上から時計回りに 1〜6、各60度）を作る
+function buildRetireWheel() {
+    const wheel = document.getElementById('retireWheel');
+    const stops = [];
+    for (let n = 1; n <= 6; n++) {
+        stops.push(`${RETIRE_WHEEL_COLORS[retirementLevelFromNumber(n)]} ${(n - 1) * 60}deg ${n * 60}deg`);
     }
+    wheel.style.background = `conic-gradient(${stops.join(', ')})`;
+    wheel.innerHTML = [1, 2, 3, 4, 5, 6].map(n => {
+        const angle = (n - 0.5) * 60;
+        return `<div class="retire-wheel-label" style="transform: rotate(${angle}deg) translateY(-92px);">` +
+               `<span class="num">${n}</span><span class="lv">${RETIREMENT_LEVEL_LABEL[retirementLevelFromNumber(n)]}</span></div>`;
+    }).join('');
+}
 
-    clearInterval(retirementRouletteTimer);
-    retirementRouletteTimer = null;
-    retirementRouletteKey = null;
-    const num = Math.floor(Math.random() * 6) + 1;
-    numEl.textContent = num;
-    if (!gameState.retirementBonus.roll) gameState.retirementBonus.roll = {};
-    gameState.retirementBonus.roll[key] = { num: num, level: retirementLevelFromNumber(num) };
-    btn.className = 'btn-primary btn-small';
+function openRetirementRoulette(key) {
+    if (getRetirementRoll(key)) { showRetirementBonusModal(); return; }
+    const wheel = document.getElementById('retireWheel');
+    const btn = document.getElementById('retireRouletteBtn');
+    document.getElementById('retirementBonusModal').style.display = 'none';
+    document.getElementById('retireRouletteTitle').textContent = `${gameState.players[key].name}の退職金ルーレット`;
+    document.getElementById('retireRouletteResult').textContent = '';
+    buildRetireWheel();
+    wheel.style.transition = 'none';
+    wheel.style.transform = 'rotate(0deg)';
+    wheel.offsetHeight; // リフロー（角度リセットを確定させる）
+    wheel.style.transition = '';
+    btn.textContent = 'START';
+    btn.disabled = false;
+    btn.onclick = function() { spinRetirementRoulette(key); };
+    document.getElementById('retireRouletteModal').style.display = 'flex';
+}
+
+function spinRetirementRoulette(key) {
+    if (retireWheelSpinning || getRetirementRoll(key)) return;
+    retireWheelSpinning = true;
+    const btn = document.getElementById('retireRouletteBtn');
     btn.disabled = true;
+
+    // 出目を先に決めて保存する（回転中に画面を閉じても回し直しできないように）
+    const num = Math.floor(Math.random() * 6) + 1;
+    const level = retirementLevelFromNumber(num);
+    if (!gameState.retirementBonus.roll) gameState.retirementBonus.roll = {};
+    gameState.retirementBonus.roll[key] = { num: num, level: level };
     saveGameState();
-    addEvent(`${gameState.players[key].name}の退職金ルーレット: ${num} → 退職金カード（${RETIREMENT_LEVEL_LABEL[retirementLevelFromNumber(num)]}）`);
-    setTimeout(showRetirementBonusModal, 700);
+
+    // 出目のマスの中（境目を避けて ±22度の範囲）が上の矢印に来るように回す
+    const target = (num - 0.5) * 60 + (Math.random() * 44 - 22);
+    const rotation = 360 * 6 + (360 - target);
+    document.getElementById('retireWheel').style.transform = `rotate(${rotation}deg)`;
+
+    setTimeout(() => {
+        retireWheelSpinning = false;
+        document.getElementById('retireRouletteResult').innerHTML =
+            `出目 <strong>${num}</strong> → 退職金カード（${RETIREMENT_LEVEL_LABEL[level]}）`;
+        addEvent(`${gameState.players[key].name}の退職金ルーレット: ${num} → 退職金カード（${RETIREMENT_LEVEL_LABEL[level]}）`);
+        btn.textContent = 'OK';
+        btn.disabled = false;
+        btn.onclick = function() {
+            document.getElementById('retireRouletteModal').style.display = 'none';
+            showRetirementBonusModal();
+        };
+    }, RETIRE_WHEEL_SPIN_MS + 200);
 }
 
 // 読み込んだ退職金カードがルーレットの結果と違う場合のメッセージ（一致していれば null）
