@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>ライフリッジゲーム ~Life & Marriage~</title>
-    <link rel="stylesheet" href="style.css?v=20261008b">
+    <link rel="stylesheet" href="style.css?v=20261008c">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap" rel="stylesheet">
@@ -257,11 +257,11 @@
             <button id="startRouletteBtn">START</button>
         </div>
     </div>
-    <!-- 退職金ルーレット（6分割の回転盤: 1・2=少 / 3・4=普通 / 5・6=多） -->
+    <!-- 退職金ルーレット（少・普通・多の回転盤。どれも同じ確率） -->
     <div id="retireRouletteModal" class="modal">
         <div class="modal-content roulette-container">
             <h2 id="retireRouletteTitle">退職金ルーレット</h2>
-            <p style="font-size:0.85em; color:#4a5568;">1・2：少 ／ 3・4：普通 ／ 5・6：多</p>
+            <p style="font-size:0.85em; color:#4a5568;">止まったところの退職金カード（少・普通・多）を読み込みます</p>
             <div class="roulette-wrapper">
                 <div class="roulette-arrow">▼</div>
                 <div id="retireWheel" class="retire-wheel"></div>
@@ -301,7 +301,7 @@
     </div>
     <div id="balanceModal" class="modal"><div class="modal-content"><h2 id="balance-modal-title">収支詳細</h2><table class="balance-table"><thead><tr><th>項目</th><th>金額 (万円)</th></tr></thead><tbody id="turnBreakdownTbody"></tbody></table><button onclick="closeBalanceModal()" class="btn-primary" style="margin-top:20px;">閉じる</button></div></div>
     <div id="careerChallengeModal" class="modal"><div class="modal-content"><h2><i class="fas fa-briefcase"></i> キャリアチャレンジ</h2><p style="margin-bottom:10px;font-weight:bold;"><span id="career-challenge-player-name"></span> さんの番です</p><p id="career-challenge-status" style="margin-bottom:10px;color:#4a5568;font-size:0.95em;"></p><div class="modal-buttons" style="grid-template-columns:1fr;margin-top:20px;"><button id="career-jobchange-btn" onclick="handleCareerChoice('jobChange')" class="btn-primary">転職 (1, 6で成功)</button><button id="career-promotion-btn" onclick="handleCareerChoice('promotion')" class="btn-success">昇格</button><button onclick="handleCareerChoice('skip')" class="btn-secondary">現状維持</button></div></div></div>
-    <div id="retirementBonusModal" class="modal"><div class="modal-content" style="text-align:center;"><h2 style="color:#FF7F50;font-size:1.8em;margin-bottom:10px;">退職金カードのスキャン</h2><p style="font-size:0.85em;color:#4a5568;margin-bottom:15px;">ルーレットを回して、出た目の退職金カードを読み込んでください<br>1・2：少 ／ 3・4：普通 ／ 5・6：多</p><div class="retirement-scan-area"><div class="retirement-player-card" id="retirement-p1-card"><h4><span id="retirement-p1-name">P1</span></h4><div class="retire-roll" id="retirement-p1-roll"></div><button id="retirement-p1-scan-btn" onclick="openRetirementBonusScan('player1')" class="btn-primary btn-small">スキャン</button><p class="scan-status-text" id="retirement-p1-status">未スキャン</p></div><div class="retirement-player-card" id="retirement-p2-card"><h4><span id="retirement-p2-name">P2</span></h4><div class="retire-roll" id="retirement-p2-roll"></div><button id="retirement-p2-scan-btn" onclick="openRetirementBonusScan('player2')" class="btn-primary btn-small">スキャン</button><p class="scan-status-text" id="retirement-p2-status">未スキャン</p></div></div><button onclick="showInvestmentRateModal()" class="btn-success" id="retirement-next-btn" style="width:100%;margin-top:20px;" disabled>適用して次へ</button></div></div>
+    <div id="retirementBonusModal" class="modal"><div class="modal-content" style="text-align:center;"><h2 style="color:#FF7F50;font-size:1.8em;margin-bottom:10px;">退職金カードのスキャン</h2><p style="font-size:0.85em;color:#4a5568;margin-bottom:15px;">ルーレットを回して、止まったところの退職金カード（少・普通・多）を読み込んでください</p><div class="retirement-scan-area"><div class="retirement-player-card" id="retirement-p1-card"><h4><span id="retirement-p1-name">P1</span></h4><div class="retire-roll" id="retirement-p1-roll"></div><button id="retirement-p1-scan-btn" onclick="openRetirementBonusScan('player1')" class="btn-primary btn-small">スキャン</button><p class="scan-status-text" id="retirement-p1-status">未スキャン</p></div><div class="retirement-player-card" id="retirement-p2-card"><h4><span id="retirement-p2-name">P2</span></h4><div class="retire-roll" id="retirement-p2-roll"></div><button id="retirement-p2-scan-btn" onclick="openRetirementBonusScan('player2')" class="btn-primary btn-small">スキャン</button><p class="scan-status-text" id="retirement-p2-status">未スキャン</p></div></div><button onclick="showInvestmentRateModal()" class="btn-success" id="retirement-next-btn" style="width:100%;margin-top:20px;" disabled>適用して次へ</button></div></div>
     <div id="finalResultModal" class="modal"><div class="final-result-content"><h2>60代 終了！</h2><div id="lifeplanSummary"><p>お疲れ様でした！</p></div><button onclick="showInvestmentRateModal()" class="btn-primary" style="margin-top:20px;">投資結果計算へ</button></div></div>
     <div id="investmentRateModal" class="modal"><div class="modal-content" style="text-align:center;"><h2>投資利率の決定</h2><p>ルーレットで運用年利を決定します。</p><div id="rouletteContainer"><div id="rouletteDisplay">0%</div></div><button id="rouletteButton" class="btn-primary" onclick="toggleRoulette()" style="width:100%; margin-top:20px;"><i class="fas fa-play"></i> スタート</button></div></div>
     <div id="investmentResultModal" class="modal"><div class="modal-content-large"><h2 style="color:#2d3748; text-align:center; margin-bottom:10px;"><i class="fas fa-chart-line"></i> 資産運用の結果発表</h2><div id="investmentResultSummary"></div><div style="text-align:center; margin-top:20px;"><button onclick="showFinalAssets()" class="btn-success" style="width:100%;">最終結果を見る</button></div></div></div>
@@ -427,7 +427,7 @@
     <!-- ▲▲▲ 事前同意モーダルここまで ▲▲▲ -->
 
     <!-- ?v= はスマホのキャッシュで新旧ファイルが混在しないためのバージョン番号（更新のたびに変更） -->
-    <script src="game.js?v=20261008b"></script>
+    <script src="game.js?v=20261008c"></script>
     <script src="liferidge_ext.js?v=20261007n"></script>
 </body>
 </html>
