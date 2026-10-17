@@ -124,7 +124,9 @@ body {
 #cameraModal .btn-secondary, #cameraModal .btn-danger { min-width: 130px; height: 54px; font-size: 1.05em; }
 
 /* ---------- ルーレット ---------- */
-.roulette-wheel { border: 6px solid var(--lf-ink); box-shadow: 0 6px 0 var(--lf-ink); }
+/* 影は回転しない外枠に付ける(盤面に付けると回転後に影がずれて中心がずれて見える) */
+.roulette-wrapper { border-radius: 50%; box-shadow: 0 6px 0 var(--lf-ink); }
+.roulette-wheel { border: 6px solid var(--lf-ink); box-shadow: none; }
 .roulette-wheel::before { content: ""; position: absolute; inset: 40%; border-radius: 50%; background: #fff; border: 5px solid var(--lf-ink); z-index: 1; }
 .roulette-arrow { color: var(--lf-gold); -webkit-text-stroke: 3px var(--lf-ink); paint-order: stroke fill; z-index: 3; }
 #startRouletteBtn, #retireRouletteBtn {
