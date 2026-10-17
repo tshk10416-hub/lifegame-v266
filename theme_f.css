@@ -1,0 +1,324 @@
+/* ==========================================================
+   theme_f.css - F案デザイン(空とワールドマップ / ゲームUI)
+   style.css の後に読み込み、見た目だけを上書きする。
+   ※ ID・クラス・ボタンの動作(onclick)は現行のまま
+   ========================================================== */
+:root {
+    --lf-ink: #2B1B5A;
+    --lf-sub: #6E62A8;
+    --lf-pink: #FF4F8B;
+    --lf-pink-l: #FF7AAA;
+    --lf-gold: #FFC531;
+    --lf-violet: #7B5CFF;
+    --lf-violet-l: #9C86FF;
+    --lf-green: #22B45B;
+    --lf-green-l: #5BE38C;
+    --lf-red: #F0445A;
+    --lf-sky1: #5FD1FF;
+    --lf-sky2: #B8F0FF;
+    --lf-soft: #F1EEFF;
+    --lf-font: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', sans-serif;
+    --lf-display: 'RocknRoll One', 'M PLUS Rounded 1c', sans-serif;
+}
+
+body {
+    font-family: var(--lf-font);
+    font-weight: 700;
+    color: var(--lf-ink);
+    background: linear-gradient(180deg, #3FB6F5 0%, var(--lf-sky1) 40%, var(--lf-sky2) 100%) fixed;
+}
+
+/* ---------- 共通ボタン(ぷっくり3Dボタン) ---------- */
+.btn-primary, .btn-secondary, .btn-success, .btn-danger,
+.title-screen button, .title-screen .start-btn, #startRouletteBtn, #retireRouletteBtn, #rouletteButton {
+    font-family: var(--lf-font);
+    font-weight: 900;
+    border: 3px solid var(--lf-ink) !important;
+    border-radius: 18px;
+    color: #fff;
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.45), inset 0 -5px 0 rgba(0,0,0,.16), 0 5px 0 var(--lf-ink);
+    transition: transform .08s, box-shadow .08s;
+    text-shadow: 0 2px 0 rgba(43,27,90,.35);
+}
+.btn-primary:active, .btn-secondary:active, .btn-success:active, .btn-danger:active,
+.title-screen button:active, #startRouletteBtn:active, #retireRouletteBtn:active, #rouletteButton:active {
+    transform: translateY(4px);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.45), inset 0 -3px 0 rgba(0,0,0,.16), 0 1px 0 var(--lf-ink);
+}
+.btn-primary { background: linear-gradient(var(--lf-pink-l), var(--lf-pink)) !important; }
+.btn-success { background: linear-gradient(var(--lf-green-l), var(--lf-green)) !important; }
+.btn-secondary { background: #fff !important; color: var(--lf-ink) !important; text-shadow: none; }
+.btn-danger { background: #FFE3E6 !important; color: #C51F35 !important; text-shadow: none; }
+.btn-primary:disabled, .btn-success:disabled, #retirement-next-btn:disabled { filter: grayscale(.7); opacity: .6; }
+.control-buttons button:hover, .modal-buttons button:hover { transform: none; }
+
+/* ---------- 共通モーダル ---------- */
+.modal { background: rgba(29,20,66,.55); }
+.modal-content, .modal-content-large, .modal-content-xlarge, .final-result-content {
+    background: #fff;
+    border: 4px solid var(--lf-ink);
+    border-radius: 28px;
+    box-shadow: 0 8px 0 var(--lf-ink);
+    color: var(--lf-ink);
+}
+.modal-content h2, .modal-content-large h2, .modal-content-xlarge h2, .final-result-content h2 {
+    font-family: var(--lf-display);
+    font-weight: 400;
+    color: var(--lf-ink) !important;
+}
+/* 見出しをリボン風に */
+#guidanceModal .modal-content, #rouletteModal .modal-content, #retireRouletteModal .modal-content,
+#turnStartModal .modal-content, #cardInfoModal .modal-content { position: relative; padding-top: 52px !important; margin-top: 40px; }
+#guidance-title, #rouletteTitle, #retireRouletteTitle, #turn-start-title {
+    position: absolute; left: -12px; right: -12px; top: -26px; margin: 0 !important;
+    min-height: 54px; display: grid; place-items: center; padding: 4px 10px;
+    border: 4px solid var(--lf-ink); border-radius: 14px;
+    background: linear-gradient(var(--lf-violet-l), var(--lf-violet));
+    color: #fff !important; font-size: 1.35em !important;
+    -webkit-text-stroke: 5px var(--lf-ink); paint-order: stroke fill;
+    box-shadow: 0 5px 0 var(--lf-ink);
+}
+#rouletteTitle, #retireRouletteTitle, #turn-start-title { background: linear-gradient(var(--lf-pink-l), var(--lf-pink)); }
+#guidance-text {
+    font-weight: 900; font-size: 1.05em; line-height: 1.6;
+    background: #FFF6D6; border: 2.5px dashed #E0A800; border-radius: 14px; padding: 10px 12px;
+}
+#guidance-ok-button {
+    width: 100%; font-family: var(--lf-display) !important; font-weight: 400 !important;
+    background: linear-gradient(var(--lf-pink-l), var(--lf-pink)) !important;
+    border-radius: 20px !important; font-size: 1.35em !important;
+    -webkit-text-stroke: 4px var(--lf-ink); paint-order: stroke fill;
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.45), inset 0 -6px 0 rgba(0,0,0,.16), 0 5px 0 var(--lf-ink) !important;
+}
+#guidance-done-button { background: #D6F5E2 !important; color: var(--lf-green) !important; text-shadow: none; }
+#guidance-back-button { background: #fff !important; color: var(--lf-ink) !important; }
+
+/* ---------- スキャン画面 ---------- */
+#cameraModal { background: #0E0A22; }
+#cameraModal .modal-content { background: transparent; border: 0; box-shadow: none; color: #fff; }
+#cameraModal .modal-content > h2 {
+    display: inline-block; background: #fff; color: var(--lf-ink) !important;
+    border: 3px solid var(--lf-ink); border-radius: 999px; padding: 6px 20px; font-size: 1.2em;
+    box-shadow: 0 4px 0 var(--lf-ink);
+}
+.camera-view { border: 4px solid #fff; border-radius: 26px; max-height: 360px; min-height: 280px; display: flex; align-items: center; }
+.camera-view::before, .camera-view::after {
+    content: ""; position: absolute; left: 50%; top: 50%; width: 200px; height: 200px;
+    transform: translate(-50%, -50%); pointer-events: none; z-index: 2;
+    background:
+        linear-gradient(var(--lf-gold), var(--lf-gold)) left top / 44px 6px no-repeat,
+        linear-gradient(var(--lf-gold), var(--lf-gold)) left top / 6px 44px no-repeat,
+        linear-gradient(var(--lf-gold), var(--lf-gold)) right top / 44px 6px no-repeat,
+        linear-gradient(var(--lf-gold), var(--lf-gold)) right top / 6px 44px no-repeat,
+        linear-gradient(var(--lf-gold), var(--lf-gold)) left bottom / 44px 6px no-repeat,
+        linear-gradient(var(--lf-gold), var(--lf-gold)) left bottom / 6px 44px no-repeat,
+        linear-gradient(var(--lf-gold), var(--lf-gold)) right bottom / 44px 6px no-repeat,
+        linear-gradient(var(--lf-gold), var(--lf-gold)) right bottom / 6px 44px no-repeat;
+}
+.camera-view::after { background: none; width: 86%; height: 3px; background: var(--lf-pink); box-shadow: 0 0 12px var(--lf-pink); }
+.scan-status {
+    left: 50%; bottom: 12px; width: auto; transform: translateX(-50%); white-space: nowrap;
+    background: rgba(43,27,90,.88); border-radius: 999px; padding: 6px 16px; font-weight: 900; font-size: .85em; z-index: 3;
+}
+#scanStatsPanel { color: var(--lf-ink); }
+#cameraModal .btn-secondary, #cameraModal .btn-danger { min-width: 130px; height: 54px; font-size: 1.05em; }
+
+/* ---------- ルーレット ---------- */
+.roulette-wheel { border: 6px solid var(--lf-ink); box-shadow: 0 6px 0 var(--lf-ink); }
+.roulette-wheel::before { content: ""; position: absolute; inset: 40%; border-radius: 50%; background: #fff; border: 5px solid var(--lf-ink); z-index: 1; }
+.roulette-arrow { color: var(--lf-gold); -webkit-text-stroke: 3px var(--lf-ink); paint-order: stroke fill; z-index: 3; }
+#startRouletteBtn, #retireRouletteBtn {
+    width: 100%; height: 64px; font-family: var(--lf-display); font-weight: 400; font-size: 1.6rem;
+    background: linear-gradient(var(--lf-green-l), var(--lf-green)) !important;
+    -webkit-text-stroke: 4px var(--lf-ink); paint-order: stroke fill; border-radius: 20px;
+}
+#rouletteDescription { font-weight: 800; color: var(--lf-sub); }
+
+/* ---------- タイトル画面 ---------- */
+.title-screen {
+    background: linear-gradient(180deg, #3FB6F5 0%, var(--lf-sky1) 45%, var(--lf-sky2) 100%);
+    color: var(--lf-ink); position: relative; overflow-x: hidden;
+}
+.title-top-image { order: 2; position: relative; margin-top: 0; padding-bottom: 34px; }
+.title-top-image::before {
+    content: ""; position: absolute; left: 50%; bottom: 0; width: min(86%, 340px); height: 110px;
+    transform: translateX(-50%); border-radius: 50%; background: #7ED957;
+    box-shadow: 0 16px 0 #4FA83A, 0 28px 0 #8B5E3C, 0 34px 26px rgba(0,0,0,.18);
+}
+.main-illust { position: relative; z-index: 1; max-height: 26vh; border-radius: 0; }
+.title-center-content { order: 3; background: #fff; border: 4px solid var(--lf-ink); border-radius: 28px; padding: 16px; box-shadow: 0 6px 0 var(--lf-ink); margin-top: 34px; }
+.lf-title-logo { order: 1; margin-top: 24px; flex-shrink: 0; }
+.title-screen h1 {
+    font-family: var(--lf-display); font-weight: 400; font-size: 2.6em; line-height: 1.05; color: #fff;
+    -webkit-text-stroke: 9px var(--lf-ink); paint-order: stroke fill; text-shadow: 0 6px 0 var(--lf-ink);
+}
+.title-screen .subtitle {
+    display: inline-block; margin: 6px 0 4px; background: var(--lf-pink); color: #fff; font-style: normal; font-weight: 900;
+    font-size: .95em; padding: 4px 16px; border-radius: 999px; border: 3px solid var(--lf-ink); box-shadow: 0 3px 0 var(--lf-ink);
+}
+#roomIdInput {
+    width: 100% !important; border: 3px solid var(--lf-ink) !important; border-radius: 16px !important;
+    background: var(--lf-soft); font-family: var(--lf-display); font-size: 1.4em !important; letter-spacing: .15em; color: var(--lf-ink);
+}
+#firebaseStatus { border-radius: 999px !important; font-weight: 900; }
+.title-screen .start-btn {
+    background: linear-gradient(var(--lf-pink-l), var(--lf-pink)) !important;
+    font-family: var(--lf-display); font-weight: 400; font-size: 1.5em;
+    -webkit-text-stroke: 5px var(--lf-ink); paint-order: stroke fill; border-radius: 20px;
+}
+.title-screen .btn-secondary { background: #fff !important; color: var(--lf-ink) !important; font-family: var(--lf-font); font-size: 1.1em; -webkit-text-stroke: 0; text-shadow: none; }
+#roomIdInput::placeholder { font-family: var(--lf-font); font-size: .75em; letter-spacing: .05em; }
+.title-icons-bottom { order: 4; }
+.title-icons-bottom img { max-width: 64px !important; }
+
+/* ---------- ファミリーメイク等の汎用コンテナ ---------- */
+.container {
+    border: 4px solid var(--lf-ink); border-radius: 28px; box-shadow: 0 8px 0 var(--lf-ink);
+    background: rgba(255,255,255,.97);
+}
+#makeStepTitle { font-family: var(--lf-display); font-weight: 400; color: var(--lf-ink) !important; }
+.selection-card { border-radius: 20px; border: 3px solid var(--lf-ink); box-shadow: 0 4px 0 var(--lf-ink); }
+
+/* ==========================================================
+   メイン画面(すごろくマップ)
+   ========================================================== */
+#mainGameContainer.lf-main {
+    position: relative;
+    max-width: 480px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 12px 12px 210px;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    animation: none;
+}
+.lf-hud { position: relative; z-index: 2; }
+.lf-r1 { display: flex; gap: 10px; align-items: stretch; }
+.lf-age {
+    width: 92px; flex: none; min-height: 78px; border-radius: 22px; text-align: center; color: #fff;
+    background: linear-gradient(var(--lf-violet-l), #5A3CE0); border: 3px solid var(--lf-ink); box-shadow: 0 4px 0 var(--lf-ink);
+    display: flex; flex-direction: column; justify-content: center;
+}
+.lf-age small { font-size: 11px; font-weight: 900; opacity: .9; }
+#mainGameContainer .lf-age .age-display {
+    font-family: var(--lf-display); font-weight: 400; font-size: 26px !important; line-height: 1.1; margin: 0;
+    -webkit-text-stroke: 5px var(--lf-ink); paint-order: stroke fill;
+}
+.lf-asset {
+    flex: 1; position: relative; min-height: 78px; padding: 8px 12px 6px 66px; border-radius: 22px;
+    background: linear-gradient(#FFF3C4, #FFE07A); border: 3px solid var(--lf-ink); box-shadow: 0 4px 0 var(--lf-ink);
+}
+.lf-asset svg { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 50px; height: 50px; }
+.lf-label { display: block; font-size: 12.5px; font-weight: 900; color: var(--lf-sub); }
+.lf-asset .lf-label { color: #7A5A00; font-size: 13px; }
+.lf-num { font-family: var(--lf-display); font-weight: 400; }
+.lf-unit { font-size: 12px; font-weight: 900; margin-left: 2px; }
+.lf-asset .lf-num { font-size: 32px; line-height: 1.15; }
+.lf-r2 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.lf-tile { background: #fff; border: 3px solid var(--lf-ink); border-radius: 16px; padding: 6px 9px; box-shadow: 0 3px 0 var(--lf-ink); min-width: 0; }
+.lf-tile .lf-num { font-size: 22px; }
+.lf-tile.is-lp { background: #FFE6EF; }
+.lf-tile.is-lp .lf-num { color: #E3336F; }
+
+/* プレイヤー(現行の .player-section / .player-card を流用) */
+#mainGameContainer .player-section.lf-players {
+    display: grid; grid-template-columns: 1fr 1fr !important; gap: 8px !important; margin: 12px 0 0; position: relative; z-index: 2;
+}
+#mainGameContainer .lf-players .player-card {
+    display: flex; align-items: center; gap: 6px; padding: 6px 6px; min-width: 0;
+    background: #fff; border: 3px solid var(--lf-ink); border-radius: 18px; box-shadow: 0 3px 0 var(--lf-ink);
+}
+#mainGameContainer .lf-players .player-heading { margin: 0; font-size: 1em; display: contents; }
+#mainGameContainer .lf-players .player-avatar {
+    width: 40px; height: 40px; flex: none; border-radius: 50%; border: 3px solid var(--lf-ink); background: #CFEFFF; margin: 0;
+}
+#mainGameContainer .lf-players #player2 .player-avatar { background: #FFD4E4; }
+#mainGameContainer .lf-players .lf-pinfo { min-width: 0; }
+#mainGameContainer .lf-players .player-name { display: block; font-weight: 900; font-size: 16px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#mainGameContainer .lf-players .player-info p { margin: 0; font-size: 12px; font-weight: 900; color: var(--lf-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#mainGameContainer .lf-players .player-info p.lf-inc { color: var(--lf-ink); overflow: visible; font-size: 11px; }
+#mainGameContainer .lf-players .player-info p.lf-inc span { font-family: var(--lf-display); font-weight: 400; font-size: 16px; }
+
+/* 島マップ */
+.lf-stage { position: relative; margin: 0 -12px; height: 250px; }
+#lfMap { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* 最新イベント(吹き出し) */
+.lf-bubble {
+    position: relative; z-index: 2; margin-top: 2px; background: #fff; border: 3px solid var(--lf-ink); border-radius: 18px;
+    padding: 9px 14px; font-weight: 900; font-size: 14.5px; line-height: 1.45; box-shadow: 0 4px 0 var(--lf-ink);
+}
+.lf-bubble::after {
+    content: ""; position: absolute; left: 96px; top: -11px; width: 18px; height: 18px; background: #fff;
+    border-left: 3px solid var(--lf-ink); border-top: 3px solid var(--lf-ink); transform: rotate(45deg);
+}
+.lf-bubble-tag { display: inline-block; background: var(--lf-violet); color: #fff; border-radius: 7px; padding: 1px 8px; font-size: 11px; margin-bottom: 3px; }
+#lfLatestEvent { display: block; }
+
+/* 下部ドック(固定) */
+.lf-dock {
+    position: fixed; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 480px; z-index: 50;
+    padding: 26px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(rgba(43,27,90,0), rgba(43,27,90,.72) 40%);
+}
+.lf-sub { display: flex; gap: 8px; margin-bottom: 12px; }
+#mainGameContainer .lf-sub button {
+    flex: 1; height: 50px; padding: 0 4px; margin: 0; font-size: 14.5px; border-radius: 16px; width: auto;
+}
+#mainGameContainer .lf-sub .lf-next { flex: 1.35; background: linear-gradient(var(--lf-violet-l), var(--lf-violet)) !important; color: #fff !important; font-size: 15px; }
+#mainGameContainer .lf-scan {
+    display: block; width: 100%; height: 74px; margin: 0; border-radius: 22px; color: #fff !important;
+    font-family: var(--lf-display); font-weight: 400; font-size: 24px;
+    -webkit-text-stroke: 5px var(--lf-ink); paint-order: stroke fill;
+}
+.lf-pull {
+    display: block; width: 100%; margin-top: 8px; background: none; border: 0; color: #fff;
+    font-family: var(--lf-font); font-weight: 900; font-size: 13px; padding: 6px; cursor: pointer;
+}
+
+/* ライフプラン詳細・イベントログのシート */
+.lf-sheet {
+    position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 480px; max-height: 82vh; overflow-y: auto; z-index: 60;
+    transform: translate(-50%, 105%); transition: transform .28s ease;
+    background: #fff; border: 4px solid var(--lf-ink); border-bottom: 0; border-radius: 30px 30px 0 0;
+    padding: 10px 14px calc(18px + env(safe-area-inset-bottom, 0px));
+}
+.lf-sheet.is-open { transform: translate(-50%, 0); }
+.lf-sheet-backdrop { display: none; position: fixed; inset: 0; z-index: 55; background: rgba(29,20,66,.45); }
+body.lf-sheet-open .lf-sheet-backdrop { display: block; }
+.lf-sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.lf-sheet-head::before { content: ""; position: absolute; left: 50%; top: 8px; width: 50px; height: 6px; border-radius: 3px; background: #D8D2F0; transform: translateX(-50%); }
+.lf-sheet-head h3 { font-family: var(--lf-display); font-weight: 400; font-size: 20px; margin-top: 10px; }
+.lf-sheet-close { width: 40px; height: 40px; border-radius: 50%; border: 3px solid var(--lf-ink); background: #fff; font-weight: 900; font-size: 16px; color: var(--lf-ink); margin-top: 10px; cursor: pointer; }
+#mainGameContainer .lf-sheet .life-plan-details, #mainGameContainer .lf-sheet .event-log { background: none; padding: 0; margin: 0 0 14px; box-shadow: none; border: 0; }
+#mainGameContainer .lf-sheet .life-plan-details h3, #mainGameContainer .lf-sheet .event-log h3 { font-family: var(--lf-display); font-weight: 400; font-size: 16px; margin-bottom: 8px; }
+#mainGameContainer .lf-sheet .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#mainGameContainer .lf-sheet .detail-section { background: var(--lf-soft); border-radius: 14px; padding: 8px 10px; border: 0; }
+#mainGameContainer .lf-sheet .detail-section h4 { font-size: 13px; margin-bottom: 4px; color: var(--lf-violet); }
+#mainGameContainer .lf-sheet .detail-section p { font-size: 12.5px; font-weight: 800; margin: 1px 0; }
+#mainGameContainer .lf-sheet #event-list { max-height: 260px; overflow-y: auto; background: var(--lf-soft); border-radius: 14px; padding: 6px 10px; }
+#mainGameContainer .lf-sheet #event-list p { font-size: 13px; font-weight: 800; padding: 6px 0; border-bottom: 2px dashed #E4DFF7; margin: 0; }
+#mainGameContainer .lf-sheet .btn-danger { width: 100%; height: 48px; }
+
+/* メイン画面表示中: 固定表示の小物をドック・HUDと重ならない位置へ */
+body.lf-in-game .lr-mute-btn { width: 34px; height: 34px; bottom: calc(6px + env(safe-area-inset-bottom, 0px)); z-index: 70; }
+body.lf-in-game .lr-sync-pill { top: auto; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); transform: scale(.85); transform-origin: right bottom; z-index: 70; }
+body.lf-in-game.lf-sheet-open .lr-mute-btn, body.lf-in-game.lf-sheet-open .lr-sync-pill { display: none !important; }
+
+@media (max-width: 360px) {
+    .lf-asset .lf-num { font-size: 27px; }
+    .lf-tile .lf-num { font-size: 19px; }
+    .lf-age { width: 80px; }
+    #mainGameContainer .lf-sub button { font-size: 13px; }
+}
+
+/* 資産パネル(案内画面・スキャン画面) */
+#scanStatsPanel, .guidance-asset-panel-style {
+    background: linear-gradient(#3A2878, var(--lf-ink)); border: 3px solid var(--lf-ink); border-top: 3px solid var(--lf-ink);
+    border-radius: 18px; box-shadow: 0 4px 0 rgba(43,27,90,.5);
+}
+#scanAssetValue, .guidance-asset-value, .scan-diff, #guidanceAssetDiff { font-family: var(--lf-display); letter-spacing: 0; }
