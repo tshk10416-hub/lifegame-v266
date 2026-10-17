@@ -4295,12 +4295,12 @@ function showRetirementBonusModal() {
     saveGameState();
 }
 
-// ▼▼▼ 退職金ルーレット（ボードのサイコロの代わり）: 少・普通・多 が同じ確率（各1/3） ▼▼▼
+// ▼▼▼ 退職金ルーレット（ボードのサイコロの代わり）: 少2マス・普通3マス・多1マス（少1/3・普通1/2・多1/6） ▼▼▼
 //   ルーレットの結果は保存し、出た退職金カード（RT_S / RT_M / RT_H）以外は読み込めないようにする
 const RETIREMENT_LEVEL_LABEL = { S: '少', M: '普通', H: '多' };
 const RETIRE_WHEEL_COLORS = { S: '#90cdf4', M: '#f6e05e', H: '#f6ad55' };
-// 盤面は6マス（上から時計回り、各60度）。少・普通・多を2回ずつ交互に並べて、どれも1/3で止まる
-const RETIRE_WHEEL_SEGMENTS = ['S', 'M', 'H', 'S', 'M', 'H'];
+// 盤面は6マス（上から時計回り、各60度）。少2・普通3・多1を、同じ種類が隣り合わないように並べる
+const RETIRE_WHEEL_SEGMENTS = ['S', 'M', 'S', 'M', 'H', 'M'];
 const RETIRE_WHEEL_SPIN_MS = 4000;
 let retireWheelSpinning = false;
 
