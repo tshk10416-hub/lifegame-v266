@@ -3,9 +3,46 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <script>
+    // ▼ スマホで「デスクトップ用Webサイトを表示」がオンになっていると、iPhone（Safari）や
+    //   Android（Chrome）は viewport の指定を無視して約980px幅のPC用レイアウトで表示する。
+    //   画面の幅に対してページが広すぎるときは、ページ全体を拡大してスマホ表示と同じ見た目に戻す。
+    (function () {
+        var root = document.documentElement;
+        function fitToPhone() {
+            var touch = (navigator.maxTouchPoints || 0) > 0 || 'ontouchstart' in window;
+            if (!touch || !window.screen) return;
+            var portrait = window.matchMedia ? window.matchMedia('(orientation: portrait)').matches : true;
+            var shortSide = Math.min(screen.width, screen.height);
+            var longSide = Math.max(screen.width, screen.height);
+            var deviceWidth = portrait ? shortSide : longSide;
+            var zoom = 0;
+            if (shortSide < 600) { // タブレットはそのまま
+                var layoutWidth = window.innerWidth || root.clientWidth;
+                if (layoutWidth > deviceWidth * 1.25) zoom = layoutWidth / deviceWidth;
+            }
+            root.style.zoom = zoom ? String(zoom) : '';
+            root.classList.toggle('lf-zoomed', !!zoom);
+            // 拡大すると vh も拡大されて縦に伸びるため、画面の高さ(1%)を拡大前の値で渡す
+            if (zoom) root.style.setProperty('--lf-vh', (window.innerHeight / zoom / 100) + 'px');
+            else root.style.removeProperty('--lf-vh');
+        }
+        // アドレスバーの出入り（高さだけの変化）では計算し直さない
+        var lastWidth = 0;
+        function refit() {
+            if (window.innerWidth === lastWidth) return;
+            lastWidth = window.innerWidth;
+            fitToPhone();
+        }
+        refit();
+        document.addEventListener('DOMContentLoaded', fitToPhone);
+        window.addEventListener('orientationchange', function () { setTimeout(function () { lastWidth = 0; refit(); }, 300); });
+        window.addEventListener('resize', refit);
+    })();
+    </script>
     <title>ライフリッジゲーム ~Life & Marriage~</title>
-    <link rel="stylesheet" href="style.css?v=20261008c">
-    <link rel="stylesheet" href="theme_f.css?v=20261017c">
+    <link rel="stylesheet" href="style.css?v=20261019a">
+    <link rel="stylesheet" href="theme_f.css?v=20261019a">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=RocknRoll+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap" rel="stylesheet">
@@ -433,7 +470,7 @@
     <!-- ▲▲▲ 事前同意モーダルここまで ▲▲▲ -->
 
     <!-- ?v= はスマホのキャッシュで新旧ファイルが混在しないためのバージョン番号（更新のたびに変更） -->
-    <script src="game.js?v=20261017c"></script>
+    <script src="game.js?v=20261019a"></script>
     <script src="liferidge_ext.js?v=20261007n"></script>
     <script src="theme_f.js?v=20261017a"></script>
 </body>

@@ -68,6 +68,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// ▼▼▼ ゲーム内の確認ダイアログ（ブラウザ標準の confirm() の代わり） ▼▼▼
+//   iPhone の Safari では確認ダイアログが続くと「このページのダイアログを表示しない」を選べ、
+//   選ぶと confirm() は何も表示せずに「キャンセル」を返すため、リセットや「次のターンへ」が
+//   押しても動かなくなる。LINE などのアプリ内ブラウザでも表示されないことがある。
+//   画面内のボタンで答える方式にして、どのスマホ・どのブラウザでも同じように動くようにする。
+function lfConfirm(message, options) {
+    const opt = options || {};
+    return new Promise(resolve => {
+        const old = document.getElementById('lfConfirmModal');
+        if (old) old.remove();
+        const modal = document.createElement('div');
+        modal.id = 'lfConfirmModal';
+        modal.className = 'modal lf-confirm-modal';
+        modal.style.display = 'flex';
+        const box = document.createElement('div');
+        box.className = 'modal-content lf-confirm-box';
+        const text = document.createElement('p');
+        text.className = 'lf-confirm-text';
+        text.textContent = message;
+        const buttons = document.createElement('div');
+        buttons.className = 'lf-confirm-buttons';
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'btn-secondary';
+        cancelBtn.textContent = opt.cancelText || 'キャンセル';
+        const okBtn = document.createElement('button');
+        okBtn.type = 'button';
+        okBtn.className = opt.danger ? 'btn-danger' : 'btn-primary';
+        okBtn.textContent = opt.okText || 'OK';
+        buttons.append(cancelBtn, okBtn);
+        box.append(text, buttons);
+        modal.appendChild(box);
+        document.body.appendChild(modal);
+
+        let answered = false;
+        const answer = (ok) => {
+            if (answered) return;
+            answered = true;
+            modal.remove();
+            resolve(ok);
+        };
+        okBtn.addEventListener('click', () => answer(true));
+        cancelBtn.addEventListener('click', () => answer(false));
+    });
+}
+
 let currentRoomId = null;
 
 // ==========================================================
@@ -1973,10 +2019,19 @@ function nextMakeStep() {
         const n = document.getElementById('makeP2Name'); if(n) familyMakeState.p2Name = n.value || 'プレイヤー2';
         // プレイヤー2が医師なら、プレイヤー1は専業主婦（主夫）に変更
         if (familyMakeState.p2JobId === DOCTOR_JOB_ID && familyMakeState.p1JobId !== HOMEMAKER_JOB_ID) {
-            if (!confirm(`プレイヤー2を医師にすると、プレイヤー1（${familyMakeState.p1Name || 'プレイヤー1'}）の職業は専業主婦（主夫）に変更されます。よろしいですか？`)) return;
-            familyMakeState.p1JobId = HOMEMAKER_JOB_ID;
+            lfConfirm(`プレイヤー2を医師にすると、プレイヤー1（${familyMakeState.p1Name || 'プレイヤー1'}）の職業は専業主婦（主夫）に変更されます。よろしいですか？`)
+                .then(ok => {
+                    if (!ok) return;
+                    familyMakeState.p1JobId = HOMEMAKER_JOB_ID;
+                    advanceMakeStep();
+                });
+            return;
         }
     }
+    advanceMakeStep();
+}
+
+function advanceMakeStep() {
     familyMakeState.step++;
     transitionMakePage(() => {
         if (familyMakeState.step > 5) finalizeFamilyMake();
@@ -3116,10 +3171,11 @@ function nextTurn() {
         `次へ： ${nextAgeLabel}\n\n` +
         `※この操作は取り消せません。\n` +
         `スキャンや確認の漏れがないかチェックしてください。`;
-    if (!confirm(confirmMsg)) {
-        return;
-    }
+    lfConfirm(confirmMsg, { okText: '次のターンへ' }).then(ok => { if (ok) proceedNextTurn(); });
     // ▲▲▲ 確認ダイアログここまで ▲▲▲
+}
+
+function proceedNextTurn() {
 
     gameState.turnEventCompleted = false;
     gameState.car.cardScanned = false;
@@ -3839,10 +3895,8 @@ function stopScan() {
 
 // ▼▼▼ 誤操作防止：ユーザーが「中止」ボタンを押したときに確認 ▼▼▼
 function confirmStopScan() {
-    if (!confirm("【確認】\nカードスキャンを中止しますか？\n\n※「OK」を押すとスキャン画面が閉じます。\n　誤って押した場合は「キャンセル」してください。")) {
-        return;
-    }
-    stopScan();
+    lfConfirm("【確認】\nカードスキャンを中止しますか？\n\n※「OK」を押すとスキャン画面が閉じます。\n　誤って押した場合は「キャンセル」してください。")
+        .then(ok => { if (ok) stopScan(); });
 }
 
 function closeCameraAndReturn() {
@@ -3863,10 +3917,8 @@ function closeCameraAndReturn() {
 
 // ▼▼▼ 誤操作防止：ユーザーが「戻る」ボタンを押したときに確認 ▼▼▼
 function confirmCloseCameraAndReturn() {
-    if (!confirm("【確認】\nスキャンを中断して前の画面に戻りますか？\n\n※読み取り中のカードがある場合は再スキャンが必要になります。")) {
-        return;
-    }
-    closeCameraAndReturn();
+    lfConfirm("【確認】\nスキャンを中断して前の画面に戻りますか？\n\n※読み取り中のカードがある場合は再スキャンが必要になります。")
+        .then(ok => { if (ok) closeCameraAndReturn(); });
 }
 
 function goBackGuidance() {
@@ -4608,11 +4660,16 @@ function leaveGameToTitle() {
     ['gameStarted', GAME_STATE_KEY, BALANCE_HISTORY_KEY].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
     location.reload();
 }
-function resetGame() { if(confirm("リセットしますか？\n現在の進行状況は失われます。")) { leaveGameToTitle(); } }
+function resetGame() {
+    if (typeof lfToggleSheet === 'function') lfToggleSheet(false); // 下から出るシートを閉じてから確認を出す
+    lfConfirm("リセットしますか？\n現在の進行状況は失われます。", { okText: 'リセットする', danger: true })
+        .then(ok => { if (ok) leaveGameToTitle(); });
+}
 function saveAndExitGame() { saveToHallOfFame(); alert("保存しました。タイトルに戻ります。"); leaveGameToTitle(); }
 function saveToHallOfFame() { if(!gameState.finalInvestmentResult) return; const e = { id: new Date().toISOString(), timestamp: new Date().toLocaleString('ja-JP'), finalAssets: gameState.totalAssets, happiness: gameState.happiness, player1Name: gameState.players.player1.name, player2Name: gameState.players.player2.name, marriage: gameState.marriage.type, children: gameState.children.count, house: gameState.house.type, balanceHistory: gameState.balanceHistory, finalInvestmentResult: gameState.finalInvestmentResult }; try { const d = localStorage.getItem(HALL_OF_FAME_KEY); let l = d ? JSON.parse(d) : []; l.push(e); l.sort((a,b)=>b.finalAssets-a.finalAssets); localStorage.setItem(HALL_OF_FAME_KEY, JSON.stringify(l.slice(0,10))); } catch(e){} }
 function showHallOfFame() { const m = document.getElementById('hallOfFameModal'); const c = document.getElementById('hallOfFameContainer'); c.innerHTML = ''; try { const d = localStorage.getItem(HALL_OF_FAME_KEY); const l = d ? JSON.parse(d) : []; if(l.length===0) c.innerHTML = '<p style="text-align:center">データなし</p>'; l.forEach(e => { c.innerHTML += `<div class="hof-entry"><div class="assets">${Math.round(e.finalAssets)}<span>万円</span><br><small style="color:#e53e3e">❤️${e.happiness||0}</small></div><div class="details"><p>${e.timestamp}</p><p>${e.player1Name}, ${e.player2Name}</p></div><div class="hof-controls"><button class="btn-secondary btn-small" onclick="showSavedBalanceDetails('${e.id}')">詳細</button><button class="btn-danger btn-small" onclick="deleteSavedEntry('${e.id}')">削除</button></div></div>`; }); } catch(e){} m.style.display = 'flex'; }
-function deleteSavedEntry(id) { if(!confirm("削除しますか？")) return; const l = JSON.parse(localStorage.getItem(HALL_OF_FAME_KEY)||'[]').filter(e=>e.id!==id); localStorage.setItem(HALL_OF_FAME_KEY, JSON.stringify(l)); showHallOfFame(); }
+function deleteSavedEntry(id) { lfConfirm("削除しますか？", { okText: '削除する', danger: true }).then(ok => { if (ok) deleteSavedEntryNow(id); }); }
+function deleteSavedEntryNow(id) { const l = JSON.parse(localStorage.getItem(HALL_OF_FAME_KEY)||'[]').filter(e=>e.id!==id); localStorage.setItem(HALL_OF_FAME_KEY, JSON.stringify(l)); showHallOfFame(); }
 function closeHallOfFameModal() { document.getElementById('hallOfFameModal').style.display='none'; }
 function showSavedBalanceDetails(id) { const e = JSON.parse(localStorage.getItem(HALL_OF_FAME_KEY)||'[]').find(x=>x.id===id); if(e) showFinalBalanceDetails(e.balanceHistory); }
 function closeNetIncomeModal() { 
@@ -4853,9 +4910,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const topModal = openModals[openModals.length - 1];
 
             // カメラスキャン中は専用処理
-            if (topModal.id === 'cameraModal') {
-                const ok = confirm("【確認】\nカメラスキャンを中断しますか？");
-                if (ok) {
+            if (topModal.id === 'lfConfirmModal') {
+                // 確認画面を出している間に戻る操作をした → 「キャンセル」と同じ扱い
+                const cancelBtn = topModal.querySelector('.btn-secondary');
+                if (cancelBtn) cancelBtn.click();
+            }
+            else if (topModal.id === 'cameraModal') {
+                lfConfirm("【確認】\nカメラスキャンを中断しますか？").then(ok => {
+                    if (!ok) return;
                     if (typeof stopScan === 'function') stopScan();
                     // ガイダンス文脈があれば復帰
                     if (gameState && gameState.guidanceContextForApply) {
@@ -4863,7 +4925,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         gameState.guidanceContextForApply = null;
                         if (typeof showGuidanceModal === 'function') showGuidanceModal(ctx);
                     }
-                }
+                });
             }
             // ガイダンスモーダルは閉じても問題ない（再度ボタンで開ける）
             else if (topModal.id === 'guidanceModal') {
@@ -4893,33 +4955,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (inGame) {
             // ゲーム本編中：誤操作の可能性が高いので確認
-            const ok = confirm(
+            // 確認中も履歴を戻されないよう、先に罠を再セットしておく
+            pushSentinel();
+            lfConfirm(
                 "【確認】\n本当にゲームを終了して前のページに戻りますか？\n\n" +
                 "※「キャンセル」を押すと、今のゲームに留まります。\n" +
                 "　ゲームの進行状態は自動保存されています。"
-            );
-            if (ok) {
-                // ユーザーが本当に戻りたい → 実際に履歴を戻す
-                history.back();
-            } else {
-                // 留まる → 罠を再セット
-                pushSentinel();
-            }
+            ).then(ok => {
+                // ユーザーが本当に戻りたい → 再セットした罠の分も含めて履歴を戻す
+                if (ok) history.go(-2);
+            });
         } else if (inFamilyMake) {
             // ファミリーメイク中：作成途中なので確認
-            const ok = confirm(
+            pushSentinel();
+            lfConfirm(
                 "【確認】\nファミリーメイクを中止してタイトルに戻りますか？\n\n" +
                 "※入力した内容は破棄されます。"
-            );
-            if (ok) {
+            ).then(ok => {
+                if (!ok) return;
                 // タイトル画面に戻す（履歴ではなく画面表示で対応）
                 if (familyMake) familyMake.style.display = 'none';
                 const ts = document.getElementById('titleScreen');
                 if (ts) ts.style.display = 'flex';
-                pushSentinel();
-            } else {
-                pushSentinel();
-            }
+            });
         } else {
             // タイトル画面など → 通常通り戻る
             // sentinel を再プッシュしないことで、もう一度押されたら離脱できる
