@@ -1633,8 +1633,12 @@ function renderMakeStep() {
     if (!nextBtn) return;
 
     nextBtn.style.display = 'inline-block';
-    contentArea.innerHTML = ''; 
-    
+    nextBtn.innerHTML = '次へ <i class="fas fa-chevron-right"></i>'; // 「前に戻る」で戻ったときに「生活スタート」のままにならないように
+    // 「前に戻る」ボタン: 子どもの人数が決まった後（住宅の種類のページ）からは、ルーレットの回し直しになるため戻れない
+    const prevBtn = document.getElementById('makePrevBtn');
+    if (prevBtn) prevBtn.style.display = [1, 2, 3, 5].includes(familyMakeState.step) ? 'inline-block' : 'none';
+    contentArea.innerHTML = '';
+
     const currentGross = getTempHouseholdGross();
 
     switch(familyMakeState.step) {
@@ -1924,6 +1928,8 @@ function toggleChildRoulette() {
         // ルーレット開始後は選び直し不可
         const backArea = document.getElementById('childBackArea');
         if (backArea) backArea.style.display = 'none';
+        const makePrevBtn = document.getElementById('makePrevBtn');
+        if (makePrevBtn) makePrevBtn.style.display = 'none';
 
         // 出目: 1 / 2 / 3 を等確率で表示（「子どもなし」は選択制のためルーレットには含めない）
         childRouletteInterval = setInterval(() => {
@@ -2029,6 +2035,19 @@ function nextMakeStep() {
         }
     }
     advanceMakeStep();
+}
+
+// ファミリーメイクで1つ前のページに戻る（選び間違えたときのやり直し用）
+function prevMakeStep() {
+    if (isMakePageTransitioning) return;
+    if (![1, 2, 3, 5].includes(familyMakeState.step)) return;
+    if (isChildRouletteRunning) return; // ルーレットを回している最中は戻れない
+    // 入力途中の名前は残しておく
+    if (familyMakeState.step === 1) { const n = document.getElementById('makeP2Name'); if (n) familyMakeState.p2Name = n.value || 'プレイヤー2'; }
+    const nextBtn = document.getElementById('makeNextBtn');
+    if (nextBtn) nextBtn.onclick = nextMakeStep; // 子どものページで差し替えた「次へ」の動作を元に戻す
+    familyMakeState.step--;
+    transitionMakePage(renderMakeStep);
 }
 
 function advanceMakeStep() {
@@ -3159,8 +3178,11 @@ function animateAssetChange(startVal, endVal, netResult, lp) {
 // 6. ターン処理
 // ==========================================================
 function nextTurn() {
-    if (gameState.isCareerChallengeActive) { alert("キャリアチャレンジを完了してください"); return; }
-    if (gameState.currentGuidance) { alert("指示に従ってください"); return; }
+    // ▼ 進行に必要な画面が閉じてしまっている場合は、警告だけで止めずにその画面を開き直す
+    if (gameState.currentAge >= 70) { resumeEndgameFlow(); return; }
+    if (gameState.isCareerChallengeActive) { resumeCareerChallenge(); return; }
+    if (gameState.currentGuidance === 'freeScan') gameState.currentGuidance = null; // 自由読み取りの結果画面は進行を止めない
+    if (gameState.currentGuidance) { showGuidanceModal(gameState.currentGuidance); return; }
 
     // ▼▼▼ 誤操作防止：次のターン移行前の確認ダイアログ ▼▼▼
     const ageLabel = (gameState.currentAge === 60) ? "60-64歳" : `${gameState.currentAge}代`;
@@ -3298,14 +3320,17 @@ function proceedNextTurn() {
             }
         }
     });
+    // キャリアチャレンジ中であることも保存する（途中で再読み込みされても、転職・昇格の画面から再開できるように。
+    // 旧実装は保存後にフラグを立てていたため、再読み込みするとその年代の収入・支出の反映が丸ごと抜けていた）
+    const hasCareerChallenge = (gameState.currentAge === 40 || gameState.currentAge === 50);
+    if (hasCareerChallenge) { gameState.isCareerChallengeActive = true; gameState.currentPlayerChallenge = 'player1'; gameState.careerJobChangedKey = null; }
     saveGameState();
 
-    if (gameState.currentAge >= 70) { 
-        updateDisplay(); 
-        showTurnStartModal(60, true); 
-    } else if (gameState.currentAge === 40 || gameState.currentAge === 50) { 
-        gameState.isCareerChallengeActive = true; 
-        showCareerChallenge('player1'); 
+    if (gameState.currentAge >= 70) {
+        updateDisplay();
+        showTurnStartModal(60, true);
+    } else if (hasCareerChallenge) {
+        showCareerChallenge('player1');
     } else {
         updateStateForNewTurn();
         // 60代（5年間）の収支も、ほかの年代と同じく開始時に先取りして反映する
@@ -3606,11 +3631,15 @@ function loadGameState() {
 
 function openMainScanButton() {
     const context = gameState.guidanceContextForApply || gameState.currentGuidance;
-    if (context && context !== 'freeScan') {
+    if (gameState.currentAge >= 70) {
+        // 65歳以降は退職金・投資結果の画面へ戻す（画面が閉じてしまったときの復帰用）
+        resumeEndgameFlow();
+    } else if (gameState.isCareerChallengeActive) {
+        // 転職・昇格の途中なら、その画面を開き直す（旧実装は警告を出すだけで戻れなかった）
+        resumeCareerChallenge();
+    } else if (context && context !== 'freeScan') {
         gameState.guidanceContextForApply = null;
         showGuidanceModal(context);
-    } else if (gameState.isCareerChallengeActive) {
-        alert("キャリアチャレンジを完了してください。");
     } else {
         // ▼ バグ修正: ガイダンス外（ステータス画面）から読み取る場合も文脈を持たせる。
         //   旧実装は文脈なしでカメラを開いていたため、適用後に showGuidanceModal(null) となり
@@ -3896,13 +3925,22 @@ function stopScan() {
 // ▼▼▼ 誤操作防止：ユーザーが「中止」ボタンを押したときに確認 ▼▼▼
 function confirmStopScan() {
     lfConfirm("【確認】\nカードスキャンを中止しますか？\n\n※「OK」を押すとスキャン画面が閉じます。\n　誤って押した場合は「キャンセル」してください。")
-        .then(ok => { if (ok) stopScan(); });
+        .then(ok => {
+            if (!ok) return;
+            stopScan();
+            // 退職金カードのスキャンを中止した場合は、退職金の画面へ戻す（何も表示されず進めなくなるのを防ぐ）
+            if (gameState.currentAge >= 70) { gameState.guidanceContextForApply = null; resumeEndgameFlow(); }
+        });
 }
 
 function closeCameraAndReturn() {
     stopScan();
     const previousContext = gameState.guidanceContextForApply;
-    if (previousContext === 'freeScan') {
+    if (previousContext === 'retirement_p1' || previousContext === 'retirement_p2') {
+        // 退職金カードのスキャンから戻る場合は、退職金の画面へ戻す
+        gameState.guidanceContextForApply = null;
+        showRetirementBonusModal();
+    } else if (previousContext === 'freeScan') {
         // ステータス画面から開いたカメラを閉じた場合は、ステータス画面にそのまま戻る
         gameState.guidanceContextForApply = null;
         if (gameState.currentGuidance === 'freeScan') gameState.currentGuidance = null;
@@ -4229,7 +4267,44 @@ function showCareerChallenge(key) {
     }
 
     document.getElementById('careerChallengeModal').style.display = 'flex';
+    updateCareerResumeButton();
 }
+
+// ▼▼▼ キャリアチャレンジ（転職・昇格）の画面へ戻るための処理 ▼▼▼
+// ステータス画面の「転職・昇格の画面に戻る」ボタン: チャレンジ中だけ表示する
+function updateCareerResumeButton() {
+    const btn = document.getElementById('careerResumeBtn');
+    if (btn) btn.style.display = gameState.isCareerChallengeActive ? 'block' : 'none';
+}
+
+// 途中で閉じてしまった転職・昇格の画面を開き直す
+function resumeCareerChallenge() {
+    if (!gameState.isCareerChallengeActive) { updateCareerResumeButton(); return; }
+    if (gameState.isRouletteSpinning) return; // ルーレットの結果待ち
+    const key = gameState.currentPlayerChallenge || 'player1';
+    ['jobSelectionModal', 'rouletteModal', 'netIncomeModal', 'deductionDetailsModal'].forEach(id => {
+        const m = document.getElementById(id);
+        if (m) m.style.display = 'none';
+    });
+    if (gameState.careerJobChangedKey === key) {
+        // この人の転職はすでに成立している → もう一度選ばせず、次の人（または年代の開始）へ進む
+        proceedToNextPlayerOrEnd();
+        return;
+    }
+    showCareerChallenge(key);
+}
+
+// 職業選択・ルーレットの画面から「転職・昇格の選択」へ戻る
+function cancelCareerSubScreen() {
+    if (gameState.isRouletteSpinning) return; // 回し始めた後は取り消せない
+    if (gameState.isCareerChallengeActive) { resumeCareerChallenge(); return; }
+    // 求職中の職業選択（必ず選ぶ必要がある）は、案内画面に戻す
+    document.getElementById('jobSelectionModal').style.display = 'none';
+    document.getElementById('rouletteModal').style.display = 'none';
+    determineNextGuidance();
+}
+// ▲▲▲ ここまで ▲▲▲
+
 function handleCareerChoice(choice) {
     const p = gameState.players[gameState.currentPlayerChallenge];
 
@@ -4270,14 +4345,17 @@ function handleCareerChoice(choice) {
 
 // 次のプレイヤーに進む、またはターンを開始する共通処理
 function proceedToNextPlayerOrEnd() {
-    if (gameState.currentPlayerChallenge === 'player1') { 
-        showCareerChallenge('player2'); 
+    gameState.careerJobChangedKey = null;
+    if (gameState.currentPlayerChallenge === 'player1') {
+        showCareerChallenge('player2');
+        saveGameState(); // プレイヤー1の結果を保存（再読み込みしてもプレイヤー2の番から再開）
     } else {
         // 全員終わったらモーダルを閉じて次のターンへ
         document.getElementById('careerChallengeModal').style.display = 'none';
         gameState.isCareerChallengeActive = false;
         gameState.currentPlayerChallenge = null;
-        
+        updateCareerResumeButton();
+
         updateStateForNewTurn(); 
         startTurnIncomeAndExpense(gameState.currentAge);
         updateDisplay(); 
@@ -4392,7 +4470,24 @@ function openRetirementRoulette(key) {
     btn.textContent = 'START';
     btn.disabled = false;
     btn.onclick = function() { spinRetirementRoulette(key); };
+    const backBtn = document.getElementById('retireRouletteBackBtn');
+    if (backBtn) backBtn.style.display = 'inline-block';
     document.getElementById('retireRouletteModal').style.display = 'flex';
+}
+
+// 退職金ルーレットの画面を閉じて、退職金の画面に戻る（回している最中は閉じない）
+function closeRetirementRoulette() {
+    if (retireWheelSpinning) return;
+    document.getElementById('retireRouletteModal').style.display = 'none';
+    showRetirementBonusModal();
+}
+
+// 65歳以降（退職金〜最終結果）の画面が閉じてしまったときに、続きの画面を開き直す
+function resumeEndgameFlow() {
+    const anyOpen = ['retirementBonusModal', 'retireRouletteModal', 'investmentRateModal', 'investmentResultModal', 'lifePlanKarteModal', 'turnStartModal', 'cameraModal', 'cardInfoModal']
+        .some(id => { const m = document.getElementById(id); return m && m.style.display && m.style.display !== 'none'; });
+    if (anyOpen) return;
+    if (gameState.finalInvestmentResult) showLifePlanKarte(); else showRetirementBonusModal();
 }
 
 function spinRetirementRoulette(key) {
@@ -4400,6 +4495,8 @@ function spinRetirementRoulette(key) {
     retireWheelSpinning = true;
     const btn = document.getElementById('retireRouletteBtn');
     btn.disabled = true;
+    const backBtn = document.getElementById('retireRouletteBackBtn');
+    if (backBtn) backBtn.style.display = 'none'; // 回し始めたら「戻る」は不要（結果のOKボタンで戻る）
 
     // 止まるマスを先に決めて保存する（回転中に画面を閉じても回し直しできないように）
     const seg = Math.floor(Math.random() * RETIRE_WHEEL_SEGMENTS.length);
@@ -4441,8 +4538,13 @@ function openRetirementBonusScan(k) { gameState.guidanceContextForApply = (k==='
 
 function showInvestmentRateModal() {
     document.getElementById('retirementBonusModal').style.display='none'; 
-    const retirementTotal = gameState.retirementBonus.player1 + gameState.retirementBonus.player2;
-    gameState.totalAssets += retirementTotal;
+    // 退職金の加算は1回だけ（再読み込みなどでこの画面をもう一度通っても二重に加算しない）
+    if (!gameState.retirementBonus.applied) {
+        const retirementTotal = gameState.retirementBonus.player1 + gameState.retirementBonus.player2;
+        gameState.totalAssets += retirementTotal;
+        gameState.retirementBonus.applied = true;
+        saveGameState();
+    }
     document.getElementById('finalResultModal').style.display='none'; 
     document.getElementById('investmentRateModal').style.display='flex'; 
     isRouletteRunning = false;
@@ -4513,6 +4615,7 @@ function calculateInvestmentResult(ratePercent) {
     const bef = gameState.totalAssets;
     gameState.totalAssets = bef + fv; 
     gameState.finalInvestmentResult = { rate: ratePercent, principal: prin, fv, gain: fv - prin, assetsBefore: bef, finalAssets: gameState.totalAssets, tsumitate, ikkatsu };
+    saveGameState(); // 結果を確定して保存（再読み込みでルーレットを回し直せないように）
     document.getElementById('investmentRateModal').style.display = 'none';
     const resDiv = document.getElementById('investmentResultSummary');
     if(resDiv) {
@@ -4868,6 +4971,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if(gameState.currentAge >= 70) {
             if (!gameState.finalInvestmentResult) showRetirementBonusModal();
             else showLifePlanKarte();
+        } else if (gameState.isCareerChallengeActive) {
+            // 転職・昇格の途中で再読み込みされた場合は、その画面から再開する
+            // （旧実装は何も表示されず、「次のターンへ」も「カードを読み取る」も押せなくなっていた）
+            resumeCareerChallenge();
         } else {
             determineNextGuidance();
         }
@@ -4907,7 +5014,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // ▼ 開いているモーダルがあれば、それを閉じることを優先
         const openModals = getOpenModals();
         if (openModals.length > 0) {
-            const topModal = openModals[openModals.length - 1];
+            // いちばん手前に表示されている画面を対象にする（重なり順 z-index が同じなら後ろに書かれたもの）
+            // 旧実装は並び順だけで選んでいたため、職業選択の上に出した「解説」ではなく職業選択のほうを閉じていた
+            const zOf = (m) => { const z = parseInt(window.getComputedStyle(m).zIndex, 10); return isNaN(z) ? 0 : z; };
+            const topModal = openModals.reduce((a, b) => (zOf(b) >= zOf(a) ? b : a));
 
             // カメラスキャン中は専用処理
             if (topModal.id === 'lfConfirmModal') {
@@ -4916,20 +5026,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (cancelBtn) cancelBtn.click();
             }
             else if (topModal.id === 'cameraModal') {
-                lfConfirm("【確認】\nカメラスキャンを中断しますか？").then(ok => {
-                    if (!ok) return;
-                    if (typeof stopScan === 'function') stopScan();
-                    // ガイダンス文脈があれば復帰
-                    if (gameState && gameState.guidanceContextForApply) {
-                        const ctx = gameState.guidanceContextForApply;
-                        gameState.guidanceContextForApply = null;
-                        if (typeof showGuidanceModal === 'function') showGuidanceModal(ctx);
-                    }
-                });
+                // 画面内の「戻る」ボタンと同じ処理（案内画面・退職金の画面など、元の画面へ戻す）
+                lfConfirm("【確認】\nカメラスキャンを中断しますか？").then(ok => { if (ok) closeCameraAndReturn(); });
             }
+            // ▼▼▼ 閉じるだけでは進行が止まってしまう画面は、画面内のボタンと同じ処理で戻す ▼▼▼
+            // 転職の職業選択・昇格/転職ルーレット: 転職・昇格の選択画面へ戻す（回転中は何もしない）
+            else if (topModal.id === 'jobSelectionModal' || topModal.id === 'rouletteModal') {
+                cancelCareerSubScreen();
+            }
+            // 退職金ルーレット: 退職金の画面へ戻す（回転中は何もしない）
+            else if (topModal.id === 'retireRouletteModal') {
+                closeRetirementRoulette();
+            }
+            // 転職後の手取り表示: 「OK」と同じ（閉じるだけだと次の人・次の案内へ進まない）
+            else if (topModal.id === 'netIncomeModal') {
+                closeNetIncomeModal();
+            }
+            // 年代のプランニング: 「確認」と同じ（閉じるだけだと自動車・保険・イベントの案内が出ない）
+            else if (topModal.id === 'ageGuidanceModal') {
+                closeAgeGuidanceModal();
+            }
+            // カード確認: 「キャンセル」と同じ（退職金カードなら退職金の画面へ戻る）
+            else if (topModal.id === 'cardInfoModal') {
+                closeCardInfoModal();
+            }
+            // ▲▲▲ ここまで ▲▲▲
             // ガイダンスモーダルは閉じても問題ない（再度ボタンで開ける）
             else if (topModal.id === 'guidanceModal') {
                 topModal.style.display = 'none';
+                topModal.style.zIndex = '';
+                // 自由読み取りの結果画面は「閉じる」と同じ扱いにする（残したままだと「次のターンへ」が押せなくなる）
+                if (gameState.currentGuidance === 'freeScan') {
+                    gameState.currentGuidance = null;
+                    gameState.guidanceContextForApply = null;
+                }
             }
             // ターン開始モーダル・最終結果系は誤って閉じないよう確認
             else if (['turnStartModal', 'finalResultModal', 'lifePlanKarteModal',
@@ -5079,6 +5209,12 @@ function showRoulette(title, description, successRate, callback) {
     gameState.isRouletteSpinning = false;
 
     startBtn.disabled = false;
+    // 回す前なら「転職・昇格の選択」に戻れる（キャリアチャレンジ中のみ表示）
+    const rouletteBackBtn = document.getElementById('rouletteBackBtn');
+    if (rouletteBackBtn) {
+        rouletteBackBtn.style.display = gameState.isCareerChallengeActive ? 'inline-block' : 'none';
+        rouletteBackBtn.disabled = false;
+    }
     startBtn.onclick = function() {
         if (gameState.isRouletteSpinning) return;
         spinRouletteDynamic(callback);
@@ -5091,6 +5227,8 @@ function spinRouletteDynamic(callback) {
     const wheel = document.getElementById('rouletteWheel');
     const startBtn = document.getElementById('startRouletteBtn');
     startBtn.disabled = true;
+    const rouletteBackBtn = document.getElementById('rouletteBackBtn');
+    if (rouletteBackBtn) rouletteBackBtn.style.display = 'none'; // 回し始めたら取り消せない
 
     // 最低5回転(1800度) + ランダムな角度(0-360度)
     const extraSpins = 5;
@@ -5247,6 +5385,9 @@ function openJobSelectionModal(isChallenge = false) {
     container.appendChild(infoEl);
 
     updateView();
+    // 転職チャレンジ中は「転職・昇格の選択」に戻れる（求職中の職業選択は必ず選ぶ必要があるため表示しない）
+    const jobBackBtn = document.getElementById('jobSelectBackBtn');
+    if (jobBackBtn) jobBackBtn.style.display = isJobChallengeMode ? 'block' : 'none';
     modal.style.display = 'flex';
 }
 
@@ -5270,6 +5411,8 @@ function executeJobChange() {
     p.jobId = newJobId;
     p.job = jobData.title;
     p.needsNewJob = false;
+    // キャリアチャレンジ中の転職は成立済みとして記録（画面を開き直しても、同じ人がもう一度選べないように）
+    if (gameState.isCareerChallengeActive) gameState.careerJobChangedKey = pKey;
 
     // 2. ★重要: キャリア年齢を30歳にセット
     p.careerAge = 30;
