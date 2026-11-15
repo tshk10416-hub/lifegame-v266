@@ -2736,7 +2736,11 @@ function applyCardEffect(cardIdOverride, fromRemote = false) {
             
             // 保有リストに追加
             gameState.car.cards.push({cardId: targetId, title: c.title, baseCosts: c.costsByIncome});
-            updated = true; 
+            // 年代ごとの購入履歴（保有リストは年代が変わるたびに空になるため、ライフプラン・カルテ用に別で残す）
+            if (!gameState.car.history) gameState.car.history = {};
+            if (!gameState.car.history[gameState.currentAge]) gameState.car.history[gameState.currentAge] = [];
+            gameState.car.history[gameState.currentAge].push(targetId);
+            updated = true;
             addEvent(`${logPrefix}${c.title} 購入: -${carCost}万円 (一括支出)`); 
             break;
             
@@ -4254,7 +4258,9 @@ function showCareerChallenge(key) {
     if (partnerIsDoctor && p.jobId === HOMEMAKER_JOB_ID) {
         setButton(jobChangeBtn, '転職<br><small>パートナーが医師のため選べません</small>', false);
     } else {
-        setButton(jobChangeBtn, '転職 (1, 6で成功)', true);
+        // 旧表記「1, 6で成功」はサイコロ時代の名残。現在は選んだ職業ごとの成功率でルーレットを回す
+        const rates = Object.values(JOB_SUCCESS_RATE).map(r => r * 10);
+        setButton(jobChangeBtn, `転職<br><small>職業を選んで挑戦（成功率は職業ごとに${Math.min(...rates)}〜${Math.max(...rates)}%）</small>`, true);
     }
 
     const next = getNextPromotionStep(p);
@@ -4632,8 +4638,30 @@ function showLifePlanKarte() {
     document.getElementById('karte-marriage').textContent = gameState.marriage.type;
     document.getElementById('karte-house').textContent = gameState.house.type;
     document.getElementById('karte-children').textContent = (gameState.children.count > 0) ? (gameState.children.count + "人") : "なし（夫婦2人）";
-    const carNames = gameState.car.cards.map(c => c.title.replace("自動車🚗 - ", "").replace("クラス", "")).join(", ");
-    document.getElementById('karte-car').textContent = carNames || "なし";
+    // 車: 年代ごとの購入履歴を表示する
+    //   旧実装は「いま保有している車」を表示していたが、保有リストは年代が変わるたびに空になるため、
+    //   60代で買っていない限り、購入していても「なし」と表示されていた
+    const carShortName = (id) => (CARD_DATA[id] ? CARD_DATA[id].title.replace("自動車🚗 - ", "").replace("クラス", "") : id);
+    const carHistory = gameState.car.history || {};
+    const carTotal = [30, 40, 50, 60].reduce((n, age) => n + (carHistory[age] || []).length, 0);
+    const carHistoryEl = document.getElementById('karte-car-history');
+    if (carTotal > 0) {
+        document.getElementById('karte-car').textContent = `購入あり（計${carTotal}台）`;
+        if (carHistoryEl) {
+            carHistoryEl.innerHTML = [30, 40, 50, 60].map(age => {
+                const ids = carHistory[age] || [];
+                const label = (age === 60) ? '60代前半' : `${age}代`;
+                const text = ids.length ? ids.map(carShortName).join('、') : '購入なし';
+                return `<div style="display:flex; justify-content:space-between; gap:10px; padding:2px 0; color:${ids.length ? '#2d3748' : '#a0aec0'};"><span>${label}</span><span style="font-weight:bold; text-align:right;">${text}</span></div>`;
+            }).join('');
+            carHistoryEl.style.display = 'block';
+        }
+    } else {
+        // 履歴を記録する前のセーブデータ向け: 読み取ったカードの記録から、購入した車だけは表示する（年代は不明）
+        const oldCarIds = (gameState.scannedCards || []).filter(id => CARD_DATA[id] && CARD_DATA[id].type === 'car');
+        document.getElementById('karte-car').textContent = oldCarIds.length ? oldCarIds.map(carShortName).join('、') : 'なし';
+        if (carHistoryEl) { carHistoryEl.innerHTML = ''; carHistoryEl.style.display = 'none'; }
+    }
     
     document.getElementById('karte-assets').textContent = Math.round(gameState.totalAssets).toLocaleString() + "万円";
     document.getElementById('karte-happiness').textContent = gameState.happiness + " pt";
